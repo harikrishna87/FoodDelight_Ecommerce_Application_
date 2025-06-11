@@ -140,9 +140,9 @@ const UserOrders: React.FC = () => {
       dataIndex: 'items',
       key: 'items',
       width: 100,
-      render: (_: any, record: IOrder) => (
+      render: (items: any, record: IOrder) => (
         <Button type="link" onClick={() => showModal(record)} style={{ display: 'flex', alignItems: 'center', padding: 0 }}>
-          <EyeOutlined style={{ marginRight: '4px' }} /> View Items
+          <EyeOutlined/> View Items ({items?.length || 0})
         </Button>
       ),
     },
@@ -168,7 +168,7 @@ const UserOrders: React.FC = () => {
   if (error) {
     return (
       <Layout style={{ minHeight: '100vh' }}>
-        <Content style={{ padding: '50px', textAlign: 'center', width: '1200px', margin: '0 auto' }}>
+        <Content style={{ padding: '50px', textAlign: 'center', width: 1250, margin: '0 auto' }}>
           <Alert
             message="Error!"
             description={

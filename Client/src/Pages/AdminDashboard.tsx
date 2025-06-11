@@ -62,15 +62,6 @@ const OrderStatistics: React.FC<OrderStatsProps> = ({ orders }) => {
     colorField: 'type',
     radius: 0.8,
     innerRadius: 0.6,
-    label: {
-      content: (item: any) => {
-        // Add null/undefined check to prevent errors
-        if (!item || typeof item !== 'object') {
-          return '';
-        }
-        return `${item.type || 'Unknown'}: ${item.value || 0}`;
-      },
-    },
     interactions: [{ type: 'element-active' }],
     statistic: {
       title: false,
@@ -457,7 +448,7 @@ const AdminDashboard: React.FC = () => {
       key: 'orderId',
       render: (id: string) => (
         <Tooltip title={id}>
-          <Text code>{id.substring(0, 8)}...</Text>
+          <Text code>{id}</Text>
         </Tooltip>
       ),
     },
@@ -519,18 +510,21 @@ const AdminDashboard: React.FC = () => {
       render: (record: IOrder) => {
         const availableOptions = getAvailableStatusOptions(record.deliveryStatus);
         return (
-          <Select
-            value={record.deliveryStatus}
-            onChange={(value) => handleStatusChange(record._id, value)}
-            style={{ width: 120 }}
-            size="small"
-          >
-            {availableOptions.map(status => (
-              <Option key={status} value={status}>
-                {status}
-              </Option>
-            ))}
-          </Select>
+          <Tooltip title={record.deliveryStatus === 'Delivered' ? 'Order is already delivered' : ''}>
+            <Select
+              value={record.deliveryStatus}
+              onChange={(value) => handleStatusChange(record._id, value)}
+              style={{ width: 120 }}
+              size="small"
+              disabled={record.deliveryStatus === 'Delivered'}
+            >
+              {availableOptions.map(status => (
+                <Option key={status} value={status}>
+                  {status}
+                </Option>
+              ))}
+            </Select>
+          </Tooltip>
         );
       },
     },

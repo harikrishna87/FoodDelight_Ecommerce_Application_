@@ -130,7 +130,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
       destroyOnClose
     >
       <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <Title level={3} style={{ color: '#28a745', margin: '0 0 8px 0', fontWeight: 600 }}>
+        <Title level={3} style={{ color: '#52c41a', margin: '0 0 8px 0', fontWeight: 600 }}>
           {isLoginMode ? 'Login to FoodDelights' : 'Register for FoodDelights'}
         </Title>
         <Text style={{ color: '#8c8c8c', fontSize: '14px' }}>
@@ -166,11 +166,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
             style={{ marginBottom: '20px' }}
           >
             <Input
-              prefix={<UserOutlined style={{ color: '#28a745' }} />}
+              prefix={<UserOutlined style={{ color: '#52c41a' }} />}
               placeholder="Enter your name"
               style={{ 
                 borderRadius: '6px', 
-                borderColor: '#28a745',
+                borderColor: '#52c41a',
                 boxShadow: 'none'
               }}
               className="no-hover-effect"
@@ -188,11 +188,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
           style={{ marginBottom: '20px' }}
         >
           <Input
-            prefix={<MailOutlined style={{ color: '#28a745' }} />}
+            prefix={<MailOutlined style={{ color: '#52c41a' }} />}
             placeholder="Enter email"
             style={{ 
               borderRadius: '6px', 
-              borderColor: '#28a745',
+              borderColor: '#52c41a',
               boxShadow: 'none'
             }}
             className="no-hover-effect"
@@ -206,11 +206,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
           style={{ marginBottom: '24px' }}
         >
           <Input.Password
-            prefix={<LockOutlined style={{ color: '#28a745' }} />}
+            prefix={<LockOutlined style={{ color: '#52c41a' }} />}
             placeholder="Password"
             style={{ 
               borderRadius: '6px', 
-              borderColor: '#28a745',
+              borderColor: '#52c41a',
               boxShadow: 'none'
             }}
             className="no-hover-effect"
@@ -228,8 +228,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
             style={{
               height: '44px',
               borderRadius: '6px',
-              backgroundColor: '#28a745',
-              borderColor: '#28a745',
+              backgroundColor: '#52c41a',
+              borderColor: '#52c41a',
               fontSize: '16px',
               fontWeight: 500,
               boxShadow: 'none'
@@ -276,7 +276,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
         <Link
           onClick={handleToggleMode}
           style={{
-            color: '#28a745',
+            color: '#52c41a',
             fontWeight: 500,
             textDecoration: 'none',
             fontSize: '14px'
