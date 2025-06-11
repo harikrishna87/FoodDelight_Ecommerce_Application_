@@ -21,12 +21,24 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+const allowedOrigins = [
+  'https://food-delight-ecommerce-application-chi.vercel.app',
+  'http://localhost:5173',
+];
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'https://food-delight-ecommerce-application-chi.vercel.app/',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
 
 app.get("/", (req: Request, res: Response) => {
     res.send("Hello, Welcome to the Backend API");
