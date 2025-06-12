@@ -46,7 +46,7 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
               }}
               bodyStyle={{
                 textAlign: 'center',
-                padding: '1.5rem'
+                padding: '1em'
               }}
               onClick={() => handleCategoryClick(category)}
             >

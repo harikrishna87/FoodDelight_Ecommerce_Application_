@@ -1,4 +1,4 @@
-import React, { useState, FormEvent, ChangeEvent } from 'react';
+import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { Row, Col, Form, Button, Card, Input, Select, Typography, message, Spin } from 'antd';
 import { SendOutlined, PhoneOutlined, MailOutlined, EnvironmentOutlined, ShopOutlined } from '@ant-design/icons';
 
@@ -82,6 +82,15 @@ const Contact: React.FC = () => {
     message: '',
   });
   const [loading, setLoading] = useState<boolean>(false);
+  const [componentLoading, setComponentLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setComponentLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleChange = (name: string, value: string) => {
     setFormData({ ...formData, [name]: value });
@@ -154,6 +163,22 @@ const Contact: React.FC = () => {
         }
       );
   };
+
+  if (componentLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        flexDirection: 'column',
+        backgroundColor: '#f9f9f9'
+      }}>
+        <Spin size="large" style={{ color: '#52c41a' }} />
+        <Paragraph style={{ marginTop: '16px', color: '#52c41a' }}>Loading contact form...</Paragraph>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

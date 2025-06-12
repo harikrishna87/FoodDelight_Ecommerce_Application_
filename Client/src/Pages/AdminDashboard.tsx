@@ -29,7 +29,8 @@ import {
   ShoppingCartOutlined,
   UserOutlined,
   CalendarOutlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
+  LoadingOutlined
 } from '@ant-design/icons';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
@@ -154,7 +155,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({ orders }) => {
       title: 'Order ID',
       dataIndex: '_id',
       key: 'orderId',
-      render: (id: string) => id.substring(0, 12) + '...',
+      render: (id: string) => id,
     },
     {
       title: 'Amount',
@@ -421,7 +422,6 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ visible, onCl
         )}
       </Row>
 
-      {/* Pagination for Order Items */}
       {totalItems > itemsPerPage && (
         <div style={{
           display: 'flex',
@@ -465,6 +465,23 @@ const getAvailableStatusOptions = (currentStatus: OrderDeliveryStatus) => {
   return statusFlow[currentStatus] || ['Pending'];
 };
 
+const LoadingSpinner: React.FC = () => {
+  return (
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '60vh',
+      flexDirection: 'column'
+    }}>
+      <Spin size="large" />
+      <div style={{ marginTop: 16, color: '#52c41a' }}>
+        Loading dashboard data...
+      </div>
+    </div>
+  );
+};
+
 const AdminDashboard: React.FC = () => {
   const auth = useContext(AuthContext);
   const [orders, setOrders] = useState<IOrder[]>([]);
@@ -473,6 +490,7 @@ const AdminDashboard: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [messageApi, contextHolder] = message.useMessage();
+  const [statusUpdateLoading, setStatusUpdateLoading] = useState<string | null>(null);
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -485,13 +503,22 @@ const AdminDashboard: React.FC = () => {
 
     try {
       setLoading(true);
+      setError(null);
+      
+      const minLoadingTime = new Promise(resolve => setTimeout(resolve, 1000));
+      
       const config = {
         headers: {
           Authorization: `Bearer ${auth.token}`,
         },
         withCredentials: true,
       };
-      const response = await axios.get(`${backendUrl}/api/orders`, config);
+      
+      const [response] = await Promise.all([
+        axios.get(`${backendUrl}/api/orders`, config),
+        minLoadingTime
+      ]);
+      
       if (response.data.success) {
         setOrders(response.data.orders);
         setError(null);
@@ -500,9 +527,10 @@ const AdminDashboard: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Error fetching orders:', err);
-      setError(err.response?.data?.message || 'Failed to fetch orders.');
+      const errorMessage = err.response?.data?.message || 'Failed to fetch orders.';
+      setError(errorMessage);
       messageApi.error({
-        content: err.response?.data?.message || 'Failed to fetch orders.',
+        content: errorMessage,
         duration: 3,
         style: {
           marginTop: '20vh',
@@ -511,7 +539,7 @@ const AdminDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [auth?.token, backendUrl]);
+  }, [auth?.token, backendUrl, messageApi]);
 
   useEffect(() => {
     fetchOrders();
@@ -524,6 +552,8 @@ const AdminDashboard: React.FC = () => {
     }
 
     try {
+      setStatusUpdateLoading(orderId);
+      
       const config = {
         headers: {
           Authorization: `Bearer ${auth.token}`,
@@ -531,11 +561,21 @@ const AdminDashboard: React.FC = () => {
         },
         withCredentials: true,
       };
-      const response = await axios.patch(`${backendUrl}/api/orders/${orderId}/status`, { status: newStatus }, config);
+      
+      const response = await axios.patch(
+        `${backendUrl}/api/orders/${orderId}/status`, 
+        { status: newStatus }, 
+        config
+      );
+      
       if (response.data.success) {
         message.success(`Order status updated to ${newStatus}`);
         setOrders(prevOrders =>
-          prevOrders.map(order => (order._id === orderId ? { ...order, deliveryStatus: newStatus } : order))
+          prevOrders.map(order => 
+            order._id === orderId 
+              ? { ...order, deliveryStatus: newStatus } 
+              : order
+          )
         );
       } else {
         message.error(response.data.message || 'Failed to update status.');
@@ -543,6 +583,8 @@ const AdminDashboard: React.FC = () => {
     } catch (err: any) {
       console.error('Error updating order status:', err);
       message.error(err.response?.data?.message || 'Failed to update order status.');
+    } finally {
+      setStatusUpdateLoading(null);
     }
   };
 
@@ -557,9 +599,9 @@ const AdminDashboard: React.FC = () => {
       dataIndex: '_id',
       key: 'orderId',
       render: (id: string) => (
-        <Tooltip title={id}>
-          <Text code>{id}</Text>
-        </Tooltip>
+        <Text code style={{ fontSize: '12px' }}>
+          {id}
+        </Text>
       ),
     },
     {
@@ -619,6 +661,8 @@ const AdminDashboard: React.FC = () => {
       key: 'action',
       render: (record: IOrder) => {
         const availableOptions = getAvailableStatusOptions(record.deliveryStatus);
+        const isUpdating = statusUpdateLoading === record._id;
+        
         return (
           <Tooltip title={record.deliveryStatus === 'Delivered' ? 'Order is already delivered' : ''}>
             <Select
@@ -626,7 +670,9 @@ const AdminDashboard: React.FC = () => {
               onChange={(value) => handleStatusChange(record._id, value)}
               style={{ width: 120 }}
               size="small"
-              disabled={record.deliveryStatus === 'Delivered'}
+              disabled={record.deliveryStatus === 'Delivered' || isUpdating}
+              loading={isUpdating}
+              suffixIcon={isUpdating ? <LoadingOutlined /> : undefined}
             >
               {availableOptions.map(status => (
                 <Option key={status} value={status}>
@@ -642,41 +688,45 @@ const AdminDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '60vh',
-        flexDirection: 'column'
-      }}>
-        <Spin size="large" />
-        <Text style={{ marginTop: 16, color: '#52c41a' }}>Loading dashboard data...</Text>
+      <div style={{ padding: '40px 24px', maxWidth: 1250, margin: '0 auto' }}>
+        <LoadingSpinner />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ padding: '40px 0', textAlign: 'center' }}>
+      <div style={{ padding: '40px 24px', maxWidth: 1250, margin: '0 auto' }}>
         {contextHolder}
-        <Alert
-          message="Access Denied or Error!"
-          description={
-            <div>
-              <p>{error}</p>
-              <p>Please ensure you are logged in as an administrator.</p>
-            </div>
-          }
-          type="error"
-          showIcon
-          icon={<InfoCircleOutlined />}
-        />
+        <div style={{ padding: '40px 0', textAlign: 'center' }}>
+          <Alert
+            message="Access Denied or Error!"
+            description={
+              <div>
+                <p>{error}</p>
+                <p>Please ensure you are logged in as an administrator.</p>
+                <Button 
+                  type="primary" 
+                  onClick={fetchOrders}
+                  style={{ marginTop: 16 }}
+                >
+                  Retry
+                </Button>
+              </div>
+            }
+            type="error"
+            showIcon
+            icon={<InfoCircleOutlined />}
+          />
+        </div>
       </div>
     );
   }
 
   return (
     <div style={{ padding: '40px 24px', maxWidth: 1250, margin: '0 auto' }}>
+      {contextHolder}
+      
       <Title level={2} style={{ textAlign: 'center', marginBottom: 40, color: "#52c41a" }}>
         Admin Dashboard
       </Title>
@@ -701,7 +751,12 @@ const AdminDashboard: React.FC = () => {
             }
           >
             {orders.length === 0 ? (
-              <Alert message="No orders found." type="info" showIcon />
+              <Alert 
+                message="No orders found." 
+                description="Orders will appear here once customers start placing orders."
+                type="info" 
+                showIcon 
+              />
             ) : (
               <Table
                 columns={columns}
@@ -715,6 +770,7 @@ const AdminDashboard: React.FC = () => {
                   showTotal: (total, range) =>
                     `${range[0]}-${range[1]} of ${total} orders`,
                 }}
+                loading={statusUpdateLoading !== null}
               />
             )}
           </Card>

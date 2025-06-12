@@ -77,7 +77,7 @@ const Footer: React.FC<FooterProps> = ({
           content: "This feature is under development. Please check back later.",
           duration: 3,
           style: {
-            marginTop: '20vh',
+            marginTop: '10vh',
           },
         });
     }

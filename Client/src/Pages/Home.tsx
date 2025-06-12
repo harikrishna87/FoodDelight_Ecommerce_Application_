@@ -6,21 +6,20 @@ import {
   Typography, 
   Space, 
   Card, 
-  Badge
+  Badge,
+  Spin
 } from 'antd';
 import { Link } from 'react-router-dom';
 import { 
   PercentageOutlined, 
   ShoppingCartOutlined,
   StarFilled,
-  StarOutlined
 } from '@ant-design/icons';
 import customStyles from "../styles/Styles";
 import Testimonials from '../Components/Testimonials';
 import ProductCategories from '../Components/ProductCategories';
 import ProductSelection from '../Components/ProductSelection';
 import FeaturedProducts from '../Components/FeaturedProducts';
-import SkeletonLoadingState from '../Components/SkeletonLoading_Animation';
 
 const { Content } = Layout;
 const { Title, Paragraph } = Typography;
@@ -165,16 +164,20 @@ export default function Homepage() {
           <StarFilled key={`full-${i}`} />
         ))}
         {hasHalfStar && <StarFilled style={{ clipPath: 'inset(0 50% 0 0)' }} />}
-        {Array.from({ length: emptyStars }, (_, i) => (
-          <StarOutlined key={`empty-${i}`} />
-        ))}
+        {Array.from({ length: emptyStars })}^
+
         <span style={{ color: '#8c8c8c', marginLeft: '4px' }}>({safeRating.toFixed(1)})</span>
       </Space>
     );
   };
 
   if (loading) {
-    return <SkeletonLoadingState/>;
+    return (
+      <Layout style={{ minHeight: '100vh', backgroundColor: '#f5f5f5', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <Spin size="large"  style={{ color: '#28a745' }}/>
+        <Paragraph style={{ marginTop: '16px', color: '#28a745' }}>Loading your Home Page...</Paragraph>
+      </Layout>
+    );
   }
 
   if (error) {
@@ -241,7 +244,6 @@ export default function Homepage() {
         </svg>
       </div>
 
-      {/* Hero Section with constrained width */}
       <div style={{
         maxWidth: '1200px',
         width: '90%',
@@ -301,7 +303,6 @@ export default function Homepage() {
         </Content>
       </div>
 
-      {/* Main Content with constrained width */}
       <Content style={{ 
         maxWidth: '1200px', 
         margin: '0 auto', 
