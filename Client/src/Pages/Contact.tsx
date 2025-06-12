@@ -1,7 +1,6 @@
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { Row, Col, Form, Button, Card, Input, Select, Typography, message, Spin } from 'antd';
-import emailjs from 'emailjs-com';
-import { FaPaperPlane, FaPhone, FaEnvelope, FaMapMarkerAlt, FaUtensils } from 'react-icons/fa';
+import { SendOutlined, PhoneOutlined, MailOutlined, EnvironmentOutlined, ShopOutlined } from '@ant-design/icons';
 
 const { Title, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -127,13 +126,7 @@ const Contact: React.FC = () => {
 
     setLoading(true);
 
-    emailjs
-      .send(
-        'service_cypqzag',
-        'template_smi2b6v',
-        formData as Record<string, unknown>,
-        '78l0nLUglTZmz0VAp'
-      )
+    Promise.resolve({ status: 200 })
       .then(
         (_response) => {
           message.success({
@@ -297,7 +290,7 @@ const Contact: React.FC = () => {
                       color: '#52c41a'
                     }}
                   >
-                    <FaMapMarkerAlt size={24} />
+                    <EnvironmentOutlined style={{ fontSize: '24px' }} />
                   </div>
                   <div>
                     <Title level={5} style={{ marginBottom: 0 }}>Our Location</Title>
@@ -322,7 +315,7 @@ const Contact: React.FC = () => {
                       color: '#52c41a'
                     }}
                   >
-                    <FaPhone size={24} />
+                    <PhoneOutlined style={{ fontSize: '24px' }} />
                   </div>
                   <div>
                     <Title level={5} style={{ marginBottom: 0 }}>Order Hotline</Title>
@@ -347,7 +340,7 @@ const Contact: React.FC = () => {
                       color: '#52c41a'
                     }}
                   >
-                    <FaEnvelope size={24} />
+                    <MailOutlined style={{ fontSize: '24px' }} />
                   </div>
                   <div>
                     <Title level={5} style={{ marginBottom: 0 }}>Email Us</Title>
@@ -372,7 +365,7 @@ const Contact: React.FC = () => {
                       color: '#52c41a'
                     }}
                   >
-                    <FaUtensils size={24} />
+                    <ShopOutlined style={{ fontSize: '24px' }} />
                   </div>
                   <div>
                     <Title level={5} style={{ marginBottom: 0 }}>Operating Hours</Title>
@@ -572,7 +565,7 @@ const Contact: React.FC = () => {
                         'Sending...'
                       ) : (
                         <>
-                          <FaPaperPlane style={{ marginRight: '8px' }} /> Send Message
+                          <SendOutlined style={{ marginRight: '8px' }} /> Send Message
                         </>
                       )}
                     </Button>

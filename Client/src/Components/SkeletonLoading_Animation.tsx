@@ -294,7 +294,7 @@ const MobileSkeletonLoadingState = () => {
         <div style={{ marginBottom: '32px' }}>
           <SkeletonPulse height="32px" width="180px" style={{ marginBottom: '24px' }} />
           <Row gutter={[24, 24]}>
-            {Array(8).fill(0).map((_, index) => (
+            {Array(12).fill(0).map((_, index) => (
               <Col xl={6} lg={8} md={12} sm={24} xs={24} key={index}>
                 <ProductCardSkeleton />
               </Col>
