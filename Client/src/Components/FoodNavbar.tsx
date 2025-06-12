@@ -146,7 +146,7 @@ const FoodNavbar: React.FC = () => {
         setShowCart(false);
         setMobileMenuVisible(false);
         
-        toast.success("Logged out successfully", { position: "top-right" });
+        toast.success("User Logged out successfully", { position: "top-right" });
         
         setTimeout(() => {
           navigate("/")

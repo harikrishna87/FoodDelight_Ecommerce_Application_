@@ -168,7 +168,7 @@ const UserOrders: React.FC = () => {
   if (error) {
     return (
       <Layout style={{ minHeight: '100vh' }}>
-        <Content style={{ padding: '50px', textAlign: 'center', width: 1250, margin: '0 auto' }}>
+        <Content style={{ padding: '50px', textAlign: 'center'}}>
           <Alert
             message="Error!"
             description={
@@ -269,8 +269,8 @@ const UserOrders: React.FC = () => {
             open={isModalVisible}
             onCancel={handleCancel}
             footer={null}
-            width={600}
-            style={{ top: 20 }}
+            width="90%"
+            style={{ maxWidth: '600px', top: 20 }}
             bodyStyle={{ padding: '24px' }}
           >
             <div style={{ marginBottom: '24px' }}>
@@ -282,7 +282,7 @@ const UserOrders: React.FC = () => {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', padding: '8px' }}>
                   <span style={{ fontWeight: 'bold' }}>Customer Email:</span>
-                  <span>{selectedOrder.user?.email || 'N/A'}</span>
+                  <span className="truncate-email">{selectedOrder.user?.email || 'N/A'}</span>
                 </div>
               </div>
             </div>
@@ -292,7 +292,7 @@ const UserOrders: React.FC = () => {
               <div style={{ border: '1px solid #e8e8e8', borderRadius: '4px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', padding: '8px', borderBottom: '1px solid #e8e8e8' }}>
                   <span style={{ fontWeight: 'bold' }}>Order ID:</span>
-                  <span>{selectedOrder._id}</span>
+                  <span className="truncate-id">{selectedOrder._id}</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', padding: '8px', borderBottom: '1px solid #e8e8e8' }}>
                   <span style={{ fontWeight: 'bold' }}>Order Date:</span>
@@ -310,9 +310,9 @@ const UserOrders: React.FC = () => {
             </div>
 
             <Title level={4} style={{ marginBottom: '16px' }}>Order Items</Title>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="order-items-container">
               {selectedOrder.items.map((item, idx) => (
-                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '8px 0' }}>
+                <div key={idx} className="order-item">
                   <img
                     src={item.image || 'https://via.placeholder.com/80'}
                     alt={item.name}
@@ -381,6 +381,44 @@ const UserOrders: React.FC = () => {
           }
           .custom-table :global(.ant-table-tbody > tr > td) {
             padding: 8px 4px;
+          }
+          .truncate-email {
+            display: block;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          .truncate-id {
+            display: block;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          .order-items-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+          }
+          .order-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 8px 0;
+          }
+        }
+        @media (min-width: 769px) {
+          .order-items-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+          }
+          .order-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 8px 0;
           }
         }
         .custom-table :global(.ant-spin-nested-loading) {

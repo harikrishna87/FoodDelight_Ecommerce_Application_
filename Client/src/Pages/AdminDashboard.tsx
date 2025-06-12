@@ -51,6 +51,7 @@ const OrderStatistics: React.FC<OrderStatsProps> = ({ orders }) => {
   const deliveredOrders = orders.filter(o => o.deliveryStatus === 'Delivered').length;
 
   const data = [
+    { type: 'Total Orders', value: totalOrders },
     { type: 'Pending', value: pendingOrders },
     { type: 'Shipped', value: shippedOrders },
     { type: 'Delivered', value: deliveredOrders },
@@ -75,6 +76,7 @@ const OrderStatistics: React.FC<OrderStatsProps> = ({ orders }) => {
       },
     },
     color: ({ type }: { type: string }) => {
+      if (type === 'Total Orders') return '#1890ff';
       if (type === 'Pending') return '#faad14';
       if (type === 'Shipped') return '#13c2c2';
       if (type === 'Delivered') return '#52c41a';
@@ -95,7 +97,7 @@ const OrderStatistics: React.FC<OrderStatsProps> = ({ orders }) => {
       <Row gutter={16} style={{ marginBottom: 24, textAlign: 'center' }}>
         <Col span={6}>
           <Statistic
-            title="Total"
+            title="Total Orders"
             value={totalOrders}
             valueStyle={{ color: '#1890ff', fontSize: '24px' }}
           />
@@ -150,16 +152,10 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({ orders }) => {
 
   const columns = [
     {
-      title: 'Payment ID',
-      dataIndex: '_id',
-      key: 'paymentId',
-      render: (id: string) => id.substring(0, 8) + '...',
-    },
-    {
       title: 'Order ID',
       dataIndex: '_id',
       key: 'orderId',
-      render: (id: string) => id.substring(0, 8) + '...',
+      render: (id: string) => id.substring(0, 12) + '...',
     },
     {
       title: 'Amount',
@@ -215,7 +211,13 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({ orders }) => {
             dataSource={orders}
             rowKey="_id"
             size="small"
-            pagination={false}
+            pagination={{
+              pageSize: 5,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} of ${total} payments`,
+            }}
           />
         </div>
       )}
@@ -230,6 +232,18 @@ interface ProductDetailsModalProps {
 }
 
 const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ visible, onClose, order }) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   if (!order || !order._id) {
     return (
       <Modal
@@ -237,31 +251,40 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ visible, onCl
         open={visible}
         onCancel={onClose}
         footer={null}
-        width={800}
+        width={isMobile ? '95%' : 800}
+        style={isMobile ? { top: 20 } : {}}
       >
         <Alert message="No order data available" type="warning" showIcon />
       </Modal>
     );
   }
 
+  const truncateText = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
   return (
     <Modal
       title={
         <Space>
           <ShoppingCartOutlined />
-          <span>Order Details - {order._id.substring(0, 8)}...</span>
+          <span>Order Details - {isMobile ? order._id.substring(0, 6) + '...' : order._id.substring(0, 8) + '...'}</span>
         </Space>
       }
       open={visible}
       onCancel={onClose}
       footer={null}
-      width={800}
+      width={isMobile ? '95%' : 800}
+      style={isMobile ? { top: 20 } : {}}
     >
-      <Descriptions bordered column={2} style={{ marginBottom: 24 }}>
-        <Descriptions.Item label="Order ID">{order._id}</Descriptions.Item>
-        <Descriptions.Item label="Order Date">
-          {new Date(order.createdAt).toLocaleDateString()}
-        </Descriptions.Item>
+      <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>Customer Details</Title>
+      <Descriptions 
+        bordered 
+        column={isMobile ? 1 : 2} 
+        size={isMobile ? 'small' : 'default'}
+        style={{ marginBottom: 24 }}
+      >
         <Descriptions.Item label="Customer Name">
           <Space>
             <UserOutlined />
@@ -269,7 +292,26 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ visible, onCl
           </Space>
         </Descriptions.Item>
         <Descriptions.Item label="Customer Email">
-          {order.user?.email || 'N/A'}
+          <Tooltip title={order.user?.email || 'N/A'}>
+            <Text>{isMobile ? truncateText(order.user?.email || 'N/A', 20) : order.user?.email || 'N/A'}</Text>
+          </Tooltip>
+        </Descriptions.Item>
+      </Descriptions>
+
+      <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>Order Information</Title>
+      <Descriptions 
+        bordered 
+        column={isMobile ? 1 : 2} 
+        size={isMobile ? 'small' : 'default'}
+        style={{ marginBottom: 24 }}
+      >
+        <Descriptions.Item label="Order ID">
+          <Tooltip title={order._id}>
+            <Text code>{isMobile ? truncateText(order._id, 15) : order._id}</Text>
+          </Tooltip>
+        </Descriptions.Item>
+        <Descriptions.Item label="Order Date">
+          {new Date(order.createdAt).toLocaleDateString()}
         </Descriptions.Item>
         <Descriptions.Item label="Total Amount">
           <Text strong style={{ color: '#52c41a', fontSize: '16px' }}>
@@ -281,15 +323,21 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ visible, onCl
         </Descriptions.Item>
       </Descriptions>
 
-      <Title level={4}>Order Items</Title>
+      <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>Order Items</Title>
       <Row gutter={[16, 16]}>
         {order.items && order.items.length > 0 ? (
           order.items.map((item, idx) => (
-            <Col span={12} key={idx}>
+            <Col span={24} key={idx}>
               <Card size="small" hoverable style={{ padding: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'flex-start',
+                  gap: '16px'
+                }}>
                   {item.image && (
-                    <div style={{ marginRight: 20, flexShrink: 0 }}>
+                    <div style={{ 
+                      flexShrink: 0
+                    }}>
                       <Image
                         src={item.image}
                         alt={item.name}
@@ -300,8 +348,14 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ visible, onCl
                       />
                     </div>
                   )}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <Title level={5} style={{ margin: '0 0 8px 0', fontSize: '16px' }}>
+                  <div style={{ 
+                    flex: 1, 
+                    minWidth: 0
+                  }}>
+                    <Title level={5} style={{ 
+                      margin: '0 0 8px 0', 
+                      fontSize: '16px' 
+                    }}>
                       {item.name || 'Unknown Item'}
                     </Title>
                     <div style={{ marginBottom: '8px' }}>
@@ -310,7 +364,11 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ visible, onCl
                       </Text>
                     </div>
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '8px'
+                      }}>
                         <Text
                           delete
                           style={{
