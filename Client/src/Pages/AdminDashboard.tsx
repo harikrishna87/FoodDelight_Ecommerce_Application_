@@ -11,7 +11,7 @@ import {
   Typography,
   Button,
   Modal,
-  Image,
+  Pagination,
   Descriptions,
   Space,
   Statistic,
@@ -97,7 +97,7 @@ const OrderStatistics: React.FC<OrderStatsProps> = ({ orders }) => {
       <Row gutter={16} style={{ marginBottom: 24, textAlign: 'center' }}>
         <Col span={6}>
           <Statistic
-            title="Total Orders"
+            title="Total"
             value={totalOrders}
             valueStyle={{ color: '#1890ff', fontSize: '24px' }}
           />
@@ -233,16 +233,22 @@ interface ProductDetailsModalProps {
 
 const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ visible, onClose, order }) => {
   const [isMobile, setIsMobile] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4;
 
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [visible, order]);
 
   if (!order || !order._id) {
     return (
@@ -252,7 +258,7 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ visible, onCl
         onCancel={onClose}
         footer={null}
         width={isMobile ? '95%' : 800}
-        style={isMobile ? { top: 20 } : {}}
+        style={isMobile ? { top: 15 } : { top: 15 }}
       >
         <Alert message="No order data available" type="warning" showIcon />
       </Modal>
@@ -264,24 +270,33 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ visible, onCl
     return text.substring(0, maxLength) + '...';
   };
 
+  const totalItems = order.items?.length || 0;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = order.items?.slice(startIndex, endIndex) || [];
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
     <Modal
       title={
         <Space>
           <ShoppingCartOutlined />
-          <span>Order Details - {isMobile ? order._id.substring(0, 6) + '...' : order._id.substring(0, 8) + '...'}</span>
+          <span>Order Details - {isMobile ? order._id.substring(0, 6) + '...' : order._id}</span>
         </Space>
       }
       open={visible}
       onCancel={onClose}
       footer={null}
       width={isMobile ? '95%' : 800}
-      style={isMobile ? { top: 20 } : {}}
+      style={isMobile ? { top: 15 } : { top: 15 }}
     >
       <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>Customer Details</Title>
-      <Descriptions 
-        bordered 
-        column={isMobile ? 1 : 2} 
+      <Descriptions
+        bordered
+        column={isMobile ? 1 : 2}
         size={isMobile ? 'small' : 'default'}
         style={{ marginBottom: 24 }}
       >
@@ -293,15 +308,15 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ visible, onCl
         </Descriptions.Item>
         <Descriptions.Item label="Customer Email">
           <Tooltip title={order.user?.email || 'N/A'}>
-            <Text>{isMobile ? truncateText(order.user?.email || 'N/A', 20) : order.user?.email || 'N/A'}</Text>
+            <Text>{isMobile ? truncateText(order.user?.email || 'N/A', 20) : (order.user?.email || 'N/A')}</Text>
           </Tooltip>
         </Descriptions.Item>
       </Descriptions>
 
       <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>Order Information</Title>
-      <Descriptions 
-        bordered 
-        column={isMobile ? 1 : 2} 
+      <Descriptions
+        bordered
+        column={isMobile ? 1 : 2}
         size={isMobile ? 'small' : 'default'}
         style={{ marginBottom: 24 }}
       >
@@ -323,38 +338,50 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ visible, onCl
         </Descriptions.Item>
       </Descriptions>
 
-      <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>Order Items</Title>
+      <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>
+        Order Items ({totalItems} items)
+      </Title>
+
       <Row gutter={[16, 16]}>
-        {order.items && order.items.length > 0 ? (
-          order.items.map((item, idx) => (
-            <Col span={24} key={idx}>
-              <Card size="small" hoverable style={{ padding: '16px' }}>
-                <div style={{ 
-                  display: 'flex', 
+        {currentItems.length > 0 ? (
+          currentItems.map((item, idx) => (
+            <Col
+              span={isMobile ? 24 : 12}
+              key={startIndex + idx}
+            >
+              <Card size="small" hoverable style={{ padding: '16px', height: '100%' }}>
+                <div style={{
+                  display: 'flex',
                   alignItems: 'flex-start',
                   gap: '16px'
                 }}>
                   {item.image && (
-                    <div style={{ 
+                    <div style={{
                       flexShrink: 0
                     }}>
-                      <Image
+                      <img
                         src={item.image}
                         alt={item.name}
-                        width={80}
-                        height={80}
-                        style={{ borderRadius: 8, objectFit: 'cover' }}
-                        fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RUG8G+5BhMlyJFAcxBOJqhE8wQ7kKQQtKSlkZzZnZklBW1KKaUKZhJFM7MpIQ6lJTJKKJGJ6GElJvK5Z+cFklVVr6vr9e/39v3V/e8P"
+                        style={{
+                          width: 80,
+                          height: 80,
+                          borderRadius: 8,
+                          objectFit: 'cover',
+                          border: '1px solid #d9d9d9'
+                        }}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RUG8G+5BhMlyJFAcxBOJqhE8wQ7kKQQtKSlkZzZnZklBW1KKaUKZhJFM7MpIQ6lJTJKKJGJ6GElJvK5Z+cFklVVr6vr9e/39v3V/e8P";
+                        }}
                       />
                     </div>
                   )}
-                  <div style={{ 
-                    flex: 1, 
+                  <div style={{
+                    flex: 1,
                     minWidth: 0
                   }}>
-                    <Title level={5} style={{ 
-                      margin: '0 0 8px 0', 
-                      fontSize: '16px' 
+                    <Title level={5} style={{
+                      margin: '0 0 8px 0',
+                      fontSize: '16px'
                     }}>
                       {item.name || 'Unknown Item'}
                     </Title>
@@ -364,9 +391,9 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ visible, onCl
                       </Text>
                     </div>
                     <div>
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
                         gap: '8px'
                       }}>
                         <Text
@@ -394,6 +421,25 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ visible, onCl
           </Col>
         )}
       </Row>
+
+      {/* Pagination for Order Items */}
+      {totalItems > itemsPerPage && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          marginTop: 24
+        }}>
+          <Pagination
+            current={currentPage}
+            total={totalItems}
+            pageSize={itemsPerPage}
+            onChange={handlePageChange}
+            showSizeChanger={false}
+            showQuickJumper={false}
+            size={isMobile ? 'small' : 'default'}
+          />
+        </div>
+      )}
     </Modal>
   );
 };

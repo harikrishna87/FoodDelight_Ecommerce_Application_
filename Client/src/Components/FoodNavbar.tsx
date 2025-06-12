@@ -563,9 +563,9 @@ const FoodNavbar: React.FC = () => {
               justifyContent: 'center',
               minHeight: '50vh'
             }}>
-              <ShoppingCartOutlined style={{ fontSize: '48px', color: '#d9d9d9', marginBottom: '16px' }} />
+              <ShoppingCartOutlined style={{ fontSize: '48px', color: '#52c41a', marginBottom: '16px' }} />
               <Title level={4} style={{ marginBottom: '16px' }}>Your cart is empty</Title>
-              <Button type="primary" onClick={() => setShowCart(false)}>
+              <Button style={{color: "#52c41a", backgroundColor:"white", border: "1px solid #52c41a"}} onClick={() => setShowCart(false)}>
                 Continue Shopping
               </Button>
             </div>
@@ -621,7 +621,7 @@ const FoodNavbar: React.FC = () => {
                           </div>
                           
                           <div style={{ marginBottom: '8px' }}>
-                            <Tag color={getCategoryColor(item.category)} style={{ borderRadius: '12px' }}>
+                            <Tag color={getCategoryColor(item.category)} style={{ borderRadius: '5px' }}>
                               {item.category}
                             </Tag>
                             <Button
@@ -629,7 +629,7 @@ const FoodNavbar: React.FC = () => {
                               size="small"
                               icon={<InfoCircleOutlined />}
                               onClick={() => toggleItemDescription(item._id || '')}
-                              style={{ padding: '0 4px', height: 'auto', fontSize: '12px' }}
+                              style={{ padding: '0 4px', height: 'auto', fontSize: '12px', color: "#52c41a" }}
                             >
                               {expandedItems[item._id || ''] ? 'Hide details' : 'Show details'}
                             </Button>
@@ -663,7 +663,11 @@ const FoodNavbar: React.FC = () => {
                           }}>
                             <Space>
                               <Button
-                                type="primary"
+                                style={{
+                                  color: "white",
+                                  backgroundColor: "#52c41a",
+                                  border: "1px solid #52c41a"
+                                }}
                                 shape="circle"
                                 size="small"
                                 icon={<MinusOutlined />}
@@ -671,7 +675,11 @@ const FoodNavbar: React.FC = () => {
                               />
                               <Text strong>{item.quantity}</Text>
                               <Button
-                                type="primary"
+                                style={{
+                                  color: "white",
+                                  backgroundColor: "#52c41a",
+                                  border: "1px solid #52c41a"
+                                }}
                                 shape="circle"
                                 size="small"
                                 icon={<PlusOutlined />}
@@ -704,7 +712,11 @@ const FoodNavbar: React.FC = () => {
                     <Title level={4} style={{ margin: 0 }}>₹{totalPrice}</Title>
                   </div>
                   <Button 
-                    type="primary" 
+                    style={{
+                      backgroundColor: "#52c41a",
+                      color: "white",
+                      border: "1px solid #52c41a",
+                    }}
                     size="large"
                     block
                     onClick={() => checkoutHandler(totalPrice)}

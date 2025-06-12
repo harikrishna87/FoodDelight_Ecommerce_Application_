@@ -22,7 +22,75 @@ const SkeletonPulse = ({ height = '20px', width = '100%', className = '', style 
   />
 );
 
-const SkeletonLoadingState = () => {
+const ProductCardSkeleton = () => (
+  <Card
+    hoverable
+    style={{
+      borderRadius: '12px',
+      overflow: 'hidden',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+      backgroundColor: '#fff'
+    }}
+    bodyStyle={{ padding: '0' }}
+  >
+    <div style={{ position: 'relative' }}>
+      <SkeletonPulse height="200px" style={{ borderRadius: '0', marginBottom: '0' }} />
+      <div style={{
+        position: 'absolute',
+        top: '10px',
+        right: '-8px',
+        backgroundColor: '#ff4d4f',
+        color: 'white',
+        padding: '4px 8px',
+        fontSize: '12px',
+        fontWeight: 'bold',
+        width: "75px",
+        height: "25px",
+        clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%, 10% 50%)"
+      }}>
+      </div>
+    </div>
+
+    <div style={{ padding: '16px' }}>
+      <Space direction="vertical" size="small" style={{ width: '100%' }}>
+        <SkeletonPulse height="23px" width="100px" />
+        <SkeletonPulse height="20px" width="150px" />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}>
+          {Array(3).fill(0).map((_, i) => (
+            <StarOutlined key={i} style={{ color: '#faad14', fontSize: '12px' }} />
+          ))}
+          {Array(2).fill(0).map((_, i) => (
+            <StarOutlined key={i} style={{ color: '#d9d9d9', fontSize: '12px' }} />
+          ))}
+          <SkeletonPulse height="14px" width="30px" style={{ marginLeft: '4px' }} />
+        </div>
+
+        <SkeletonPulse height="14px" width="150px" />
+
+        <Flex justify="space-between" align="center" style={{ marginTop: '12px' }}>
+          <Flex justify='start' align='center'>
+            <SkeletonPulse height="18px" width="60px" style={{ marginRight: "5px" }} />
+            <SkeletonPulse height="18px" width="60px" />
+          </Flex>
+          <div style={{
+            backgroundColor: '#52c41a',
+            color: 'white',
+            padding: '6px 12px',
+            borderRadius: '6px',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            width: "100px",
+            height: "25px"
+          }}>
+          </div>
+        </Flex>
+      </Space>
+    </div>
+  </Card>
+);
+
+const MobileSkeletonLoadingState = () => {
   return (
     <Layout style={{
       minHeight: '100vh',
@@ -64,54 +132,51 @@ const SkeletonLoadingState = () => {
         </svg>
       </div>
 
-      <div style={{
-        maxWidth: '1200px',
-        width: '90%',
-        margin: '0 auto',
-        backgroundColor: 'rgba(82, 196, 26, 0.1)',
-        borderRadius: '10px',
-        padding: '32px 0',
-        marginBottom: '40px',
-        marginTop: "40px",
-        position: 'relative'
-      }}>
-        <Content style={{
-          textAlign: 'center',
-          padding: '32px 24px'
-        }}>
-          <SkeletonPulse height="48px" width="80%" style={{ margin: '0 auto 16px', backgroundColor: 'rgba(84, 178, 36, 0.2)' }} />
-          <SkeletonPulse height="24px" width="60%" style={{ margin: '0 auto 24px', backgroundColor: 'rgba(82, 196, 26, 0.15)' }} />
-          <SkeletonPulse height="40px" width="150px" style={{ margin: '0 auto', backgroundColor: 'rgba(82, 196, 26, 0.25)' }} />
-
-          <div style={{
-            position: 'absolute',
-            left: '10px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: 'white',
-            opacity: 0.5
-          }}>
-            <LeafIconCustom />
-          </div>
-          <div style={{
-            position: 'absolute',
-            right: '10px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: 'white',
-            opacity: 0.5
-          }}>
-            <ShoppingCartOutlined style={{ fontSize: '24px' }} />
-          </div>
-        </Content>
-      </div>
-
       <Content style={{
         maxWidth: '1200px',
         margin: '0 auto',
         padding: '0 24px',
         width: '90%'
       }}>
+        <div style={{
+          backgroundColor: 'rgba(82, 196, 26, 0.1)',
+          borderRadius: '10px',
+          padding: '32px 0',
+          marginBottom: '40px',
+          marginTop: "40px",
+          position: 'relative'
+        }}>
+          <div style={{
+            textAlign: 'center',
+            padding: '32px 24px'
+          }}>
+            <SkeletonPulse height="48px" width="80%" style={{ margin: '0 auto 16px', backgroundColor: 'rgba(84, 178, 36, 0.2)' }} />
+            <SkeletonPulse height="24px" width="60%" style={{ margin: '0 auto 24px', backgroundColor: 'rgba(82, 196, 26, 0.15)' }} />
+            <SkeletonPulse height="40px" width="150px" style={{ margin: '0 auto', backgroundColor: 'rgba(82, 196, 26, 0.25)' }} />
+
+            <div style={{
+              position: 'absolute',
+              left: '10px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: 'white',
+              opacity: 0.5
+            }}>
+              <LeafIconCustom />
+            </div>
+            <div style={{
+              position: 'absolute',
+              right: '10px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: 'white',
+              opacity: 0.5
+            }}>
+              <ShoppingCartOutlined style={{ fontSize: '24px' }} />
+            </div>
+          </div>
+        </div>
+
         <Card
           style={{
             marginBottom: '32px',
@@ -174,52 +239,25 @@ const SkeletonLoadingState = () => {
         </Card>
 
         <div style={{ marginBottom: '32px' }}>
-          <Flex justify="space-between" align="center" style={{ marginBottom: '24px' }}>
-            <SkeletonPulse height="32px" width="220px" />
-            <SkeletonPulse height="24px" width="80px" />
-          </Flex>
-          <Row gutter={[16, 16]}>
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <SkeletonPulse height="32px" width="220px" style={{ margin: '0 auto' }} />
+          </div>
+          <Row gutter={[16, 16]} justify="center">
             {Array(4).fill(0).map((_, index) => (
-              <Col lg={6} md={12} sm={12} key={index}>
-                <Card
-                  hoverable
-                  style={{
-                    height: '100%',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                  }}
-                  cover={<SkeletonPulse height="200px" style={{ borderRadius: '0' }} />}
-                >
-                  <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                    <SkeletonPulse height="24px" width="85%" />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}>
-                      {Array(5).fill(0).map((_, i) => (
-                        <StarOutlined key={i} style={{ color: '#faad14', fontSize: '12px' }} />
-                      ))}
-                      <SkeletonPulse height="14px" width="40px" style={{ marginLeft: '4px' }} />
-                    </div>
-                    <SkeletonPulse height="16px" width="100%" />
-                    <SkeletonPulse height="16px" width="70%" />
-                    <Flex justify="space-between" align="center" style={{ marginTop: '12px' }}>
-                      <div>
-                        <SkeletonPulse height="20px" width="60px" style={{ marginBottom: '4px' }} />
-                        <SkeletonPulse height="16px" width="45px" />
-                      </div>
-                      <SkeletonPulse height="32px" width="80px" />
-                    </Flex>
-                  </Space>
-                </Card>
+              <Col xl={6} lg={8} md={12} sm={24} xs={24} key={index}>
+                <ProductCardSkeleton />
               </Col>
             ))}
           </Row>
         </div>
 
         <div style={{ marginBottom: '32px' }}>
-          <SkeletonPulse height="32px" width="200px" style={{ marginBottom: '24px' }} />
-          <Row gutter={[16, 16]}>
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <SkeletonPulse height="32px" width="200px" style={{ margin: '0 auto' }} />
+          </div>
+          <Row gutter={[16, 16]} justify="center">
             {Array(6).fill(0).map((_, index) => (
-              <Col lg={4} md={6} sm={12} key={index}>
+              <Col xl={8} lg={8} md={12} sm={24} xs={24} key={index}>
                 <Card
                   hoverable
                   style={{
@@ -229,17 +267,24 @@ const SkeletonLoadingState = () => {
                     border: '2px solid rgba(82, 196, 26, 0.2)',
                     height: '180px',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    padding: '20px'
                   }}
-                  bodyStyle={{ padding: '16px' }}
+                  bodyStyle={{ padding: '0', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
                 >
-                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                    <SkeletonPulse height="40px" width="40px" style={{ margin: '0 auto', borderRadius: '50%' }} />
-                    <SkeletonPulse height="24px" width="80%" style={{ margin: '0 auto' }} />
-                    <SkeletonPulse height="16px" width="60%" style={{ margin: '0 auto' }} />
-                    <SkeletonPulse height="20px" width="50px" style={{ margin: '0 auto', borderRadius: '10px' }} />
-                  </Space>
+                  <div style={{ position: 'absolute', top: '10px', right: '10px' }}>
+                    <SkeletonPulse height="24px" width="50px" style={{ borderRadius: '12px' }} />
+                  </div>
+                  <div style={{ marginTop: '10px' }}>
+                    <SkeletonPulse height="28px" width="60%" style={{ margin: '0 auto' }} />
+                  </div>
+                  <div style={{ margin: '20px 0' }}>
+                    <SkeletonPulse height="16px" width="40%" style={{ margin: '0 auto' }} />
+                  </div>
+                  <div style={{ marginTop: 'auto' }}>
+                    <SkeletonPulse height="36px" width="80px" style={{ margin: '0 auto', borderRadius: '18px' }} />
+                  </div>
                 </Card>
               </Col>
             ))}
@@ -247,67 +292,21 @@ const SkeletonLoadingState = () => {
         </div>
 
         <div style={{ marginBottom: '32px' }}>
-          <Flex justify="space-between" align="center" style={{ marginBottom: '24px' }}>
-            <SkeletonPulse height="32px" width="180px" />
-            <SkeletonPulse height="32px" width="100px" />
-          </Flex>
-          <Row gutter={[16, 16]}>
-            {Array(12).fill(0).map((_, index) => (
-              <Col lg={6} md={8} sm={12} key={index}>
-                <Card
-                  hoverable
-                  style={{
-                    height: '100%',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                  }}
-                  cover={<SkeletonPulse height="200px" style={{ borderRadius: '0' }} />}
-                >
-                  <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                    <SkeletonPulse height="20px" width="90%" />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}>
-                      {Array(5).fill(0).map((_, i) => (
-                        <StarOutlined key={i} style={{ color: '#faad14', fontSize: '12px' }} />
-                      ))}
-                      <SkeletonPulse height="14px" width="35px" style={{ marginLeft: '4px' }} />
-                    </div>
-                    <SkeletonPulse height="14px" width="100%" />
-                    <SkeletonPulse height="14px" width="80%" />
-                    <Flex justify="space-between" align="center" style={{ marginTop: '12px' }}>
-                      <Flex justify='start' align='center' style={{ gap: '8px' }}>
-                        <SkeletonPulse height="18px" width="55px" style={{ marginBottom: '4px' }} />
-                        <SkeletonPulse height="18px" width="55px" />
-                      </Flex>
-                      <SkeletonPulse height="28px" width="70px" />
-                    </Flex>
-                  </Space>
-                </Card>
+          <SkeletonPulse height="32px" width="180px" style={{ marginBottom: '24px' }} />
+          <Row gutter={[24, 24]}>
+            {Array(8).fill(0).map((_, index) => (
+              <Col xl={6} lg={8} md={12} sm={24} xs={24} key={index}>
+                <ProductCardSkeleton />
               </Col>
             ))}
           </Row>
-
-          <Flex justify="center" style={{ marginTop: '24px' }}>
-            <Space>
-              {Array(5).fill(0).map((_, index) => (
-                <SkeletonPulse
-                  key={index}
-                  height="32px"
-                  width="32px"
-                  style={{ borderRadius: '6px' }}
-                />
-              ))}
-            </Space>
-          </Flex>
         </div>
 
         <div style={{ marginBottom: '32px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            <SkeletonPulse height="32px" width="200px" style={{ margin: '0 auto' }} />
-          </div>
+          <SkeletonPulse height="32px" width="200px" style={{ marginBottom: '24px' }} />
           <Row gutter={[16, 16]}>
             {Array(3).fill(0).map((_, index) => (
-              <Col md={8} key={index}>
+              <Col xl={8} lg={8} md={12} sm={24} xs={24} key={index}>
                 <Card
                   style={{
                     height: '100%',
@@ -374,4 +373,4 @@ const SkeletonLoadingState = () => {
   );
 };
 
-export default SkeletonLoadingState;
+export default MobileSkeletonLoadingState;

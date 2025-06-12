@@ -147,7 +147,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
         <Title
           level={5}
           style={{
-            marginBottom: '4px',
+            // marginBottom: 'px',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -159,7 +159,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
           {product.name}
         </Title>
 
-        <Flex align="center" gap={4} style={{ marginBottom: '8px' }}>
+        <Flex align="center" gap={4}>
           <Rate
             disabled
             allowHalf

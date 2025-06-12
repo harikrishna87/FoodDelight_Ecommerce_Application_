@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
-import { Row, Col, Form, Button, Input, message } from 'antd';
-import { 
-  FacebookOutlined, 
-  InstagramOutlined, 
-  TwitterOutlined, 
-  PinterestOutlined, 
+import React from 'react';
+import { Row, Col, Form, Button, Input } from 'antd';
+import {
+  FacebookOutlined,
+  InstagramOutlined,
+  TwitterOutlined,
+  PinterestOutlined,
   YoutubeOutlined,
   EnvironmentOutlined,
   PhoneOutlined,
   MailOutlined
 } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface FooterProps {
   companyName?: string;
@@ -29,8 +31,8 @@ const LeafDecoration: React.FC<{ position: 'left' | 'right' }> = ({ position }) 
     zIndex: 0,
   };
 
-  const svgPath = position === 'left' 
-    ? "M10,50 C30,30 50,10 100,25 C80,40 80,50 90,80 C60,70 40,90 10,50" 
+  const svgPath = position === 'left'
+    ? "M10,50 C30,30 50,10 100,25 C80,40 80,50 90,80 C60,70 40,90 10,50"
     : "M110,50 C90,30 70,10 20,25 C40,40 40,50 30,80 C60,70 80,90 110,50";
 
   return (
@@ -43,16 +45,16 @@ const LeafDecoration: React.FC<{ position: 'left' | 'right' }> = ({ position }) 
           strokeWidth="2"
         />
         <path
-          d={position === 'left' 
-            ? "M55,40 C60,30 70,25 85,30" 
+          d={position === 'left'
+            ? "M55,40 C60,30 70,25 85,30"
             : "M65,40 C60,30 50,25 35,30"}
           fill="none"
           stroke="#28a745"
           strokeWidth="1.5"
         />
         <path
-          d={position === 'left' 
-            ? "M50,55 C55,45 65,40 80,45" 
+          d={position === 'left'
+            ? "M50,55 C55,45 65,40 80,45"
             : "M70,55 C65,45 55,40 40,45"}
           fill="none"
           stroke="#28a745"
@@ -63,20 +65,16 @@ const LeafDecoration: React.FC<{ position: 'left' | 'right' }> = ({ position }) 
   );
 };
 
-const Footer: React.FC<FooterProps> = ({ 
-  companyName = "FoodDelights", 
-  companyLogo = "/logo.png" 
+const Footer: React.FC<FooterProps> = ({
+  companyName = "FoodDelights",
+  companyLogo = "/logo.png"
 }) => {
-  const [subscribed, setSubscribed] = useState<boolean>(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  
+
   const handleSubscribe = (values: { email: string }) => {
     if (values.email && values.email.includes('@')) {
-      setSubscribed(true);
-      form.resetFields();
-      message.success('Thank you for subscribing!');
-      setTimeout(() => setSubscribed(false), 3000);
+      toast.info("This feature is not implemented yet...!")
     }
   };
 
@@ -85,12 +83,12 @@ const Footer: React.FC<FooterProps> = ({
     navigate(path);
     window.scrollTo(0, 0);
   };
-  
+
   const currentYear = new Date().getFullYear();
-  
+
   return (
-    <footer 
-      style={{ 
+    <footer
+      style={{
         marginTop: '40px',
         background: 'white',
         paddingTop: '40px',
@@ -102,27 +100,27 @@ const Footer: React.FC<FooterProps> = ({
     >
       <LeafDecoration position="left" />
       <LeafDecoration position="right" />
-      
-      <div style={{ 
-        maxWidth: '1200px', 
-        margin: '0 auto', 
+
+      <div style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
         padding: '0 15px',
-        position: 'relative', 
-        zIndex: 1 
+        position: 'relative',
+        zIndex: 1
       }}>
         <Row gutter={[24, 24]} style={{ marginBottom: '32px' }}>
           <Col xs={24} md={10}>
             <div style={{ marginBottom: '32px', display: 'flex', alignItems: 'center' }}>
-              <img 
-                src={companyLogo} 
-                alt={`${companyName} Logo`} 
+              <img
+                src={companyLogo}
+                alt={`${companyName} Logo`}
                 style={{ marginRight: '8px' }}
-                width="40" 
+                width="40"
                 height="40"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
-                }} 
+                }}
               />
               <h4 style={{ marginBottom: 0, color: '#52c41a', fontSize: '24px', fontWeight: 500 }}>
                 {companyName}
@@ -136,42 +134,42 @@ const Footer: React.FC<FooterProps> = ({
                 Connect With Us
               </h6>
               <div style={{ display: 'flex' }}>
-                <Link 
-                  to="#" 
-                  style={{ marginRight: '24px', color: '#52c41a', fontSize: '18px' }} 
-                  aria-label="Facebook" 
+                <Link
+                  to="#"
+                  style={{ marginRight: '24px', color: '#52c41a', fontSize: '18px' }}
+                  aria-label="Facebook"
                   onClick={(e) => e.preventDefault()}
                 >
                   <FacebookOutlined />
                 </Link>
-                <Link 
-                  to="#" 
-                  style={{ marginRight: '24px', color: '#52c41a', fontSize: '18px' }} 
-                  aria-label="Instagram" 
+                <Link
+                  to="#"
+                  style={{ marginRight: '24px', color: '#52c41a', fontSize: '18px' }}
+                  aria-label="Instagram"
                   onClick={(e) => e.preventDefault()}
                 >
                   <InstagramOutlined />
                 </Link>
-                <Link 
-                  to="#" 
-                  style={{ marginRight: '24px', color: '#52c41a', fontSize: '18px' }} 
-                  aria-label="Twitter" 
+                <Link
+                  to="#"
+                  style={{ marginRight: '24px', color: '#52c41a', fontSize: '18px' }}
+                  aria-label="Twitter"
                   onClick={(e) => e.preventDefault()}
                 >
                   <TwitterOutlined />
                 </Link>
-                <Link 
-                  to="#" 
-                  style={{ marginRight: '24px', color: '#52c41a', fontSize: '18px' }} 
-                  aria-label="Pinterest" 
+                <Link
+                  to="#"
+                  style={{ marginRight: '24px', color: '#52c41a', fontSize: '18px' }}
+                  aria-label="Pinterest"
                   onClick={(e) => e.preventDefault()}
                 >
                   <PinterestOutlined />
                 </Link>
-                <Link 
-                  to="#" 
-                  style={{ color: '#52c41a', fontSize: '18px' }} 
-                  aria-label="YouTube" 
+                <Link
+                  to="#"
+                  style={{ color: '#52c41a', fontSize: '18px' }}
+                  aria-label="YouTube"
                   onClick={(e) => e.preventDefault()}
                 >
                   <YoutubeOutlined />
@@ -179,16 +177,16 @@ const Footer: React.FC<FooterProps> = ({
               </div>
             </div>
           </Col>
-          
+
           <Col xs={12} md={3}>
             <h5 style={{ marginBottom: '24px', color: '#52c41a', fontSize: '18px', fontWeight: 500 }}>
               Shop
             </h5>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <Link 
-                to="/store" 
-                style={{ 
-                  color: '#212529', 
+              <Link
+                to="/store"
+                style={{
+                  color: '#212529',
                   textDecoration: 'none',
                   padding: '4px 0',
                   marginBottom: '4px'
@@ -197,10 +195,10 @@ const Footer: React.FC<FooterProps> = ({
               >
                 All Products
               </Link>
-              <Link 
+              <Link
                 to="#"
-                style={{ 
-                  color: '#212529', 
+                style={{
+                  color: '#212529',
                   textDecoration: 'none',
                   padding: '4px 0',
                   marginBottom: '4px'
@@ -209,10 +207,10 @@ const Footer: React.FC<FooterProps> = ({
               >
                 New Arrivals
               </Link>
-              <Link 
+              <Link
                 to="#"
-                style={{ 
-                  color: '#212529', 
+                style={{
+                  color: '#212529',
                   textDecoration: 'none',
                   padding: '4px 0',
                   marginBottom: '4px'
@@ -221,10 +219,10 @@ const Footer: React.FC<FooterProps> = ({
               >
                 Deals & Discounts
               </Link>
-              <Link 
+              <Link
                 to="#"
-                style={{ 
-                  color: '#212529', 
+                style={{
+                  color: '#212529',
                   textDecoration: 'none',
                   padding: '4px 0',
                   marginBottom: '4px'
@@ -235,16 +233,16 @@ const Footer: React.FC<FooterProps> = ({
               </Link>
             </div>
           </Col>
-          
+
           <Col xs={12} md={3}>
             <h5 style={{ marginBottom: '24px', color: '#52c41a', fontSize: '18px', fontWeight: 500 }}>
               Support
             </h5>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <Link 
-                to="/contact" 
-                style={{ 
-                  color: '#212529', 
+              <Link
+                to="/contact"
+                style={{
+                  color: '#212529',
                   textDecoration: 'none',
                   padding: '4px 0',
                   marginBottom: '4px'
@@ -253,10 +251,10 @@ const Footer: React.FC<FooterProps> = ({
               >
                 Contact Us
               </Link>
-              <Link 
+              <Link
                 to="#"
-                style={{ 
-                  color: '#212529', 
+                style={{
+                  color: '#212529',
                   textDecoration: 'none',
                   padding: '4px 0',
                   marginBottom: '4px'
@@ -265,10 +263,10 @@ const Footer: React.FC<FooterProps> = ({
               >
                 FAQ
               </Link>
-              <Link 
+              <Link
                 to="#"
-                style={{ 
-                  color: '#212529', 
+                style={{
+                  color: '#212529',
                   textDecoration: 'none',
                   padding: '4px 0',
                   marginBottom: '4px'
@@ -277,10 +275,10 @@ const Footer: React.FC<FooterProps> = ({
               >
                 Shipping Info
               </Link>
-              <Link 
+              <Link
                 to="#"
-                style={{ 
-                  color: '#212529', 
+                style={{
+                  color: '#212529',
                   textDecoration: 'none',
                   padding: '4px 0',
                   marginBottom: '4px'
@@ -291,7 +289,7 @@ const Footer: React.FC<FooterProps> = ({
               </Link>
             </div>
           </Col>
-          
+
           <Col xs={24} md={8}>
             <h5 style={{ marginBottom: '24px', color: '#52c41a', fontSize: '18px', fontWeight: 500 }}>
               Stay Updated
@@ -299,45 +297,42 @@ const Footer: React.FC<FooterProps> = ({
             <p style={{ color: '#212529', marginBottom: '16px' }}>
               Subscribe to our newsletter for exclusive offers and updates on new products.
             </p>
-            
-            {!subscribed && (
-              <Form 
-                form={form}
-                onFinish={handleSubscribe}
-                style={{ marginBottom: '24px' }}
-              >
-                <div style={{ display: 'flex', marginBottom: '24px' }}>
-                  <Form.Item
-                    name="email"
-                    rules={[
-                      { required: true, message: 'Please enter your email' },
-                      { type: 'email', message: 'Please enter a valid email' }
-                    ]}
-                    style={{ flex: 1, marginRight: '8px', marginBottom: 0 }}
-                  >
-                    <Input
-                      placeholder="Your email address"
-                      style={{ 
-                        borderColor: '#28a745',
-                        borderRadius: '6px 0 0 6px'
-                      }}
-                    />
-                  </Form.Item>
-                  <Button 
-                    type="primary" 
-                    htmlType="submit"
-                    style={{ 
-                      backgroundColor: '#28a745',
+
+            <Form
+              form={form}
+              onFinish={handleSubscribe}
+              style={{ marginBottom: '24px' }}
+            >
+              <div style={{ display: 'flex', marginBottom: '24px' }}>
+                <Form.Item
+                  name="email"
+                  rules={[
+                    { required: true, message: 'Please enter your email' },
+                    { type: 'email', message: 'Please enter a valid email' }
+                  ]}
+                  style={{ flex: 1, marginRight: '8px', marginBottom: 0 }}
+                >
+                  <Input
+                    placeholder="Your email address"
+                    style={{
                       borderColor: '#28a745',
-                      borderRadius: '0 6px 6px 0'
+                      borderRadius: '6px 0 0 6px'
                     }}
-                  >
-                    Subscribe
-                  </Button>
-                </div>
-              </Form>
-            )}
-            
+                  />
+                </Form.Item>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  style={{
+                    backgroundColor: '#28a745',
+                    borderColor: '#28a745',
+                    borderRadius: '0 6px 6px 0'
+                  }}
+                >
+                  Subscribe
+                </Button>
+              </div>
+            </Form>
             <div style={{ marginTop: '32px' }}>
               <h5 style={{ marginBottom: '24px', color: '#52c41a', fontSize: '18px', fontWeight: 500 }}>
                 Contact Info
@@ -359,16 +354,16 @@ const Footer: React.FC<FooterProps> = ({
             </div>
           </Col>
         </Row>
-        
+
         <hr style={{ borderColor: '#52c41a', margin: '32px 0' }} />
-        
+
         <Row>
           <Col xs={24} md={12} style={{ marginBottom: '24px' }}>
             <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-              <Link 
-                to="/privacy" 
-                style={{ 
-                  color: '#212529', 
+              <Link
+                to="/privacy"
+                style={{
+                  color: '#212529',
                   padding: '4px 16px',
                   borderRight: '1px solid #28a745',
                   textDecoration: 'none'
@@ -377,10 +372,10 @@ const Footer: React.FC<FooterProps> = ({
               >
                 Privacy Policy
               </Link>
-              <Link 
-                to="/terms" 
-                style={{ 
-                  color: '#212529', 
+              <Link
+                to="/terms"
+                style={{
+                  color: '#212529',
                   padding: '4px 16px',
                   textDecoration: 'none'
                 }}
@@ -390,11 +385,11 @@ const Footer: React.FC<FooterProps> = ({
               </Link>
             </div>
           </Col>
-          
+
           <Col xs={24} md={12} style={{ textAlign: 'right' }}>
-            <p style={{ 
-              marginBottom: 0, 
-              color: '#6c757d', 
+            <p style={{
+              marginBottom: 0,
+              color: '#6c757d',
               fontSize: '14px'
             }}>
               &copy; {currentYear} {companyName}. All rights reserved.
@@ -402,6 +397,7 @@ const Footer: React.FC<FooterProps> = ({
           </Col>
         </Row>
       </div>
+      <ToastContainer />
     </footer>
   );
 };
