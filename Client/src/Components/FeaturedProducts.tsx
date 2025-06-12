@@ -8,13 +8,12 @@ import {
   Typography,
   Space,
   Flex,
-  Image
+  Image,
+  message
 } from 'antd';
 import { ShoppingCartOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import {toast} from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -41,13 +40,20 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
   calculateDiscountedPrice
 }) => {
   const [addingToCart, setAddingToCart] = useState<{ [key: number]: boolean }>({});
+  const [messageApi, contextHolder] = message.useMessage();
   const auth = useContext(AuthContext);
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const addToCart = async (product: Product) => {
     if (!auth?.isAuthenticated) {
-      toast.error("You need to login to add items to cart");
+      messageApi.error({
+        content: "You need to login to add items to cart",
+        duration: 3,
+        style: {
+          marginTop: '10vh',
+        },
+      });
       return;
     }
 
@@ -65,16 +71,34 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
       };
 
       const response = await axios.post(`${backendUrl}/api/cart/add_item`, cartItem);
-      toast.success(response.data.message || "Item added to cart successfully");
+      messageApi.success({
+        content: response.data.message || "Item added to cart successfully",
+        duration: 3,
+        style: {
+          marginTop: '10vh',
+        },
+      });
 
       if (window.updateCartCount) {
         window.updateCartCount();
       }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 400) {
-        toast.info(error.response.data.message || "Item already exists in cart");
+        messageApi.info({
+          content: error.response.data.message || "Item already exists in cart",
+          duration: 3,
+          style: {
+            marginTop: '10vh',
+          },
+        });
       } else {
-        toast.error("Failed to add item to cart");
+        messageApi.error({
+          content: "Failed to add item to cart",
+          duration: 3,
+          style: {
+            marginTop: '10vh'
+          },
+        });
       }
       console.error("Error adding item to cart:", error);
     } finally {
@@ -147,7 +171,6 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
         <Title
           level={5}
           style={{
-            // marginBottom: 'px',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -237,6 +260,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
 
   return (
     <>
+      {contextHolder}
       <div style={{ marginBottom: '2.5rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
           <Title level={2} className="section-title" style={{ margin: 0 }}>

@@ -2,7 +2,6 @@ import React, { createContext, useState, useEffect, useCallback, ReactNode } fro
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import { AuthContextType, IUser } from '../types';
-import { toast } from 'react-toastify';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -26,7 +25,6 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsAuthenticated(true);
     setUser(userData);
     setToken(jwtToken);
-    toast.success(`Welcome, ${userData.name || userData.email}!`, { position: 'top-right' });
   }, []);
 
   const logout = useCallback(async () => {
@@ -101,7 +99,11 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     error,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <>
+      <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+    </>
+  );
 };
 
 export { AuthContext, AuthProvider };

@@ -10,8 +10,6 @@ import FoodFooter from './Components/FoodFooter'
 import PrivacyPolicy from './Pages/PrivacyPolicy'
 import TermsOfService from './Pages/TermsOfService'
 import { AuthProvider, AuthContext } from './context/AuthContext'
-import { ToastContainer } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
 import AuthPage from './Pages/Auth'
 import AdminDashboard from './Pages/AdminDashboard'
 import UserOrders from './Pages/UserOrders'
@@ -63,7 +61,6 @@ function App() {
   return (
     <AuthProvider>
       <AppContent />
-      <ToastContainer />
     </AuthProvider>
   )
 }

@@ -1,9 +1,7 @@
 import React, { useState, useContext } from 'react';
-import { Row, Col, Card, Button, Alert, Tag, Pagination, Typography, Spin } from 'antd';
+import { Row, Col, Card, Button, Alert, Tag, Pagination, Typography, Spin, message } from 'antd';
 import { SearchOutlined, ShoppingCartOutlined, CloseOutlined, StarFilled, StarOutlined } from '@ant-design/icons';
 import axios from 'axios';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { AuthContext } from '../context/AuthContext';
 
 const { Title, Text } = Typography;
@@ -40,6 +38,7 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
   productsPerPage
 }) => {
   const [addingToCart, setAddingToCart] = useState<{ [key: number]: boolean }>({});
+  const [messageApi, contextHolder] = message.useMessage();
   const auth = useContext(AuthContext);
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -49,16 +48,22 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
     if (!discountPercentage) return originalPrice;
     return originalPrice - (originalPrice * (discountPercentage / 100));
   };
-  
+
   const addToCart = async (product: Product) => {
     if (!auth?.isAuthenticated) {
-      toast.error("You need to login to add items to cart");
+      messageApi.error({
+        content: "You need to login to add items to cart",
+        duration: 3,
+        style: {
+          marginTop: '10vh',
+        },
+      });
       return;
     }
 
     try {
       setAddingToCart(prev => ({ ...prev, [product.id]: true }));
-      
+
       const cartItem = {
         name: product.name,
         image: product.image,
@@ -70,15 +75,33 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
       };
 
       const response = await axios.post(`${backendUrl}/api/cart/add_item`, cartItem);
-      toast.success(response.data.message || "Item added to cart successfully");
+      messageApi.success({
+        content: response.data.message || "Item added to cart successfully",
+        duration: 3,
+        style: {
+          marginTop: '10vh',
+        },
+      });
       if (window.updateCartCount) {
         window.updateCartCount();
       }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 400) {
-        toast.info(error.response.data.message || "Item already exists in cart");
+        messageApi.info({
+          content: error.response.data.message || "Item already exists in cart",
+          duration: 3,
+          style: {
+            marginTop: '10vh',
+          },
+        });
       } else {
-        toast.error("Failed to add item to cart");
+        messageApi.error({
+          content: "Failed to add item to cart",
+          duration: 3,
+          style: {
+            marginTop: '10vh',
+          },
+        });
       }
       console.error("Error adding item to cart:", error);
     } finally {
@@ -105,10 +128,10 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
       </div>
     );
   };
-  
+
   const truncateDescription = (description: string | undefined | null) => {
     if (!description) return "";
-    
+
     const maxLength = 80;
     if (description.length <= maxLength) {
       return description;
@@ -121,22 +144,22 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
 
   return (
     <div style={{ marginBottom: '3rem' }}>
-      <ToastContainer />
-      
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: '1.5rem' 
+      {contextHolder}
+
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '1.5rem'
       }}>
         <Title level={2} className="section-title">
           {selectedCategory ? `${selectedCategory} Products` : 'Our Selection'}
         </Title>
         {selectedCategory && (
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Button 
-              type="default" 
-              size="small" 
+            <Button
+              type="default"
+              size="small"
               icon={<CloseOutlined />}
               onClick={resetCategoryFilter}
               style={{ borderColor: '#52c41a', color: '#52c41a' }}
@@ -152,10 +175,10 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
           <Row gutter={[16, 16]}>
             {selectedProducts.map(product => (
               <Col xs={24} md={12} lg={6} key={product.id}>
-                <Card 
+                <Card
                   hoverable
-                  style={{ 
-                    height: '100%', 
+                  style={{
+                    height: '100%',
                     borderRadius: '10px',
                     border: 'none',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
@@ -166,12 +189,12 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
                       <img
                         src={product.image}
                         alt={product.name}
-                        style={{ 
-                          height: '180px', 
-                          width: '100%', 
-                          objectFit: 'cover', 
-                          borderTopLeftRadius: '10px', 
-                          borderTopRightRadius: '10px' 
+                        style={{
+                          height: '180px',
+                          width: '100%',
+                          objectFit: 'cover',
+                          borderTopLeftRadius: '10px',
+                          borderTopRightRadius: '10px'
                         }}
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
@@ -200,9 +223,9 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
                   <Tag color="success" style={{ marginBottom: '8px' }}>
                     {product.category}
                   </Tag>
-                  <Title 
-                    level={5} 
-                    style={{ 
+                  <Title
+                    level={5}
+                    style={{
                       margin: '0 0 8px 0',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -212,34 +235,34 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
                     {product.name || 'Unnamed Product'}
                   </Title>
                   {renderStarRating(product.rating || 0)}
-                  <Text 
-                    type="secondary" 
-                    style={{ 
-                      fontSize: '14px', 
-                      display: 'block', 
-                      marginBottom: '12px' 
+                  <Text
+                    type="secondary"
+                    style={{
+                      fontSize: '14px',
+                      display: 'block',
+                      marginBottom: '12px'
                     }}
                   >
                     {truncateDescription(product.description)}
                   </Text>
-                  <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center' 
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
                   }}>
                     {categoryDiscounts[product.category] ? (
                       <div>
-                        <span style={{ 
-                          fontWeight: 'bold', 
-                          color: '#52c41a', 
-                          marginRight: '8px' 
+                        <span style={{
+                          fontWeight: 'bold',
+                          color: '#52c41a',
+                          marginRight: '8px'
                         }}>
                           ₹ {calculateDiscountedPrice(product.price, product.category).toFixed(2)}
                         </span>
-                        <span style={{ 
-                          color: '#8c8c8c', 
-                          textDecoration: 'line-through', 
-                          fontSize: '14px' 
+                        <span style={{
+                          color: '#8c8c8c',
+                          textDecoration: 'line-through',
+                          fontSize: '14px'
                         }}>
                           ₹ {product.price.toFixed(2)}
                         </span>
@@ -252,7 +275,7 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
                     <Button
                       type="primary"
                       size="small"
-                      style={{ 
+                      style={{
                         backgroundColor: '#52c41a',
                         borderColor: '#52c41a',
                         display: 'flex',
@@ -279,7 +302,7 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
                 onChange={paginate}
                 showSizeChanger={false}
                 showQuickJumper={false}
-                showTotal={(total, range) => 
+                showTotal={(total, range) =>
                   `${range[0]}-${range[1]} of ${total} items`
                 }
               />

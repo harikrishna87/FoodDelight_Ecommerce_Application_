@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
-import { Layout, Table, Tag, Spin, Alert, Typography, Modal, Button, Descriptions, Space, Tooltip, Row, Col, Card, Pagination } from 'antd';
+import { Layout, Table, Tag, Spin, Alert, Typography, Modal, Button, Descriptions, Space, Tooltip, Row, Col, Card, Pagination, message } from 'antd';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
-import { toast } from 'react-toastify';
 import { IOrder, OrderDeliveryStatus } from '../types';
 import { CheckCircleOutlined, TruckOutlined, ClockCircleOutlined, EyeOutlined, CalendarOutlined, ShoppingCartOutlined, UserOutlined } from '@ant-design/icons';
 
@@ -15,6 +14,7 @@ const UserOrders: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [messageApi, contextHolder] = message.useMessage();
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,7 +26,7 @@ const UserOrders: React.FC = () => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -61,7 +61,13 @@ const UserOrders: React.FC = () => {
     } catch (err: any) {
       console.error('Error fetching user orders:', err);
       setError(err.response?.data?.message || 'Failed to fetch your orders.');
-      toast.error(err.response?.data?.message || 'Failed to fetch your orders.', { position: 'top-right' });
+      messageApi.error({
+        content: err.response?.data?.message || 'Failed to fetch your orders.',
+        duration: 3,
+        style: {
+          marginTop: '20vh',
+        },
+      });
     } finally {
       setLoading(false);
     }
@@ -316,9 +322,9 @@ const UserOrders: React.FC = () => {
             style={isMobile ? { top: 15 } : { top: 15 }}
           >
             <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>Customer Details</Title>
-            <Descriptions 
-              bordered 
-              column={isMobile ? 1 : 2} 
+            <Descriptions
+              bordered
+              column={isMobile ? 1 : 2}
               size={isMobile ? 'small' : 'default'}
               style={{ marginBottom: 24 }}
             >
@@ -336,9 +342,9 @@ const UserOrders: React.FC = () => {
             </Descriptions>
 
             <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>Order Information</Title>
-            <Descriptions 
-              bordered 
-              column={isMobile ? 1 : 2} 
+            <Descriptions
+              bordered
+              column={isMobile ? 1 : 2}
               size={isMobile ? 'small' : 'default'}
               style={{ marginBottom: 24 }}
             >
@@ -363,31 +369,31 @@ const UserOrders: React.FC = () => {
             <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>
               Order Items ({totalItems} items)
             </Title>
-            
+
             <Row gutter={[16, 16]}>
               {currentItems.length > 0 ? (
                 currentItems.map((item, idx) => (
-                  <Col 
-                    span={isMobile ? 24 : 12} 
+                  <Col
+                    span={isMobile ? 24 : 12}
                     key={startIndex + idx}
                   >
                     <Card size="small" hoverable style={{ padding: '16px', height: '100%' }}>
-                      <div style={{ 
-                        display: 'flex', 
+                      <div style={{
+                        display: 'flex',
                         alignItems: 'flex-start',
                         gap: '16px'
                       }}>
                         {item.image && (
-                          <div style={{ 
+                          <div style={{
                             flexShrink: 0
                           }}>
                             <img
                               src={item.image}
                               alt={item.name}
-                              style={{ 
+                              style={{
                                 width: 80,
                                 height: 80,
-                                borderRadius: 8, 
+                                borderRadius: 8,
                                 objectFit: 'cover',
                                 border: '1px solid #d9d9d9'
                               }}
@@ -397,13 +403,13 @@ const UserOrders: React.FC = () => {
                             />
                           </div>
                         )}
-                        <div style={{ 
-                          flex: 1, 
+                        <div style={{
+                          flex: 1,
                           minWidth: 0
                         }}>
-                          <Title level={5} style={{ 
-                            margin: '0 0 8px 0', 
-                            fontSize: '16px' 
+                          <Title level={5} style={{
+                            margin: '0 0 8px 0',
+                            fontSize: '16px'
                           }}>
                             {item.name || 'Unknown Item'}
                           </Title>
@@ -413,9 +419,9 @@ const UserOrders: React.FC = () => {
                             </Text>
                           </div>
                           <div>
-                            <div style={{ 
-                              display: 'flex', 
-                              alignItems: 'center', 
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
                               gap: '8px'
                             }}>
                               <Text
@@ -446,10 +452,10 @@ const UserOrders: React.FC = () => {
 
             {/* Pagination for Order Items */}
             {totalItems > itemsPerPage && (
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                marginTop: 24 
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                marginTop: 24
               }}>
                 <Pagination
                   current={currentPage}
@@ -458,13 +464,14 @@ const UserOrders: React.FC = () => {
                   onChange={handlePageChange}
                   showSizeChanger={false}
                   showQuickJumper={false}
-                  showTotal={(total, range) => 
+                  showTotal={(total, range) =>
                     `${range[0]}-${range[1]} of ${total} items`
                   }
                   size={isMobile ? 'small' : 'default'}
                 />
               </div>
             )}
+            {contextHolder}
           </Modal>
         )}
       </Content>

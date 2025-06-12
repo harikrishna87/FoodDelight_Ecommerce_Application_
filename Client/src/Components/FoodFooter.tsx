@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col, Form, Button, Input } from 'antd';
+import { Row, Col, Form, Button, Input, message } from 'antd';
 import {
   FacebookOutlined,
   InstagramOutlined,
@@ -11,8 +11,6 @@ import {
   MailOutlined
 } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 interface FooterProps {
   companyName?: string;
@@ -71,10 +69,17 @@ const Footer: React.FC<FooterProps> = ({
 }) => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const handleSubscribe = (values: { email: string }) => {
     if (values.email && values.email.includes('@')) {
-      toast.info("This feature is not implemented yet...!")
+      messageApi.info({
+          content: "This feature is under development. Please check back later.",
+          duration: 3,
+          style: {
+            marginTop: '20vh',
+          },
+        });
     }
   };
 
@@ -397,7 +402,7 @@ const Footer: React.FC<FooterProps> = ({
           </Col>
         </Row>
       </div>
-      <ToastContainer />
+      {contextHolder}
     </footer>
   );
 };

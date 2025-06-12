@@ -10,9 +10,8 @@ import {
   Tag,
   Typography,
   Space,
-  Modal,
-  Avatar,
-  Grid
+  Grid,
+  message
 } from 'antd';
 import {
   ShoppingCartOutlined,
@@ -25,7 +24,6 @@ import {
   DashboardOutlined,
   UnorderedListOutlined,
   MenuOutlined,
-  CheckCircleOutlined,
   HomeOutlined,
   ContactsOutlined
 } from '@ant-design/icons';
@@ -33,7 +31,6 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import axios from "axios";
 import confetti from "canvas-confetti";
 import { AuthContext } from '../context/AuthContext';
-import { toast } from 'react-toastify';
 import AuthModal from './AuthModal';
 
 declare const Razorpay: any;
@@ -58,10 +55,8 @@ const FoodNavbar: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
   const [cartCount, setCartCount] = useState<number>(0);
-  const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
-  const [countdownValue, setCountdownValue] = useState<number>(10);
   const [mobileMenuVisible, setMobileMenuVisible] = useState<boolean>(false);
-  
+  const [messageApi, contextHolder] = message.useMessage();
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
 
@@ -93,7 +88,7 @@ const FoodNavbar: React.FC = () => {
         method: 'DELETE',
         credentials: 'include'
       });
-      
+
       if (response.ok) {
         setCartItems([]);
         setCartCount(0);
@@ -107,18 +102,18 @@ const FoodNavbar: React.FC = () => {
 
   useEffect(() => {
     fetchCartItems();
-    
+
     const pollingInterval = setInterval(() => {
       fetchCartItems();
     }, 2000);
-    
+
     const handleCartUpdate = () => {
       fetchCartItems();
     };
-    
+
     window.addEventListener('cartUpdated', handleCartUpdate);
     window.updateCartCount = fetchCartItems;
-    
+
     return () => {
       window.removeEventListener('cartUpdated', handleCartUpdate);
       clearInterval(pollingInterval);
@@ -140,24 +135,42 @@ const FoodNavbar: React.FC = () => {
         if (auth?.logout) {
           auth.logout();
         }
-        
+
         setCartItems([]);
         setCartCount(0);
         setShowCart(false);
         setMobileMenuVisible(false);
-        
-        toast.success("User Logged out successfully", { position: "top-right" });
-        
+
+        messageApi.success({
+          content: "User Logged Out successfully",
+          duration: 3,
+          style: {
+            marginTop: '10vh',
+          },
+        });
+
         setTimeout(() => {
           navigate("/")
         }, 1000);
       } else {
         const errorData = await response.json();
-        toast.error(errorData.message || 'Logout failed', { position: "top-right" });
+        messageApi.error({
+          content: errorData.message || "Logout failed",
+          duration: 3,
+          style: {
+            marginTop: '10vh',
+          },
+        });
       }
     } catch (err) {
       console.error('Error logging out:', err);
-      toast.error('Logout failed. Please try again.', { position: "top-right" });
+      messageApi.error({
+        content: "Logout failed. Please try again.",
+        duration: 3,
+        style: {
+          marginTop: '10vh',
+        },
+      });
     }
   };
 
@@ -183,24 +196,42 @@ const FoodNavbar: React.FC = () => {
       });
       if (res.ok) {
         setCartItems(prevItems => prevItems.filter(item => item.name !== name));
-        toast.success("Item removed from cart", { position: "top-right" });
+        messageApi.success({
+          content: "Item removed from cart",
+          duration: 3,
+          style: {
+            marginTop: '10vh',
+          },
+        });
       } else {
-        toast.error("Failed to remove item", { position: "top-right" });
+        messageApi.error({
+          content: "Failed to remove item",
+          duration: 3,
+          style: {
+            marginTop: '10vh',
+          },
+        });
       }
     } catch (error) {
       console.error('Error deleting item from cart:', error);
-      toast.error("Failed to remove item", { position: "top-right" });
+      messageApi.error({
+        content: "Failed to remove item",
+        duration: 3,
+        style: {
+          marginTop: '10vh',
+        },
+      });
     }
   };
 
   const handleUpdateQuantity = async (_id: string, quantity: number) => {
     if (quantity < 1) return;
-    
+
     const updatedItems = cartItems.map(item =>
       item._id === _id ? { ...item, quantity } : item
     );
     setCartItems(updatedItems);
-    
+
     try {
       const res = await fetch(`${backendUrl}/api/cart/update_cart_quantity`, {
         method: 'PATCH',
@@ -213,10 +244,22 @@ const FoodNavbar: React.FC = () => {
       if (!res.ok) {
         throw new Error('Failed to update item quantity');
       }
-      toast.success("Quantity updated", { position: "top-right", autoClose: 1500 });
+      messageApi.success({
+        content: "Quantity updated successfully",
+        duration: 3,
+        style: {
+          marginTop: '10vh',
+        },
+      });
     } catch (error) {
       console.error('Error updating item quantity:', error);
-      toast.error("Failed to update quantity", { position: "top-right" });
+      messageApi.error({
+        content: "Failed to update quantity",
+        duration: 3,
+        style: {
+          marginTop: '10vh',
+        },
+      });
       fetchCartItems();
     }
   };
@@ -244,19 +287,19 @@ const FoodNavbar: React.FC = () => {
   };
 
   const triggerConfetti = () => {
-    const duration = 10 * 1000;
+    const duration = 3 * 1000;
     const animationEnd = Date.now() + duration;
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1060 };
-    
+
     const randomInRange = (min: number, max: number) =>
       Math.random() * (max - min) + min;
-    
+
     const interval = window.setInterval(() => {
       const timeLeft = animationEnd - Date.now();
       if (timeLeft <= 0) {
         return clearInterval(interval);
       }
-      
+
       const particleCount = 50 * (timeLeft / duration);
       confetti({
         ...defaults,
@@ -273,61 +316,68 @@ const FoodNavbar: React.FC = () => {
 
   const handleOrderSuccess = async () => {
     try {
-        const createOrderResponse = await axios.post(`${backendUrl}/api/orders`, {}, {
-            headers: {
-                Authorization: `Bearer ${auth?.token}`
-            },
-            withCredentials: true
-        });
+      const createOrderResponse = await axios.post(`${backendUrl}/api/orders`, {}, {
+        headers: {
+          Authorization: `Bearer ${auth?.token}`
+        },
+        withCredentials: true
+      });
 
-        if (createOrderResponse.data.success) {
-            toast.success(createOrderResponse.data.message, { position: "top-right" });
-            clearCart();
-            setShowCart(false);
-            setShowSuccessMessage(true);
-            setCountdownValue(10);
-            triggerConfetti();
-        } else {
-            toast.error(createOrderResponse.data.message || "Failed to create order", { position: "top-right" });
-        }
+      if (createOrderResponse.data.success) {
+        messageApi.success({
+          content: createOrderResponse.data.message || "Order created successfully",
+          duration: 3,
+          style: {
+            marginTop: '10vh',
+          },
+        });
+        clearCart();
+        setShowCart(false);
+        triggerConfetti();
+      } else {
+        messageApi.error({
+          content: createOrderResponse.data.message || "Failed to finalize order",
+          duration: 3,
+          style: {
+            marginTop: '10vh',
+          },
+        });
+      }
     } catch (error: any) {
-        console.error("Error creating order:", error);
-        toast.error(error.response?.data?.message || "Failed to finalize order", { position: "top-right" });
+      console.error("Error creating order:", error);
+      messageApi.error({
+        content: error.response?.data?.message || "Failed to finalize order",
+        duration: 3,
+        style: {
+          marginTop: '10vh',
+        },
+      });
     }
   };
-  
-  useEffect(() => {
-    let countdownInterval: NodeJS.Timeout;
-    
-    if (showSuccessMessage && countdownValue > 0) {
-      countdownInterval = setInterval(() => {
-        setCountdownValue(prev => {
-          if (prev <= 1) {
-            clearInterval(countdownInterval);
-            setShowSuccessMessage(false);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    
-    return () => {
-      if (countdownInterval) clearInterval(countdownInterval);
-    };
-  }, [showSuccessMessage, countdownValue]);
 
   const checkoutHandler = async (amount: number | string) => {
     if (!auth?.isAuthenticated) {
-        toast.error("You need to login to proceed to checkout", { position: "top-right" });
-        setShowAuthModal(true);
-        setIsLoginMode(true);
-        return;
+      messageApi.error({
+        content: "You need to login to proceed to checkout",
+        duration: 3,
+        style: {
+          marginTop: '10vh',
+        },
+      });
+      setShowAuthModal(true);
+      setIsLoginMode(true);
+      return;
     }
-    
+
     if (cartItems.length === 0) {
-        toast.info("Your cart is empty!", { position: "top-right" });
-        return;
+      messageApi.info({
+        content: "Your cart is empty! Please add items to your cart before proceeding.",
+        duration: 3,
+        style: {
+          marginTop: '10vh',
+        },
+      });
+      return;
     }
 
     try {
@@ -354,17 +404,29 @@ const FoodNavbar: React.FC = () => {
         theme: {
           color: '#52c41a'
         },
-        handler: function(response: any) {
+        handler: function (response: any) {
           if (response.razorpay_payment_id) {
             handleOrderSuccess();
           } else {
-            toast.error("Payment failed or cancelled.", { position: "top-right" });
+            messageApi.error({
+              content: "Payment failed or cancelled.",
+              duration: 3,
+              style: {
+                marginTop: '10vh',
+              },
+            });
           }
         },
         modal: {
-            ondismiss: function() {
-                toast.info("Payment window closed.", { position: "top-right" });
-            }
+          ondismiss: function () {
+            messageApi.info({
+              content: "Payment window closed without completing the transaction.",
+              duration: 3,
+              style: {
+                marginTop: '10vh',
+              },
+            });
+          }
         }
       };
 
@@ -372,7 +434,13 @@ const FoodNavbar: React.FC = () => {
       rzp.open();
     } catch (error: any) {
       console.error("Checkout error:", error);
-      toast.error(error.response?.data?.message || "Failed to initiate payment", { position: "top-right" });
+      messageApi.error({
+        content: error.response?.data?.message || "Failed to initiate payment",
+        duration: 3,
+        style: {
+          marginTop: '10vh',
+        },
+      });
     }
   };
 
@@ -403,17 +471,17 @@ const FoodNavbar: React.FC = () => {
         return [
           {
             key: 'home',
-            icon: <HomeOutlined/>,
+            icon: <HomeOutlined />,
             label: <span onClick={() => { setMobileMenuVisible(false); navigate('/'); }}>Home</span>,
           },
           {
             key: 'menu',
-            icon: <MenuOutlined/>,
+            icon: <MenuOutlined />,
             label: <span onClick={() => { setMobileMenuVisible(false); navigate('/menu-items'); }}>Menu</span>,
           },
           {
             key: 'contact',
-            icon: <ContactsOutlined/>,
+            icon: <ContactsOutlined />,
             label: <span onClick={() => { setMobileMenuVisible(false); navigate('/contact'); }}>Contact</span>,
           },
           {
@@ -458,32 +526,32 @@ const FoodNavbar: React.FC = () => {
 
   return (
     <>
-      <Header 
-        style={{ 
-          position: 'sticky', 
-          top: 0, 
-          zIndex: 1000, 
-          width: '100%', 
-          background: '#fff', 
+      <Header
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 1000,
+          width: '100%',
+          background: '#fff',
           boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
           padding: '0 16px',
           height: 'auto',
           lineHeight: 'normal'
         }}
       >
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
           alignItems: 'center',
           maxWidth: '1200px',
           margin: '0 auto',
           padding: '8px 0'
         }}>
-          <Title 
-            level={3} 
-            style={{ 
-              margin: 0, 
-              color: '#52c41a', 
+          <Title
+            level={3}
+            style={{
+              margin: 0,
+              color: '#52c41a',
               fontWeight: 'bold',
               fontSize: screens.xs ? '20px' : '28px'
             }}
@@ -496,8 +564,8 @@ const FoodNavbar: React.FC = () => {
           {screens.md && (
             <Menu
               mode="horizontal"
-              style={{ 
-                border: 'none', 
+              style={{
+                border: 'none',
                 background: 'transparent',
                 flex: 1,
                 justifyContent: 'center'
@@ -554,8 +622,8 @@ const FoodNavbar: React.FC = () => {
           bodyStyle={{ padding: 0 }}
         >
           {cartItems.length === 0 ? (
-            <div style={{ 
-              textAlign: 'center', 
+            <div style={{
+              textAlign: 'center',
               padding: '60px 20px',
               display: 'flex',
               flexDirection: 'column',
@@ -565,15 +633,15 @@ const FoodNavbar: React.FC = () => {
             }}>
               <ShoppingCartOutlined style={{ fontSize: '48px', color: '#52c41a', marginBottom: '16px' }} />
               <Title level={4} style={{ marginBottom: '16px' }}>Your cart is empty</Title>
-              <Button style={{color: "#52c41a", backgroundColor:"white", border: "1px solid #52c41a"}} onClick={() => setShowCart(false)}>
+              <Button style={{ color: "#52c41a", backgroundColor: "white", border: "1px solid #52c41a" }} onClick={() => setShowCart(false)}>
                 Continue Shopping
               </Button>
             </div>
           ) : (
             <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ 
-                flex: 1, 
-                overflowY: 'auto', 
+              <div style={{
+                flex: 1,
+                overflowY: 'auto',
                 padding: '16px',
                 maxHeight: 'calc(100vh - 200px)'
               }}>
@@ -582,7 +650,7 @@ const FoodNavbar: React.FC = () => {
                     <Card
                       key={item._id}
                       size="small"
-                      style={{ 
+                      style={{
                         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                         transition: 'all 0.2s ease-in-out'
                       }}
@@ -595,16 +663,16 @@ const FoodNavbar: React.FC = () => {
                           alt={item.name}
                           width={80}
                           height={80}
-                          style={{ 
+                          style={{
                             borderRadius: '8px',
                             objectFit: 'cover',
                             flexShrink: 0
                           }}
                         />
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
+                          <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
                             alignItems: 'flex-start',
                             marginBottom: '8px'
                           }}>
@@ -619,7 +687,7 @@ const FoodNavbar: React.FC = () => {
                               onClick={() => handleDeleteItem(item.name)}
                             />
                           </div>
-                          
+
                           <div style={{ marginBottom: '8px' }}>
                             <Tag color={getCategoryColor(item.category)} style={{ borderRadius: '5px' }}>
                               {item.category}
@@ -656,9 +724,9 @@ const FoodNavbar: React.FC = () => {
                             </Text>
                           </div>
 
-                          <div style={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
+                          <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
                             alignItems: 'center'
                           }}>
                             <Space>
@@ -698,20 +766,20 @@ const FoodNavbar: React.FC = () => {
               </div>
 
               {cartItems.length > 0 && (
-                <div style={{ 
-                  padding: '16px', 
+                <div style={{
+                  padding: '16px',
                   borderTop: '1px solid #f0f0f0',
                   background: '#fff'
                 }}>
-                  <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
                     marginBottom: '16px'
                   }}>
                     <Title level={4} style={{ margin: 0 }}>Total:</Title>
                     <Title level={4} style={{ margin: 0 }}>₹{totalPrice}</Title>
                   </div>
-                  <Button 
+                  <Button
                     style={{
                       backgroundColor: "#52c41a",
                       color: "white",
@@ -730,41 +798,7 @@ const FoodNavbar: React.FC = () => {
         </Drawer>
       )}
 
-      <Modal
-        open={showSuccessMessage}
-        onCancel={() => setShowSuccessMessage(false)}
-        footer={[
-          <Button key="continue" type="primary" onClick={() => setShowSuccessMessage(false)}>
-            Continue Shopping
-          </Button>
-        ]}
-        centered
-        closable={false}
-        width={screens.xs ? '90%' : 500}
-      >
-        <div style={{ textAlign: 'center', padding: '20px 0' }}>
-          <div style={{ marginBottom: '24px' }}>
-            <Avatar
-              size={80}
-              icon={<CheckCircleOutlined />}
-              style={{
-                backgroundColor: '#52c41a',
-                animation: 'pulse 2s infinite'
-              }}
-            />
-          </div>
-          <Title level={2} style={{ color: '#52c41a', marginBottom: '16px' }}>
-            Thank You For Your Purchase!
-          </Title>
-          <Text style={{ fontSize: '16px', display: 'block', marginBottom: '16px' }}>
-            Your delicious food will be prepared shortly. We appreciate your order!
-          </Text>
-          <Text type="secondary">
-            This window will close in {countdownValue} seconds
-          </Text>
-        </div>
-      </Modal>
-
+      {contextHolder}
       <AuthModal
         show={showAuthModal}
         onHide={() => setShowAuthModal(false)}

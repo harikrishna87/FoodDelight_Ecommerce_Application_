@@ -9,22 +9,6 @@
   min-height: 100vh;
 }
 
-
-/* toast-custom.css */
-@media (max-width: 480px) {
-  .Toastify__toast {
-    font-size: 14px;
-    padding: 10px;
-    min-height: 48px;
-    max-width: 300px;
-  }
-
-  .Toastify__toast-body {
-    margin: 0;
-    word-break: break-word;
-  }
-}
-
 .ant-page-header {
   background-color: #fff;
   margin-bottom: 24px;

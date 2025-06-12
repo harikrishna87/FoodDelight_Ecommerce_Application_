@@ -33,7 +33,6 @@ import {
 } from '@ant-design/icons';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
-import { toast } from 'react-toastify';
 import { IOrder, OrderDeliveryStatus } from '../types';
 import { Pie } from '@ant-design/charts';
 
@@ -473,6 +472,7 @@ const AdminDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -501,7 +501,13 @@ const AdminDashboard: React.FC = () => {
     } catch (err: any) {
       console.error('Error fetching orders:', err);
       setError(err.response?.data?.message || 'Failed to fetch orders.');
-      toast.error(err.response?.data?.message || 'Failed to fetch orders.', { position: 'top-right' });
+      messageApi.error({
+        content: err.response?.data?.message || 'Failed to fetch orders.',
+        duration: 3,
+        style: {
+          marginTop: '20vh',
+        },
+      });
     } finally {
       setLoading(false);
     }
@@ -652,6 +658,7 @@ const AdminDashboard: React.FC = () => {
   if (error) {
     return (
       <div style={{ padding: '40px 0', textAlign: 'center' }}>
+        {contextHolder}
         <Alert
           message="Access Denied or Error!"
           description={

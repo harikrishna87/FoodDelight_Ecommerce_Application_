@@ -13,7 +13,8 @@ import {
     Empty,
     Typography,
     Flex,
-    Tag
+    Tag,
+    message
 } from 'antd';
 import {
     SearchOutlined,
@@ -25,8 +26,6 @@ import {
 import axios from 'axios';
 import 'antd/dist/reset.css';
 import { AuthContext } from '../context/AuthContext';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -208,7 +207,7 @@ const Store: React.FC = () => {
         maxPrice: 1000,
         minRating: 0
     });
-
+    const [messageApi, contextHolder] = message.useMessage();
     const [categoryDiscounts, setCategoryDiscounts] = useState<CategoryDiscount>({});
     const [currentPage, setCurrentPage] = useState<number>(1);
     const productsPerPage = 8;
@@ -300,7 +299,13 @@ const Store: React.FC = () => {
 
     const addToCart = async (product: Product) => {
         if (!auth?.isAuthenticated) {
-            toast.error("You need to login to add items to cart");
+            messageApi.error({
+                content: "You need to login to add items to cart",
+                duration: 3,
+                style: {
+                    marginTop: '10vh',
+                },
+            });
             return;
         }
 
@@ -318,16 +323,34 @@ const Store: React.FC = () => {
             };
 
             const response = await axios.post(`${backendUrl}/api/cart/add_item`, cartItem);
-            toast.success(response.data.message || "Item added to cart successfully");
+            messageApi.success({
+                content: response.data.message || "Item added to cart successfully",
+                duration: 3,
+                style: {
+                    marginTop: '10vh',
+                },
+            });
 
             if ((window as any).updateCartCount) {
                 (window as any).updateCartCount();
             }
         } catch (error) {
             if (axios.isAxiosError(error) && error.response?.status === 400) {
-                toast.info(error.response.data.message || "Item already exists in cart");
+                messageApi.info({
+                    content: error.response.data.message || "Item already exists in cart",
+                    duration: 3,
+                    style: {
+                        marginTop: '10vh',
+                    },
+                });
             } else {
-                toast.error("Failed to add item to cart");
+                messageApi.error({
+                    content: "Failed to add item to cart",
+                    duration: 3,
+                    style: {
+                        marginTop: '10vh',
+                    },
+                });
             }
             console.error("Error adding item to cart:", error);
         } finally {
@@ -753,7 +776,7 @@ const Store: React.FC = () => {
                     </div>
                 )}
             </div>
-            <ToastContainer />
+            {contextHolder}
         </div>
     );
 };
