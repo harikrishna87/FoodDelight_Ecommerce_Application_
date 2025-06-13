@@ -1,4 +1,4 @@
-import React, { JSX, useState, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   Card,
   Button,
@@ -14,6 +14,7 @@ import {
 import { ShoppingCartOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import AuthModal from "../Components/AuthModal"
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -31,7 +32,6 @@ interface FeaturedProductsProps {
   featuredProducts: Product[];
   categoryDiscounts: { [key: string]: number };
   calculateDiscountedPrice: (originalPrice: number, category: string) => number;
-  renderStarRating: (rating: number) => JSX.Element;
 }
 
 const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
@@ -43,17 +43,15 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
   const [messageApi, contextHolder] = message.useMessage();
   const auth = useContext(AuthContext);
 
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+  const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
+
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const addToCart = async (product: Product) => {
     if (!auth?.isAuthenticated) {
-      messageApi.error({
-        content: "You need to login to add items to cart",
-        duration: 3,
-        style: {
-          marginTop: '10vh',
-        },
-      });
+      setShowAuthModal(true);
+      setIsLoginMode(true);
       return;
     }
 
@@ -70,7 +68,9 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
         discount_price: calculateDiscountedPrice(product.price, product.category)
       };
 
-      const response = await axios.post(`${backendUrl}/api/cart/add_item`, cartItem);
+      const response = await axios.post(`${backendUrl}/api/cart/add_item`, cartItem, {
+        withCredentials: true 
+      });
       messageApi.success({
         content: response.data.message || "Item added to cart successfully",
         duration: 3,
@@ -79,8 +79,8 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
         },
       });
 
-      if (window.updateCartCount) {
-        window.updateCartCount();
+      if ((window as any).updateCartCount) {
+        (window as any).updateCartCount();
       }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 400) {
@@ -131,7 +131,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
               objectFit: "cover"
             }}
             preview={false}
-            fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxY4Q0IsRXhSI7d2MFOyMkmwg40smBHMilksoPsCEcSj+QIY9Y4C2Ix8+8//9nv+4U9M93v+2xPV93q6qmp7vfkr3/8e5m8PD3oVJJ5pNO6/nZqC1xN14Xev4pGmTgn55kS9VD//cqnVi5jzWzBVqjNMG3lVFIWQnOkUIg6hqgfukcfwUEn3kUV9w6VfPpYI/8lJlF6HZAhIxeIczf+X13V4xO8JcjOdZ+k5d6/JdPLu4o2nX9L0dIjZedUOZNO1e8hm2k5eBUdFgRAaVJMqzq73Z1dNYGvdtZHFv0aQs9PRBk+3Rak1zxVl9urULdDa2Z/YWdmFsGX4G7H5q4S1t4iEKGYGGpXh1Nnf4J3Tl4jHTpV4xMDAaWl0n8J5HlhCkx1+j3k1pfk0pPE8dLZn8pYN+xOHN2lQPMR8W7HGFLRJoOTh/5L8PZGaKR/4m4vQiHrrE+w5lNJOj0bIo75RgAAPAwBAAAPgwBAwMgQADBhJAlEhNL5nqo4xYRg0mOIKwQRADBdcowWBOlGGWPLCABYCYzI7DjHBOEKKz+fAZyNbq5zABfRBqYBZFOdlAEGOcIVaJlyCgIABUaFGOPGYBxhZjZfmBOEUNIhcM2aCuFNiOJOgVE2dkGhxBVJkFJSJTUfMG3VcvzWnxZF5VxKoQCfzJDEoBBteCbACSLJJmVfvqrLNvKLAPDfnUqB3xSTsQkgjKxJAhAbQiOcBJdSNTvtLl2TJZWvH11VfZxZ9wIAMkhP/9dqrNPNNb+jmL4xTGI2B3i8MXiWsJhHObOQzIKQHJHFoZiC7HKnGj3+p35ypY9zRiEQ5nKATpU9mVLNBrOQJoIQHF+kF3WZmNk0pOlhKIRO1eCmFoTLaQghSrWh1G3k4G1JRCgIhSjBcpCQnZWYKjAFY1Oqh6JwqQyHJAh8YHUxxrZQCJLF+AwqIK4Q2oy7KAMXkpF1U+Pu6hQg4U6OhLmFa3f5NkQchIFJgXJiUQgOdNZMFa0tCGoFpLCBHJVz6YHr7C+LLZwNxBCUUcL6ELPrV4kDYSPh0qCZwLqaArSTJoSgWArExUON0qgZaLQMdqcHVKJOBCGQEkS8U1LHAMw1TaOTAoNM4QwjqJ6BmjQ3Gs8bO3mUSDWFDBv5r6ZTGV3UhCq/CjSHgbHOLCzAPJsGAwpFGEQCONVgW7jk3lq5WJjJAAAKE3SAu2tLDQHqDAr8ZJ6UPJbwOhGpEAjlTDpRIgJ4w4y1gUPK+4sAACjsAq2UdaFaOqD9xLxTwRSjKPe2wAAAABJRU5ErkJggg=="
+            fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jODVboQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxY4Q0IsRXhSI7d2MFOyMkmwg40smBHMilksoPsCEcSj+QIY9Y4C2Ix8+8//2nv+4U9M93v+2xPV93q6qmp7vfkr3/8e5m8PD3oVJJ5pNO6/nZqC1xN14Xev4pGmTgn55kS9VD//cqnVi5jzWzBVqjNMG3lVFIWQnOkUIg6hqgfukcfwUEn3kUV9w6VfPpYI/8lJlF6HZAhIxeIczf+X13V4xO8JcjOdZ+k5d6/JdPLu4o2nX9L0dIjZedUOZNO1e8hm2k5eBUdFgRAaVJMqzq73Z1dNYGvdtZHFv0aQs9PRBk+3Rak1zxVl9urULdDa2Z/YWdmFsGX4G7H5q4S1t4iEKGYGGpXh1Nnf4J3Tl4jHTpV4xMDAaWl0n8J5HlhCkx1+j3k1pfk0pPE8dLZn8pYN+xOHN2lQPMR8W7HGFLRJoOTh/5L8PZGaKR/4m4vQiHrrE+w5lNJOj0bIo75RgAAPAwBAAAPgwBAwMgQADBhJAlEhNL5nqo4xYRg0mOIKwQRADBdcowWBOlGGWPLCABYCYzI7DjHBOEKKz+fAZyNbq5zABfRBqYBZFOdlAEGOcIVaJlyCgIABUaFGOPGYBxhZjZfmBOEUNIhcM2aCuFNiOJOgVE2dkGhxBVJkFJSJTUfMG3VcvzWnxZF5VxKoQCfzJDEoBBteCbACSLJJmVfvqrLNvKLAPDfnUqB3xSTsQkgjKxJAhAbQiOcBJdSNTvtLl2TJZWvH11VfZxZ9wIAMkhP/9dqrNPNNb+jmL4xTGI2B3i8MXiWsJhHObOQzIKQHJHFoZiC7HKnGj3+p35ypY9zRiEQ5nKATpU9mVLNBrOQJoIQHF+kF3WZmNk0pOlhKIRO1eCmFoTLaQghSrWh1G3k4G1JRCgIhSjBcpCQnZWYKjAFY1Oqh6JwqQyHJAh8YHUxxrZQCJLF+AwqIK4Q2oy7KAMXkpF1U+Pu6hQg4U6OhLmFa3f5NkQchIFJgXJiUQgOdNZMFa0tCGoFpLCBHJVz6YHr7C+LLZwNxBCUUcL6ELPrV4kDYSPh0qCZwLqaArSTJoSgWArExUON0qgZaLQMdqcHVKJOBCGQEkS8U1LHAMw1TaOTAoNM4QwjqJ6BmjQ3Gs8bO3mUSDWFDBv5r6ZTGV3UhCq/CjSHgbHOLCzAPJsGAwpFGEQCONVgW7jk3lq5WJjJAAAKE3SAu2tLDQHqDAr+ZJ6UPJbwOhGpEAjlTDpRIgJ4w4y1gUPK+4sAACjsAq2UdaFaOqD9xLxTwRSjKPe2wAAAABJRU5ErkJggg=="
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.onerror = null;
@@ -289,6 +289,12 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
           </Flex>
         </div>
       </div>
+      <AuthModal
+        show={showAuthModal}
+        onHide={() => setShowAuthModal(false)}
+        isLoginMode={isLoginMode}
+        onToggleMode={() => setIsLoginMode(prev => !prev)}
+      />
     </>
   );
 };

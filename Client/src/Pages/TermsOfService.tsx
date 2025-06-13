@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // Import useState and useEffect
 import { 
   Card, 
   Breadcrumb, 
@@ -9,7 +9,8 @@ import {
   Alert,
   List,
   Row,
-  Col
+  Col,
+  Spin
 } from 'antd';
 import { 
   HomeOutlined, 
@@ -34,6 +35,17 @@ const { Title, Paragraph, Text } = Typography;
 const { Panel } = Collapse;
 
 const TermsOfService: React.FC = () => {
+  const [loading, setLoading] = useState(true); // State to manage loading
+
+  // Simulate initial data loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false); // Set loading to false after 2 seconds
+    }, 2000); // Adjust loading time as needed
+
+    return () => clearTimeout(timer); // Clear timeout if component unmounts
+  }, []);
+
   const termsData = [
     {
       key: '1',
@@ -155,288 +167,290 @@ const TermsOfService: React.FC = () => {
             />
           </Card>
           
-          <Card 
-            style={{ 
-              borderRadius: '12px',
-              border: 'none',
-              overflow: 'hidden'
-            }}
-          >
-            <div 
+          <Spin spinning={loading} tip="Loading Terms of Service..." style={{color: "#52c41a"}}>
+            <Card 
               style={{ 
-                background: 'linear-gradient(135deg, #52c41a 0%, #73d13d 100%)', 
-                color: 'white', 
-                padding: '40px 32px',
-                margin: '-24px -24px 32px -24px',
-                textAlign: 'center'
+                borderRadius: '12px',
+                border: 'none',
+                overflow: 'hidden'
               }}
             >
-              <FileTextOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
-              <Title level={1} style={{ color: 'white', margin: 0, fontSize: '32px' }}>
-                Terms of Service
-              </Title>
-              <Paragraph style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', marginBottom: 0, marginTop: '8px' }}>
-                These Terms govern your use of the FoodDelights website and services.
-              </Paragraph>
-            </div>
-            
-            <div style={{ padding: '0 8px' }}>
-              <Alert
-                message="Agreement to Terms"
-                description="By accessing or using our website, you agree to be bound by these Terms of Service. Please read them carefully."
-                type="info"
-                icon={<InfoCircleOutlined />}
-                showIcon
+              <div 
                 style={{ 
-                  marginBottom: '32px',
-                  borderRadius: '8px',
-                  backgroundColor: '#f6ffed',
-                  border: '1px solid #b7eb8f'
+                  background: 'linear-gradient(135deg, #52c41a 0%, #73d13d 100%)', 
+                  color: 'white', 
+                  padding: '40px 32px',
+                  margin: '-24px -24px 32px -24px',
+                  textAlign: 'center'
                 }}
-              />
-              
-              <Card 
-                title={
-                  <Space size="middle">
-                    <FileTextOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
-                    <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
-                      Terms and Conditions
-                    </Title>
-                  </Space>
-                }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
-                headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
-                <Collapse
-                  ghost
-                  expandIconPosition="end"
-                  style={{ backgroundColor: 'transparent' }}
+                <FileTextOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
+                <Title level={1} style={{ color: 'white', margin: 0, fontSize: '32px' }}>
+                  Terms of Service
+                </Title>
+                <Paragraph style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', marginBottom: 0, marginTop: '8px' }}>
+                  These Terms govern your use of the FoodDelights website and services.
+                </Paragraph>
+              </div>
+              
+              <div style={{ padding: '0 8px' }}>
+                <Alert
+                  message="Agreement to Terms"
+                  description="By accessing or using our website, you agree to be bound by these Terms of Service. Please read them carefully."
+                  type="info"
+                  icon={<InfoCircleOutlined />}
+                  showIcon
+                  style={{ 
+                    marginBottom: '32px',
+                    borderRadius: '8px',
+                    backgroundColor: '#f6ffed',
+                    border: '1px solid #b7eb8f'
+                  }}
+                />
+                
+                <Card 
+                  title={
+                    <Space size="middle">
+                      <FileTextOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
+                      <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
+                        Terms and Conditions
+                      </Title>
+                    </Space>
+                  }
+                  style={{ marginBottom: '24px', borderRadius: '8px' }}
+                  headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
                 >
-                  {termsData.map((section) => (
-                    <Panel
-                      key={section.key}
-                      header={
-                        <Space>
-                          <span style={{ color: '#52c41a', fontSize: '18px' }}>
-                            {section.icon}
-                          </span>
-                          <Text strong style={{ fontSize: '16px' }}>
-                            {section.key}. {section.title}
-                          </Text>
-                        </Space>
-                      }
-                      style={{
-                        marginBottom: '16px',
-                        backgroundColor: '#fafafa',
-                        border: '1px solid #f0f0f0',
-                        borderRadius: '8px'
-                      }}
-                    >
-                      <Paragraph style={{ fontSize: '16px', marginBottom: '16px' }}>
-                        {section.content.description}
-                      </Paragraph>
+                  <Collapse
+                    ghost
+                    expandIconPosition="end"
+                    style={{ backgroundColor: 'transparent' }}
+                  >
+                    {termsData.map((section) => (
+                      <Panel
+                        key={section.key}
+                        header={
+                          <Space>
+                            <span style={{ color: '#52c41a', fontSize: '18px' }}>
+                              {section.icon}
+                            </span>
+                            <Text strong style={{ fontSize: '16px' }}>
+                              {section.key}. {section.title}
+                            </Text>
+                          </Space>
+                        }
+                        style={{
+                          marginBottom: '16px',
+                          backgroundColor: '#fafafa',
+                          border: '1px solid #f0f0f0',
+                          borderRadius: '8px'
+                        }}
+                      >
+                        <Paragraph style={{ fontSize: '16px', marginBottom: '16px' }}>
+                          {section.content.description}
+                        </Paragraph>
+                        <List
+                          dataSource={section.content.items}
+                          renderItem={(item) => (
+                            <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
+                              <Space align="start" size="middle">
+                                <div style={{ 
+                                  backgroundColor: '#f6ffed', 
+                                  padding: '8px', 
+                                  borderRadius: '50%',
+                                  color: '#52c41a',
+                                  fontSize: '16px'
+                                }}>
+                                  {section.icon}
+                                </div>
+                                <Text style={{ fontSize: '15px' }}>{item}</Text>
+                              </Space>
+                            </List.Item>
+                          )}
+                        />
+                      </Panel>
+                    ))}
+                  </Collapse>
+                </Card>
+                
+                <Card 
+                  title={
+                    <Space size="middle">
+                      <SafetyCertificateOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
+                      <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
+                        Intellectual Property
+                      </Title>
+                    </Space>
+                  }
+                  style={{ marginBottom: '24px', borderRadius: '8px' }}
+                  headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
+                >
+                  <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
+                    The FoodDelights website and its original content, features, and functionality are owned by FoodDelights and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.
+                  </Paragraph>
+                  <Alert
+                    message="Prohibited Activities"
+                    description={
                       <List
-                        dataSource={section.content.items}
+                        dataSource={prohibitedActivities}
                         renderItem={(item) => (
                           <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
                             <Space align="start" size="middle">
                               <div style={{ 
-                                backgroundColor: '#f6ffed', 
+                                backgroundColor: '#fff2e8', 
                                 padding: '8px', 
                                 borderRadius: '50%',
-                                color: '#52c41a',
+                                color: '#fa8c16',
                                 fontSize: '16px'
                               }}>
-                                {section.icon}
+                                <InfoCircleOutlined />
                               </div>
                               <Text style={{ fontSize: '15px' }}>{item}</Text>
                             </Space>
                           </List.Item>
                         )}
                       />
-                    </Panel>
-                  ))}
-                </Collapse>
-              </Card>
-              
-              <Card 
-                title={
-                  <Space size="middle">
-                    <SafetyCertificateOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
-                    <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
-                      Intellectual Property
-                    </Title>
-                  </Space>
-                }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
-                headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
-              >
-                <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
-                  The FoodDelights website and its original content, features, and functionality are owned by FoodDelights and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.
-                </Paragraph>
-                <Alert
-                  message="Prohibited Activities"
-                  description={
-                    <List
-                      dataSource={prohibitedActivities}
-                      renderItem={(item) => (
-                        <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
-                          <Space align="start" size="middle">
-                            <div style={{ 
-                              backgroundColor: '#fff2e8', 
-                              padding: '8px', 
-                              borderRadius: '50%',
-                              color: '#fa8c16',
-                              fontSize: '16px'
-                            }}>
-                              <InfoCircleOutlined />
-                            </div>
-                            <Text style={{ fontSize: '15px' }}>{item}</Text>
-                          </Space>
-                        </List.Item>
-                      )}
-                    />
-                  }
-                  type="warning"
-                  showIcon
-                  icon={<InfoCircleOutlined />}
-                  style={{ borderRadius: '8px' }}
-                />
-              </Card>
-              
-              <Card 
-                title={
-                  <Space size="middle">
-                    <InfoCircleOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
-                    <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
-                      Limitation of Liability
-                    </Title>
-                  </Space>
-                }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
-                headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
-              >
-                <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
-                  In no event shall FoodDelights, its officers, directors, employees, or agents, be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from:
-                </Paragraph>
-                <List
-                  dataSource={liabilityItems}
-                  renderItem={(item) => (
-                    <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
-                      <Space align="start" size="middle">
-                        <div style={{ 
-                          backgroundColor: '#e6f7ff', 
-                          padding: '8px', 
-                          borderRadius: '50%',
-                          color: '#1890ff',
-                          fontSize: '16px'
-                        }}>
-                          <InfoCircleOutlined />
-                        </div>
-                        <Text style={{ fontSize: '15px' }}>{item}</Text>
-                      </Space>
-                    </List.Item>
-                  )}
-                />
-              </Card>
-              
-              <Card 
-                title={
-                  <Space size="middle">
-                    <LockOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
-                    <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
-                      Termination
-                    </Title>
-                  </Space>
-                }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
-                headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
-              >
-                <Paragraph style={{ fontSize: '16px' }}>
-                  We may terminate or suspend your account and bar access to the website immediately, without prior notice or liability, under our sole discretion, for any reason whatsoever and without limitation, including but not limited to a breach of the Terms.
-                </Paragraph>
-              </Card>
-              
-              <Card 
-                title={
-                  <Space size="middle">
-                    <PhoneOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
-                    <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
-                      Contact Us
-                    </Title>
-                  </Space>
-                }
-                style={{ marginBottom: '32px', borderRadius: '8px' }}
-                headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
-              >
-                <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
-                  If you have any questions about these Terms, please contact our legal team:
-                </Paragraph>
+                    }
+                    type="warning"
+                    showIcon
+                    icon={<InfoCircleOutlined />}
+                    style={{ borderRadius: '8px' }}
+                  />
+                </Card>
                 
                 <Card 
-                  style={{ 
-                    backgroundColor: '#fafafa', 
-                    border: '1px solid #d9d9d9',
-                    borderRadius: '8px'
-                  }}
+                  title={
+                    <Space size="middle">
+                      <InfoCircleOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
+                      <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
+                        Limitation of Liability
+                      </Title>
+                    </Space>
+                  }
+                  style={{ marginBottom: '24px', borderRadius: '8px' }}
+                  headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
                 >
-                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                    <div>
-                      <Space>
-                        <ShopOutlined style={{ color: '#52c41a', fontSize: '18px' }} />
-                        <Text strong style={{ fontSize: '16px' }}>FoodDelights Legal Team</Text>
-                      </Space>
-                    </div>
-                    
-                    <Divider style={{ margin: '12px 0' }} />
-                    
-                    <Row gutter={[24, 16]}>
-                      <Col xs={24} sm={12}>
-                        <Space>
-                          <EnvironmentOutlined style={{ color: '#1890ff' }} />
-                          <div>
-                            <Text style={{ fontSize: '14px', color: '#595959' }}>Address</Text>
-                            <br />
-                            <Text>1-23 Gourmet Street, Nellore</Text>
+                  <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
+                    In no event shall FoodDelights, its officers, directors, employees, or agents, be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from:
+                  </Paragraph>
+                  <List
+                    dataSource={liabilityItems}
+                    renderItem={(item) => (
+                      <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
+                        <Space align="start" size="middle">
+                          <div style={{ 
+                            backgroundColor: '#e6f7ff', 
+                            padding: '8px', 
+                            borderRadius: '50%',
+                            color: '#1890ff',
+                            fontSize: '16px'
+                          }}>
+                            <InfoCircleOutlined />
                           </div>
+                          <Text style={{ fontSize: '15px' }}>{item}</Text>
                         </Space>
-                      </Col>
-                      <Col xs={24} sm={12}>
-                        <Space>
-                          <MailOutlined style={{ color: '#52c41a' }} />
-                          <div>
-                            <Text style={{ fontSize: '14px', color: '#595959' }}>Email</Text>
-                            <br />
-                            <Text copyable>legal@fooddelights.com</Text>
-                          </div>
-                        </Space>
-                      </Col>
-                      <Col xs={24} sm={12}>
-                        <Space>
-                          <PhoneOutlined style={{ color: '#fa8c16' }} />
-                          <div>
-                            <Text style={{ fontSize: '14px', color: '#595959' }}>Phone</Text>
-                            <br />
-                            <Text copyable>(+91) 99887 76655</Text>
-                          </div>
-                        </Space>
-                      </Col>
-                    </Row>
-                  </Space>
+                      </List.Item>
+                    )}
+                  />
                 </Card>
-              </Card>
-              
-              <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                <Divider />
-                <Space>
-                  <SyncOutlined style={{ color: '#8c8c8c' }} />
-                  <Text type="secondary" style={{ fontSize: '14px' }}>
-                    Last Updated: April 15, 2025
-                  </Text>
-                </Space>
+                
+                <Card 
+                  title={
+                    <Space size="middle">
+                      <LockOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
+                      <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
+                        Termination
+                      </Title>
+                    </Space>
+                  }
+                  style={{ marginBottom: '24px', borderRadius: '8px' }}
+                  headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
+                >
+                  <Paragraph style={{ fontSize: '16px' }}>
+                    We may terminate or suspend your account and bar access to the website immediately, without prior notice or liability, under our sole discretion, for any reason whatsoever and without limitation, including but not limited to a breach of the Terms.
+                  </Paragraph>
+                </Card>
+                
+                <Card 
+                  title={
+                    <Space size="middle">
+                      <PhoneOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
+                      <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
+                        Contact Us
+                      </Title>
+                    </Space>
+                  }
+                  style={{ marginBottom: '32px', borderRadius: '8px' }}
+                  headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
+                >
+                  <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
+                    If you have any questions about these Terms, please contact our legal team:
+                  </Paragraph>
+                  
+                  <Card 
+                    style={{ 
+                      backgroundColor: '#fafafa', 
+                      border: '1px solid #d9d9d9',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                      <div>
+                        <Space>
+                          <ShopOutlined style={{ color: '#52c41a', fontSize: '18px' }} />
+                          <Text strong style={{ fontSize: '16px' }}>FoodDelights Legal Team</Text>
+                        </Space>
+                      </div>
+                      
+                      <Divider style={{ margin: '12px 0' }} />
+                      
+                      <Row gutter={[24, 16]}>
+                        <Col xs={24} sm={12}>
+                          <Space>
+                            <EnvironmentOutlined style={{ color: '#1890ff' }} />
+                            <div>
+                              <Text style={{ fontSize: '14px', color: '#595959' }}>Address</Text>
+                              <br />
+                              <Text>1-23 Gourmet Street, Nellore</Text>
+                            </div>
+                          </Space>
+                        </Col>
+                        <Col xs={24} sm={12}>
+                          <Space>
+                            <MailOutlined style={{ color: '#52c41a' }} />
+                            <div>
+                              <Text style={{ fontSize: '14px', color: '#595959' }}>Email</Text>
+                              <br />
+                              <Text copyable>legal@fooddelights.com</Text>
+                            </div>
+                          </Space>
+                        </Col>
+                        <Col xs={24} sm={12}>
+                          <Space>
+                            <PhoneOutlined style={{ color: '#fa8c16' }} />
+                            <div>
+                              <Text style={{ fontSize: '14px', color: '#595959' }}>Phone</Text>
+                              <br />
+                              <Text copyable>(+91) 99887 76655</Text>
+                            </div>
+                          </Space>
+                        </Col>
+                      </Row>
+                    </Space>
+                  </Card>
+                </Card>
+                
+                <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                  <Divider />
+                  <Space>
+                    <SyncOutlined style={{ color: '#8c8c8c' }} />
+                    <Text type="secondary" style={{ fontSize: '14px' }}>
+                      Last Updated: April 15, 2025
+                    </Text>
+                  </Space>
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          </Spin>
         </Col>
       </Row>
     </div>

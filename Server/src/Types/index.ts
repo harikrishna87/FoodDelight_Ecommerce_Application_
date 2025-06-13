@@ -26,6 +26,7 @@ export interface ICartItem {
 }
 
 export interface ICart extends Document {
+  user: IUser['_id']; // Added user reference for user-specific carts
   items: ICartItem[];
 }
 

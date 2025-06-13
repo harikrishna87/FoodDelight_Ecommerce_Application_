@@ -11,7 +11,7 @@ const createOrder = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(401).json({ success: false, message: 'User not authenticated' });
     }
 
-    const cart = await Cart.findOne();
+    const cart = await Cart.findOne({ user: userId });
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({ success: false, message: 'Cart is empty. Cannot create order.' });
     }

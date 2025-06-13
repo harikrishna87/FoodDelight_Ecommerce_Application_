@@ -1,4 +1,3 @@
-// types/express.d.ts
 import { IUser } from '../Types';
 
 declare global {

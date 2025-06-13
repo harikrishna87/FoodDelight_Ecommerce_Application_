@@ -66,7 +66,37 @@ const FoodNavbar: React.FC = () => {
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => {
+        console.log('Razorpay SDK loaded successfully');
+    };
+    script.onerror = (error) => {
+        console.error('Failed to load Razorpay SDK:', error);
+        messageApi.error({
+            content: "Failed to load payment gateway. Please check your internet connection.",
+            duration: 5,
+            style: {
+                marginTop: '10vh',
+            },
+        });
+    };
+    document.body.appendChild(script);
+
+    return () => {
+        document.body.removeChild(script);
+    };
+  }, []);
+
+
   const fetchCartItems = async () => {
+    if (!auth?.isAuthenticated) {
+      setCartItems([]);
+      setCartCount(0);
+      return;
+    }
     try {
       const res = await fetch(`${backendUrl}/api/cart/get_cart_items`, {
         credentials: 'include'
@@ -76,6 +106,10 @@ const FoodNavbar: React.FC = () => {
         setCartItems(data.Cart_Items);
         const count = data.Cart_Items.reduce((total: number, item: CartItem) => total + item.quantity, 0);
         setCartCount(count);
+      } else if (!data.success && data.message === "Not authorized, please log in") {
+        setCartItems([]);
+        setCartCount(0);
+        console.log("Session expired or unauthorized. Cart data cleared.");
       }
     } catch (error) {
       console.error('Failed to fetch cart items:', error);
@@ -83,6 +117,14 @@ const FoodNavbar: React.FC = () => {
   };
 
   const clearCart = async () => {
+    if (!auth?.isAuthenticated) {
+      messageApi.error({
+        content: "Please log in to clear your cart.",
+        duration: 3,
+        style: { marginTop: '10vh' },
+      });
+      return;
+    }
     try {
       const response = await fetch(`${backendUrl}/api/cart/clear_cart`, {
         method: 'DELETE',
@@ -93,10 +135,20 @@ const FoodNavbar: React.FC = () => {
         setCartItems([]);
         setCartCount(0);
       } else {
-        console.error('Failed to clear cart');
+        const errorData = await response.json();
+        messageApi.error({
+          content: errorData.message || 'Failed to clear cart',
+          duration: 3,
+          style: { marginTop: '10vh' },
+        });
       }
     } catch (error) {
       console.error('Error clearing cart:', error);
+      messageApi.error({
+        content: "Error occurred while clearing cart.",
+        duration: 3,
+        style: { marginTop: '10vh' },
+      });
     }
   };
 
@@ -105,21 +157,21 @@ const FoodNavbar: React.FC = () => {
 
     const pollingInterval = setInterval(() => {
       fetchCartItems();
-    }, 2000);
+    }, 5000);
 
     const handleCartUpdate = () => {
       fetchCartItems();
     };
 
     window.addEventListener('cartUpdated', handleCartUpdate);
-    window.updateCartCount = fetchCartItems;
+    (window as any).updateCartCount = fetchCartItems;
 
     return () => {
       window.removeEventListener('cartUpdated', handleCartUpdate);
       clearInterval(pollingInterval);
-      delete window.updateCartCount;
+      delete (window as any).updateCartCount;
     };
-  }, []);
+  }, [auth?.isAuthenticated]);
 
   const logout = async () => {
     try {
@@ -182,6 +234,11 @@ const FoodNavbar: React.FC = () => {
   const totalPrice = cartItems.reduce((sum, item) => sum + item.discount_price * item.quantity, 0).toFixed(2);
 
   const handleCartToggle = (): void => {
+    if (!auth?.isAuthenticated) {
+      setShowAuthModal(true);
+      setIsLoginMode(true);
+      return;
+    }
     setShowCart(!showCart);
     if (!showCart) {
       fetchCartItems();
@@ -189,6 +246,14 @@ const FoodNavbar: React.FC = () => {
   };
 
   const handleDeleteItem = async (name: string) => {
+    if (!auth?.isAuthenticated) {
+      messageApi.error({
+        content: "Please log in to remove items from your cart.",
+        duration: 3,
+        style: { marginTop: '10vh' },
+      });
+      return;
+    }
     try {
       const res = await fetch(`${backendUrl}/api/cart/delete_cart_item/${encodeURIComponent(name)}`, {
         method: 'DELETE',
@@ -203,9 +268,14 @@ const FoodNavbar: React.FC = () => {
             marginTop: '10vh',
           },
         });
+        // Trigger global cart update
+        if ((window as any).updateCartCount) {
+          (window as any).updateCartCount();
+        }
       } else {
+        const errorData = await res.json();
         messageApi.error({
-          content: "Failed to remove item",
+          content: errorData.message || "Failed to remove item",
           duration: 3,
           style: {
             marginTop: '10vh',
@@ -225,6 +295,14 @@ const FoodNavbar: React.FC = () => {
   };
 
   const handleUpdateQuantity = async (_id: string, quantity: number) => {
+    if (!auth?.isAuthenticated) {
+      messageApi.error({
+        content: "Please log in to update cart item quantity.",
+        duration: 3,
+        style: { marginTop: '10vh' },
+      });
+      return;
+    }
     if (quantity < 1) return;
 
     const updatedItems = cartItems.map(item =>
@@ -248,9 +326,12 @@ const FoodNavbar: React.FC = () => {
         content: "Quantity updated successfully",
         duration: 3,
         style: {
-          marginTop: '10vh',
+          marginTop: '10vh'
         },
       });
+      if ((window as any).updateCartCount) {
+        (window as any).updateCartCount();
+      }
     } catch (error) {
       console.error('Error updating item quantity:', error);
       messageApi.error({
@@ -331,7 +412,7 @@ const FoodNavbar: React.FC = () => {
             marginTop: '10vh',
           },
         });
-        clearCart();
+        clearCart(); 
         setShowCart(false);
         triggerConfetti();
       } else {
@@ -357,13 +438,6 @@ const FoodNavbar: React.FC = () => {
 
   const checkoutHandler = async (amount: number | string) => {
     if (!auth?.isAuthenticated) {
-      messageApi.error({
-        content: "You need to login to proceed to checkout",
-        duration: 3,
-        style: {
-          marginTop: '10vh',
-        },
-      });
       setShowAuthModal(true);
       setIsLoginMode(true);
       return;
@@ -378,6 +452,17 @@ const FoodNavbar: React.FC = () => {
         },
       });
       return;
+    }
+
+    if (typeof Razorpay === 'undefined') {
+        messageApi.error({
+            content: "Payment gateway not loaded. Please try again or refresh the page.",
+            duration: 5,
+            style: {
+                marginTop: '10vh',
+            },
+        });
+        return;
     }
 
     try {
@@ -399,7 +484,7 @@ const FoodNavbar: React.FC = () => {
         prefill: {
           name: auth.user?.name || "Customer",
           email: auth.user?.email || "customer@example.com",
-          contact: ''
+          contact: '+91 9550172687'
         },
         theme: {
           color: '#52c41a'

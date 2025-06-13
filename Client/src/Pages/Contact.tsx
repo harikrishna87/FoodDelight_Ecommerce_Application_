@@ -1,21 +1,13 @@
-import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Row, Col, Form, Button, Card, Input, Select, Typography, message, Spin } from 'antd';
 import { SendOutlined, PhoneOutlined, MailOutlined, EnvironmentOutlined, ShopOutlined } from '@ant-design/icons';
+import AuthModal from "../Components/AuthModal";
 
 const { Title, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
-interface FormDataType {
-  [key: string]: string;
-  fullname: string;
-  email: string;
-  phone: string;
-  preferredDish: string;
-  dietaryRestrictions: string;
-  orderType: string;
-  message: string;
-}
+const AuthContext = React.createContext<{ isAuthenticated: boolean } | null>(null);
 
 const LeafDecoration: React.FC<{ position: 'left' | 'right' | 'top-left' | 'top-right' }> = ({ position }) => {
   const isTop = position.includes('top');
@@ -72,17 +64,14 @@ const LeafDecoration: React.FC<{ position: 'left' | 'right' | 'top-left' | 'top-
 };
 
 const Contact: React.FC = () => {
-  const [formData, setFormData] = useState<FormDataType>({
-    fullname: '',
-    email: '',
-    phone: '',
-    preferredDish: '',
-    dietaryRestrictions: '',
-    orderType: '',
-    message: '',
-  });
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState<boolean>(false);
   const [componentLoading, setComponentLoading] = useState<boolean>(true);
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+  const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
+  const [messageApi, contextHolder] = message.useMessage();
+  
+  const auth = useContext(AuthContext) || { isAuthenticated: false };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -92,44 +81,10 @@ const Contact: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleChange = (name: string, value: string) => {
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
-    if (!formData.fullname.trim()) {
-      message.error('Please enter your full name');
-      return;
-    }
-    if (!formData.email.trim()) {
-      message.error('Please enter your email address');
-      return;
-    }
-    if (!formData.phone.trim()) {
-      message.error('Please enter your phone number');
-      return;
-    }
-    if (!formData.preferredDish.trim()) {
-      message.error('Please enter your preferred dish');
-      return;
-    }
-    if (!formData.dietaryRestrictions.trim()) {
-      message.error('Please select your dietary restrictions');
-      return;
-    }
-    if (!formData.orderType.trim()) {
-      message.error('Please select an order type');
-      return;
-    }
-    if (!formData.message.trim()) {
-      message.error('Please enter your message');
+  const handleSubmit = () => {
+    if (!auth.isAuthenticated) {
+      setShowAuthModal(true);
+      setIsLoginMode(true);
       return;
     }
 
@@ -138,23 +93,15 @@ const Contact: React.FC = () => {
     Promise.resolve({ status: 200 })
       .then(
         (_response) => {
-          message.success({
+          messageApi.success({
             content: 'Your message has been sent! We will get back to you soon.',
             duration: 4,
           });
-          setFormData({
-            fullname: '',
-            email: '',
-            phone: '',
-            preferredDish: '',
-            dietaryRestrictions: '',
-            orderType: '',
-            message: '',
-          });
+          form.resetFields();
           setLoading(false);
         },
         (error) => {
-          message.error({
+          messageApi.error({
             content: 'Unable to send your message. Please try again later.',
             duration: 4,
           });
@@ -197,6 +144,7 @@ const Contact: React.FC = () => {
 
   return (
     <>
+      {contextHolder}
       <style>
         {`
           .ant-input:focus,
@@ -431,38 +379,35 @@ const Contact: React.FC = () => {
                 bodyStyle={{ padding: '48px' }}
               >
                 <Title level={3} style={{ marginBottom: '32px' }}>Send a Message</Title>
-                <Form onFinish={handleSubmit} layout="vertical">
+                <Form form={form} onFinish={handleSubmit} layout="vertical" autoComplete="off">
                   <Row gutter={[16, 0]}>
                     <Col xs={24} md={12}>
                       <Form.Item 
                         label="Full Name" 
+                        name="fullname"
                         style={{ marginBottom: '32px' }}
-                        required
+                        rules={[{ required: true, message: 'Please enter your full name' }]}
                       >
                         <Input
-                          name="fullname"
-                          value={formData.fullname}
-                          onChange={handleInputChange}
                           placeholder="Your name"
                           size="large"
-                          required
                         />
                       </Form.Item>
                     </Col>
                     <Col xs={24} md={12}>
                       <Form.Item 
                         label="Email Address" 
+                        name="email"
                         style={{ marginBottom: '32px' }}
-                        required
+                        rules={[
+                          { required: true, message: 'Please enter your email address' },
+                          { type: 'email', message: 'Please enter a valid email address' }
+                        ]}
                       >
                         <Input
                           type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
                           placeholder="Your email"
                           size="large"
-                          required
                         />
                       </Form.Item>
                     </Col>
@@ -471,33 +416,27 @@ const Contact: React.FC = () => {
                     <Col xs={24} md={12}>
                       <Form.Item 
                         label="Phone Number" 
+                        name="phone"
                         style={{ marginBottom: '32px' }}
-                        required
+                        rules={[{ required: true, message: 'Please enter your phone number' }]}
                       >
                         <Input
                           type="tel"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
                           placeholder="Your phone number"
                           size="large"
-                          required
                         />
                       </Form.Item>
                     </Col>
                     <Col xs={24} md={12}>
                       <Form.Item 
                         label="Preferred Dish" 
+                        name="preferredDish"
                         style={{ marginBottom: '32px' }}
-                        required
+                        rules={[{ required: true, message: 'Please enter your preferred dish' }]}
                       >
                         <Input
-                          name="preferredDish"
-                          value={formData.preferredDish}
-                          onChange={handleInputChange}
                           placeholder="Your favorite dish"
                           size="large"
-                          required
                         />
                       </Form.Item>
                     </Col>
@@ -506,12 +445,11 @@ const Contact: React.FC = () => {
                     <Col xs={24} md={12}>
                       <Form.Item 
                         label="Dietary Restrictions" 
+                        name="dietaryRestrictions"
                         style={{ marginBottom: '32px' }}
-                        required
+                        rules={[{ required: true, message: 'Please select your dietary restrictions' }]}
                       >
                         <Select
-                          value={formData.dietaryRestrictions || undefined}
-                          onChange={(value) => handleChange('dietaryRestrictions', value || '')}
                           placeholder="Select dietary restrictions"
                           size="large"
                           className="food-select"
@@ -533,12 +471,11 @@ const Contact: React.FC = () => {
                     <Col xs={24} md={12}>
                       <Form.Item 
                         label="Order Type" 
+                        name="orderType"
                         style={{ marginBottom: '32px' }}
-                        required
+                        rules={[{ required: true, message: 'Please select an order type' }]}
                       >
                         <Select
-                          value={formData.orderType || undefined}
-                          onChange={(value) => handleChange('orderType', value || '')}
                           placeholder="Select an option"
                           size="large"
                           className="food-select"
@@ -559,15 +496,12 @@ const Contact: React.FC = () => {
 
                   <Form.Item 
                     label="Your Message" 
+                    name="message"
                     style={{ marginBottom: '32px' }}
-                    required
+                    rules={[{ required: true, message: 'Please enter your message' }]}
                   >
                     <TextArea
-                      name="message"
-                      value={formData.message}
-                      onChange={handleInputChange}
                       placeholder="Tell us about your requirements or questions"
-                      required
                       rows={6}
                       size="large"
                     />
@@ -601,6 +535,12 @@ const Contact: React.FC = () => {
           </Row>
         </div>
       </section>
+      <AuthModal
+        show={showAuthModal}
+        onHide={() => setShowAuthModal(false)}
+        isLoginMode={isLoginMode}
+        onToggleMode={() => setIsLoginMode(prev => !prev)}
+      />
     </>
   );
 };

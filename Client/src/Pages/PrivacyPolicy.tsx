@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // Import useState and useEffect
 import { 
   Card, 
   Breadcrumb, 
@@ -10,7 +10,8 @@ import {
   Divider, 
   Alert,
   Tag,
-  Timeline
+  Timeline,
+  Spin
 } from 'antd';
 import { 
   HomeOutlined,
@@ -37,6 +38,17 @@ import { Link } from 'react-router-dom';
 const { Title, Paragraph, Text } = Typography;
 
 const PrivacyPolicy: React.FC = () => {
+  const [loading, setLoading] = useState(true); // State to manage loading
+
+  // Simulate initial data loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false); // Set loading to false after 2 seconds
+    }, 2000); // Adjust loading time as needed
+
+    return () => clearTimeout(timer); // Clear timeout if component unmounts
+  }, []);
+
   const informationItems = [
     { icon: <UserOutlined />, text: 'Contact information (name, email, phone number, shipping and billing address)' },
     { icon: <LockOutlined />, text: 'Account credentials (username and password)' },
@@ -122,339 +134,341 @@ const PrivacyPolicy: React.FC = () => {
             />
           </Card>
           
-          <Card 
-            style={{ 
-              borderRadius: '12px',
-              border: 'none',
-              overflow: 'hidden'
-            }}
-          >
-            <div 
+          <Spin spinning={loading} tip="Loading Privacy Policy..." style={{color: "#52c41a"}}>
+            <Card 
               style={{ 
-                background: 'linear-gradient(135deg, #52c41a 0%, #73d13d 100%)', 
-                color: 'white', 
-                padding: '40px 32px',
-                margin: '-24px -24px 32px -24px',
-                textAlign: 'center'
+                borderRadius: '12px',
+                border: 'none',
+                overflow: 'hidden'
               }}
             >
-              <SafetyOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
-              <Title level={1} style={{ color: 'white', margin: 0, fontSize: '32px' }}>
-                Privacy Policy
-              </Title>
-              <Paragraph style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', marginBottom: 0, marginTop: '8px' }}>
-                Your privacy matters to us. Learn how we protect your data.
-              </Paragraph>
-            </div>
-            
-            <div style={{ padding: '0 8px' }}>
-              <Alert
-                message="Our Commitment to Privacy"
-                description="At FoodDelights, we value your privacy and are committed to protecting your personal information. This policy explains how we collect, use, and safeguard your data."
-                type="info"
-                icon={<InfoCircleOutlined />}
-                showIcon
+              <div 
                 style={{ 
-                  marginBottom: '32px',
-                  borderRadius: '8px',
-                  backgroundColor: '#f6ffed',
-                  border: '1px solid #b7eb8f'
+                  background: 'linear-gradient(135deg, #52c41a 0%, #73d13d 100%)', 
+                  color: 'white', 
+                  padding: '40px 32px',
+                  margin: '-24px -24px 32px -24px',
+                  textAlign: 'center'
                 }}
-              />
-              
-              <Card 
-                title={
-                  <Space size="middle">
-                    <DatabaseOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
-                    <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
-                      Information We Collect
-                    </Title>
-                  </Space>
-                }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
-                headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
-                <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
-                  We collect information that you provide directly to us when you interact with our services:
-                </Paragraph>
-                <List
-                  dataSource={informationItems}
-                  renderItem={(item) => (
-                    <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
-                      <Space align="start" size="middle">
-                        <div style={{ 
-                          backgroundColor: '#f6ffed', 
-                          padding: '8px', 
-                          borderRadius: '50%',
-                          color: '#52c41a',
-                          fontSize: '16px'
-                        }}>
-                          {item.icon}
-                        </div>
-                        <Text style={{ fontSize: '15px' }}>{item.text}</Text>
-                      </Space>
-                    </List.Item>
-                  )}
-                />
-              </Card>
-              
-              <Card 
-                title={
-                  <Space size="middle">
-                    <SettingOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
-                    <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
-                      How We Use Your Information
-                    </Title>
-                  </Space>
-                }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
-                headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
-              >
-                <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
-                  We use your information to provide and improve our services:
-                </Paragraph>
-                <List
-                  dataSource={usageItems}
-                  renderItem={(item) => (
-                    <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
-                      <Space align="start" size="middle">
-                        <div style={{ 
-                          backgroundColor: '#e6f7ff', 
-                          padding: '8px', 
-                          borderRadius: '50%',
-                          color: '#1890ff',
-                          fontSize: '16px'
-                        }}>
-                          {item.icon}
-                        </div>
-                        <Text style={{ fontSize: '15px' }}>{item.text}</Text>
-                      </Space>
-                    </List.Item>
-                  )}
-                />
-              </Card>
-              
-              <Card 
-                title={
-                  <Space size="middle">
-                    <PieChartOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
-                    <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
-                      Cookie Policy
-                    </Title>
-                  </Space>
-                }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
-                headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
-              >
-                <Paragraph style={{ fontSize: '16px', marginBottom: '24px' }}>
-                  We use cookies and similar technologies to enhance your browsing experience, analyze site traffic, and personalize content. You can control cookies through your browser settings.
-                </Paragraph>
-                
-                <Title level={5} style={{ marginBottom: '16px', color: '#595959' }}>
-                  Types of Cookies We Use:
+                <SafetyOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
+                <Title level={1} style={{ color: 'white', margin: 0, fontSize: '32px' }}>
+                  Privacy Policy
                 </Title>
-                
-                <Row gutter={[16, 16]}>
-                  {cookieTypes.map((cookie, index) => (
-                    <Col xs={24} sm={12} key={index}>
-                      <Card 
-                        size="small" 
-                        style={{ 
-                          height: '100%',
-                          borderRadius: '8px',
-                          borderLeft: `4px solid ${cookie.color}`
-                        }}
-                      >
-                        <Space direction="vertical" size="small">
-                          <Tag color={cookie.color} style={{ margin: 0 }}>
-                            {cookie.type}
-                          </Tag>
-                          <Text style={{ fontSize: '14px', color: '#595959' }}>
-                            {cookie.description}
-                          </Text>
-                        </Space>
-                      </Card>
-                    </Col>
-                  ))}
-                </Row>
-              </Card>
+                <Paragraph style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', marginBottom: 0, marginTop: '8px' }}>
+                  Your privacy matters to us. Learn how we protect your data.
+                </Paragraph>
+              </div>
               
-              <Card 
-                title={
-                  <Space size="middle">
-                    <SafetyCertificateOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
-                    <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
-                      Data Security
-                    </Title>
-                  </Space>
-                }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
-                headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
-              >
+              <div style={{ padding: '0 8px' }}>
                 <Alert
-                  message="Your Data is Protected"
-                  type="success"
-                  icon={<LockOutlined />}
+                  message="Our Commitment to Privacy"
+                  description="At FoodDelights, we value your privacy and are committed to protecting your personal information. This policy explains how we collect, use, and safeguard your data."
+                  type="info"
+                  icon={<InfoCircleOutlined />}
                   showIcon
-                  style={{ marginBottom: '16px' }}
+                  style={{ 
+                    marginBottom: '32px',
+                    borderRadius: '8px',
+                    backgroundColor: '#f6ffed',
+                    border: '1px solid #b7eb8f'
+                  }}
                 />
-                <Paragraph style={{ fontSize: '16px' }}>
-                  We implement appropriate security measures to protect your personal information from unauthorized access, alteration, disclosure, or destruction. These measures include internal reviews of our data collection, storage, and processing practices and security measures, encryption of data, and physical security measures to guard against unauthorized access to systems where we store personal data.
-                </Paragraph>
-              </Card>
-              
-              <Card 
-                title={
-                  <Space size="middle">
-                    <UserOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
-                    <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
-                      Your Rights
-                    </Title>
-                  </Space>
-                }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
-                headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
-              >
-                <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
-                  Depending testemunho your location, you may have the following rights regarding your personal information:
-                </Paragraph>
-                <List
-                  dataSource={userRights}
-                  renderItem={(item) => (
-                    <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
-                      <Space align="start" size="middle">
-                        <div style={{ 
-                          backgroundColor: '#fff2e8', 
-                          padding: '8px', 
-                          borderRadius: '50%',
-                          color: '#fa8c16',
-                          fontSize: '16px'
-                        }}>
-                          {item.icon}
-                        </div>
-                        <Text style={{ fontSize: '15px' }}>{item.text}</Text>
-                      </Space>
-                    </List.Item>
-                  )}
-                />
-              </Card>
-              
-              <Card 
-                title={
-                  <Space size="middle">
-                    <SyncOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
-                    <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
-                      Updates to This Policy
-                    </Title>
-                  </Space>
-                }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
-                headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
-              >
-                <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
-                  We may update this Privacy Policy from time to time. The updated version will be indicated by an updated "Revised" date and the updated version will be effective as soon as it is accessible.
-                </Paragraph>
-                <Timeline
-                  items={[
-                    {
-                      dot: <SyncOutlined style={{ fontSize: '16px' }} />,
-                      children: 'Policy updates are clearly marked with revision dates',
-                      color: 'green',
-                    },
-                    {
-                      dot: <BellOutlined style={{ fontSize: '16px' }} />,
-                      children: 'We encourage regular review of this policy',
-                      color: 'blue',
-                    },
-                    {
-                      dot: <CheckCircleOutlined style={{ fontSize: '16px' }} />,
-                      children: 'Changes become effective immediately upon posting',
-                      color: 'green',
-                    },
-                  ]}
-                />
-              </Card>
-              
-              <Card 
-                title={
-                  <Space size="middle">
-                    <PhoneOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
-                    <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
-                      Contact Us
-                    </Title>
-                  </Space>
-                }
-                style={{ marginBottom: '32px', borderRadius: '8px' }}
-                headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
-              >
-                <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
-                  If you have any questions about this Privacy Policy, please don't hesitate to contact our privacy team:
-                </Paragraph>
                 
                 <Card 
-                  style={{ 
-                    backgroundColor: '#fafafa', 
-                    border: '1px solid #d9d9d9',
-                    borderRadius: '8px'
-                  }}
+                  title={
+                    <Space size="middle">
+                      <DatabaseOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
+                      <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
+                        Information We Collect
+                      </Title>
+                    </Space>
+                  }
+                  style={{ marginBottom: '24px', borderRadius: '8px' }}
+                  headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
                 >
-                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                    <div>
-                      <Space>
-                        <TeamOutlined style={{ color: '#52c41a', fontSize: '18px' }} />
-                        <Text strong style={{ fontSize: '16px' }}>FoodDelights Privacy Team</Text>
-                      </Space>
-                    </div>
-                    
-                    <Divider style={{ margin: '12px 0' }} />
-                    
-                    <Row gutter={[24, 16]}>
-                      <Col xs={24} sm={12}>
-                        <Space>
-                          <EnvironmentOutlined style={{ color: '#1890ff' }} />
-                          <div>
-                            <Text style={{ fontSize: '14px', color: '#595959' }}>Address</Text>
-                            <br />
-                            <Text>1-23 Gourmet Street, Nellore</Text>
+                  <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
+                    We collect information that you provide directly to us when you interact with our services:
+                  </Paragraph>
+                  <List
+                    dataSource={informationItems}
+                    renderItem={(item) => (
+                      <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
+                        <Space align="start" size="middle">
+                          <div style={{ 
+                            backgroundColor: '#f6ffed', 
+                            padding: '8px', 
+                            borderRadius: '50%',
+                            color: '#52c41a',
+                            fontSize: '16px'
+                          }}>
+                            {item.icon}
                           </div>
+                          <Text style={{ fontSize: '15px' }}>{item.text}</Text>
                         </Space>
-                      </Col>
-                      <Col xs={24} sm={12}>
-                        <Space>
-                          <MailOutlined style={{ color: '#52c41a' }} />
-                          <div>
-                            <Text style={{ fontSize: '14px', color: '#595959' }}>Email</Text>
-                            <br />
-                            <Text copyable>privacy@fooddelights.com</Text>
-                          </div>
-                        </Space>
-                      </Col>
-                      <Col xs={24} sm={12}>
-                        <Space>
-                          <PhoneOutlined style={{ color: '#fa8c16' }} />
-                          <div>
-                            <Text style={{ fontSize: '14px', color: '#595959' }}>Phone</Text>
-                            <br />
-                            <Text copyable>(+91) 99887 76655</Text>
-                          </div>
-                        </Space>
-                      </Col>
-                    </Row>
-                  </Space>
+                      </List.Item>
+                    )}
+                  />
                 </Card>
-              </Card>
-              
-              <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                <Divider />
-                <Space>
-                  <SyncOutlined style={{ color: '#8c8c8c' }} />
-                  <Text type="secondary" style={{ fontSize: '14px' }}>
-                    Last Updated: April 15, 2025
-                  </Text>
-                </Space>
+                
+                <Card 
+                  title={
+                    <Space size="middle">
+                      <SettingOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
+                      <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
+                        How We Use Your Information
+                      </Title>
+                    </Space>
+                  }
+                  style={{ marginBottom: '24px', borderRadius: '8px' }}
+                  headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
+                >
+                  <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
+                    We use your information to provide and improve our services:
+                  </Paragraph>
+                  <List
+                    dataSource={usageItems}
+                    renderItem={(item) => (
+                      <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
+                        <Space align="start" size="middle">
+                          <div style={{ 
+                            backgroundColor: '#e6f7ff', 
+                            padding: '8px', 
+                            borderRadius: '50%',
+                            color: '#1890ff',
+                            fontSize: '16px'
+                          }}>
+                            {item.icon}
+                          </div>
+                          <Text style={{ fontSize: '15px' }}>{item.text}</Text>
+                        </Space>
+                      </List.Item>
+                    )}
+                  />
+                </Card>
+                
+                <Card 
+                  title={
+                    <Space size="middle">
+                      <PieChartOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
+                      <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
+                        Cookie Policy
+                      </Title>
+                    </Space>
+                  }
+                  style={{ marginBottom: '24px', borderRadius: '8px' }}
+                  headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
+                >
+                  <Paragraph style={{ fontSize: '16px', marginBottom: '24px' }}>
+                    We use cookies and similar technologies to enhance your browsing experience, analyze site traffic, and personalize content. You can control cookies through your browser settings.
+                  </Paragraph>
+                  
+                  <Title level={5} style={{ marginBottom: '16px', color: '#595959' }}>
+                    Types of Cookies We Use:
+                  </Title>
+                  
+                  <Row gutter={[16, 16]}>
+                    {cookieTypes.map((cookie, index) => (
+                      <Col xs={24} sm={12} key={index}>
+                        <Card 
+                          size="small" 
+                          style={{ 
+                            height: '100%',
+                            borderRadius: '8px',
+                            borderLeft: `4px solid ${cookie.color}`
+                          }}
+                        >
+                          <Space direction="vertical" size="small">
+                            <Tag color={cookie.color} style={{ margin: 0 }}>
+                              {cookie.type}
+                            </Tag>
+                            <Text style={{ fontSize: '14px', color: '#595959' }}>
+                              {cookie.description}
+                            </Text>
+                          </Space>
+                        </Card>
+                      </Col>
+                    ))}
+                  </Row>
+                </Card>
+                
+                <Card 
+                  title={
+                    <Space size="middle">
+                      <SafetyCertificateOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
+                      <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
+                        Data Security
+                      </Title>
+                    </Space>
+                  }
+                  style={{ marginBottom: '24px', borderRadius: '8px' }}
+                  headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
+                >
+                  <Alert
+                    message="Your Data is Protected"
+                    type="success"
+                    icon={<LockOutlined />}
+                    showIcon
+                    style={{ marginBottom: '16px' }}
+                  />
+                  <Paragraph style={{ fontSize: '16px' }}>
+                    We implement appropriate security measures to protect your personal information from unauthorized access, alteration, disclosure, or destruction. These measures include internal reviews of our data collection, storage, and processing practices and security measures, encryption of data, and physical security measures to guard against unauthorized access to systems where we store personal data.
+                  </Paragraph>
+                </Card>
+                
+                <Card 
+                  title={
+                    <Space size="middle">
+                      <UserOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
+                      <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
+                        Your Rights
+                      </Title>
+                    </Space>
+                  }
+                  style={{ marginBottom: '24px', borderRadius: '8px' }}
+                  headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
+                >
+                  <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
+                    Depending on your location, you may have the following rights regarding your personal information:
+                  </Paragraph>
+                  <List
+                    dataSource={userRights}
+                    renderItem={(item) => (
+                      <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
+                        <Space align="start" size="middle">
+                          <div style={{ 
+                            backgroundColor: '#fff2e8', 
+                            padding: '8px', 
+                            borderRadius: '50%',
+                            color: '#fa8c16',
+                            fontSize: '16px'
+                          }}>
+                            {item.icon}
+                          </div>
+                          <Text style={{ fontSize: '15px' }}>{item.text}</Text>
+                        </Space>
+                      </List.Item>
+                    )}
+                  />
+                </Card>
+                
+                <Card 
+                  title={
+                    <Space size="middle">
+                      <SyncOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
+                      <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
+                        Updates to This Policy
+                      </Title>
+                    </Space>
+                  }
+                  style={{ marginBottom: '24px', borderRadius: '8px' }}
+                  headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
+                >
+                  <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
+                    We may update this Privacy Policy from time to time. The updated version will be indicated by an updated "Revised" date and the updated version will be effective as soon as it is accessible.
+                  </Paragraph>
+                  <Timeline
+                    items={[
+                      {
+                        dot: <SyncOutlined style={{ fontSize: '16px' }} />,
+                        children: 'Policy updates are clearly marked with revision dates',
+                        color: 'green',
+                      },
+                      {
+                        dot: <BellOutlined style={{ fontSize: '16px' }} />,
+                        children: 'We encourage regular review of this policy',
+                        color: 'blue',
+                      },
+                      {
+                        dot: <CheckCircleOutlined style={{ fontSize: '16px' }} />,
+                        children: 'Changes become effective immediately upon posting',
+                        color: 'green',
+                      },
+                    ]}
+                  />
+                </Card>
+                
+                <Card 
+                  title={
+                    <Space size="middle">
+                      <PhoneOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
+                      <Title level={3} style={{ margin: 0, color: '#52c41a' }}>
+                        Contact Us
+                      </Title>
+                    </Space>
+                  }
+                  style={{ marginBottom: '32px', borderRadius: '8px' }}
+                  headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
+                >
+                  <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
+                    If you have any questions about this Privacy Policy, please don't hesitate to contact our privacy team:
+                  </Paragraph>
+                  
+                  <Card 
+                    style={{ 
+                      backgroundColor: '#fafafa', 
+                      border: '1px solid #d9d9d9',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                      <div>
+                        <Space>
+                          <TeamOutlined style={{ color: '#52c41a', fontSize: '18px' }} />
+                          <Text strong style={{ fontSize: '16px' }}>FoodDelights Privacy Team</Text>
+                        </Space>
+                      </div>
+                      
+                      <Divider style={{ margin: '12px 0' }} />
+                      
+                      <Row gutter={[24, 16]}>
+                        <Col xs={24} sm={12}>
+                          <Space>
+                            <EnvironmentOutlined style={{ color: '#1890ff' }} />
+                            <div>
+                              <Text style={{ fontSize: '14px', color: '#595959' }}>Address</Text>
+                              <br />
+                              <Text>1-23 Gourmet Street, Nellore</Text>
+                            </div>
+                          </Space>
+                        </Col>
+                        <Col xs={24} sm={12}>
+                          <Space>
+                            <MailOutlined style={{ color: '#52c41a' }} />
+                            <div>
+                              <Text style={{ fontSize: '14px', color: '#595959' }}>Email</Text>
+                              <br />
+                              <Text copyable>privacy@fooddelights.com</Text>
+                            </div>
+                          </Space>
+                        </Col>
+                        <Col xs={24} sm={12}>
+                          <Space>
+                            <PhoneOutlined style={{ color: '#fa8c16' }} />
+                            <div>
+                              <Text style={{ fontSize: '14px', color: '#595959' }}>Phone</Text>
+                              <br />
+                              <Text copyable>(+91) 99887 76655</Text>
+                            </div>
+                          </Space>
+                        </Col>
+                      </Row>
+                    </Space>
+                  </Card>
+                </Card>
+                
+                <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                  <Divider />
+                  <Space>
+                    <SyncOutlined style={{ color: '#8c8c8c' }} />
+                    <Text type="secondary" style={{ fontSize: '14px' }}>
+                      Last Updated: April 15, 2025
+                    </Text>
+                  </Space>
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          </Spin>
         </Col>
       </Row>
     </div>

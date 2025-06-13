@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import { ICartItem, ICart } from "../Types";
 
 const CartItemSchema: Schema = new Schema<ICartItem>({
@@ -12,6 +12,12 @@ const CartItemSchema: Schema = new Schema<ICartItem>({
 }, { _id: true });
 
 const CartSchema: Schema = new Schema<ICart>({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    unique: true
+  },
   items: { type: [CartItemSchema], default: [] }
 }, { timestamps: true });
 

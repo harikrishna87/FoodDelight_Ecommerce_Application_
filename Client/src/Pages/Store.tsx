@@ -26,6 +26,7 @@ import {
 import axios from 'axios';
 import 'antd/dist/reset.css';
 import { AuthContext } from '../context/AuthContext';
+import AuthModal from "../Components/AuthModal"
 
 const { Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -198,6 +199,16 @@ const customStyles = `
 }
 `;
 
+// Helper function to shuffle an array (Fisher-Yates algorithm)
+const shuffleArray = (array: Product[]) => {
+    const newArray = [...array]; // Create a shallow copy to avoid mutating the original
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]]; // Swap elements
+    }
+    return newArray;
+};
+
 const Store: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -218,6 +229,10 @@ const Store: React.FC = () => {
     const productsPerPage = 8;
 
     const auth = useContext(AuthContext);
+
+    const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+    const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
+
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
     useEffect(() => {
@@ -235,9 +250,13 @@ const Store: React.FC = () => {
             try {
                 setLoading(true);
                 const response = await axios.get('https://json-data-1-nrnj.onrender.com/products/');
+                
+                // Shuffle the products after fetching
+                const shuffledProducts = shuffleArray(response.data);
 
-                setProducts(response.data);
-                setFilteredProducts(response.data);
+                setProducts(shuffledProducts); // Store the shuffled products
+                setFilteredProducts(shuffledProducts); // Initialize filtered products with shuffled ones
+                
                 const uniqueCategories = [...new Set(response.data.map((product: Product) => product.category))] as string[];
                 setCategories(uniqueCategories);
 
@@ -258,10 +277,10 @@ const Store: React.FC = () => {
         };
 
         fetchProducts();
-    }, []);
+    }, []); // Empty dependency array means this runs once on mount
 
     useEffect(() => {
-        let results = [...products];
+        let results = [...products]; // Start with the (potentially shuffled) full product list
 
         if (searchTerm) {
             results = results.filter(product =>
@@ -280,8 +299,8 @@ const Store: React.FC = () => {
         results = results.filter(product => product.rating.rate >= filters.minRating);
 
         setFilteredProducts(results);
-        setCurrentPage(1);
-    }, [searchTerm, filters, products]);
+        setCurrentPage(1); // Reset to first page whenever filters/search change
+    }, [searchTerm, filters, products]); // Depend on 'products' to re-filter if the base list changes
 
     const indexOfLastProduct = currentPage * productsPerPage;
     const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
@@ -304,13 +323,8 @@ const Store: React.FC = () => {
 
     const addToCart = async (product: Product) => {
         if (!auth?.isAuthenticated) {
-            messageApi.error({
-                content: "You need to login to add items to cart",
-                duration: 3,
-                style: {
-                    marginTop: '10vh',
-                },
-            });
+            setShowAuthModal(true);
+            setIsLoginMode(true);
             return;
         }
 
@@ -327,7 +341,9 @@ const Store: React.FC = () => {
                 discount_price: calculateDiscountedPrice(product.price, product.category)
             };
 
-            const response = await axios.post(`${backendUrl}/api/cart/add_item`, cartItem);
+            const response = await axios.post(`${backendUrl}/api/cart/add_item`, cartItem, {
+                withCredentials: true 
+            });
             messageApi.success({
                 content: response.data.message || "Item added to cart successfully",
                 duration: 3,
@@ -395,8 +411,8 @@ const Store: React.FC = () => {
                     <div className="decoration-left-bottom" style={{ display: window.innerWidth > 768 ? 'block' : 'none' }}>
                         <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M3.61,5.51a15.2,15.2,0,0,1,12.7-1.21c4,1.72,6.3,5.66,8.38,9.47,4.33,7.94,8.64,16,15.73,21.37s17.48,7.35,25.25,2.57c3.8-2.34,6.6-6.07,9-10s4.36-8,7-11.53c10-13.78,32.33-14.35,47.68-5.77,7.56,4.22,14.33,10.86,17.35,19.18s1.79,18.61-5,24c-5.38,4.25-13.12,4.78-19.78,2.66s-12.45-6.59-17.53-11.46C87.86,31.17,71.53,16.84,51.22,13.15c-5.35-1,10.8-1.15,16.22-1.68A92.7,92.7,0,0,1,3.61,5.51Z" transform="translate(6.5 55)" fill="#52c41a" />
-                            <path d="M134.89,8.5c6.54,5.11,9.42,14.15,7.46,22.28S133.9,44,126.23,47.52C118.47,51.1,109.52,52.32,101,53.5,79.36,56.59,57.52,59.67,35.81,54.47s-43.54-22.77-44.76-44.71C-10.16-12.32,14.5-28.59,39.5-28c11.75.27,23.43,4.58,30.45,14,8.33,11.18,8.21,27.6,18.61,36.83,7.51,6.67,18.9,7.17,28.16,3.59a31.84,31.84,0,0,0,18.17-17.88" transform="translate(6.5 55)" fill="#52c41a" />
-                            <path d="M98,111.39a134.3,134.3,0,0,0-19.42-47C70.79,52.58,58.77,43.81,45.25,39.5,27.51,33.8,7.49,37.75-7.5,45.12" transform="translate(6.5 55)" stroke="#52c41a" strokeMiterlimit="10" strokeWidth="2" />
+                            <path d="M134.89,8.5c6.54,5.11,9.42,14.15,7.46,22.28S133.9,44,126.23,47.52C118.47,51.1,109.52,52.32,101,53.5C79.36,56.59,57.52,59.67,35.81,54.47s-43.54-22.77-44.76-44.71C-10.16-12.32,14.5-28.59,39.5-28c11.75.27,23.43,4.58,30.45,14,8.33,11.18,8.21,27.6,18.61,36.83,7.51,6.67,18.9,7.17,28.16,3.59a31.84,31.84,0,0,0,18.17-17.88" transform="translate(6.5 55)" fill="#52c41a" />
+                            <path d="M98,111.39a134.3,134.3,0,0,0-19.42-47C70.79,52.58,58.77,43.81,45.25,39.5C27.51,33.8,7.49,37.75-7.5,45.12" transform="translate(6.5 55)" stroke="#52c41a" strokeMiterlimit="10" strokeWidth="2" />
                         </svg>
                     </div>
 
@@ -560,7 +576,7 @@ const Store: React.FC = () => {
                         <Row gutter={[24, 24]}>
                             {currentProducts.length > 0 ? (
                                 currentProducts.map((product) => (
-                                    <Col lg={6} md={8} sm={12} xs={24} key={product.id}>
+                                    <Col xl={6} lg={8} md={12} sm={12} xs={24} key={product.id}>
                                         <Card
                                             className="product-card"
                                             style={{
@@ -688,7 +704,6 @@ const Store: React.FC = () => {
                                     pageSize={productsPerPage}
                                     onChange={(page) => setCurrentPage(page)}
                                     showSizeChanger={false}
-                                    showQuickJumper
                                 />
                             </div>
                         )}
@@ -696,6 +711,12 @@ const Store: React.FC = () => {
                     {contextHolder}
                 </div>
             </Content>
+            <AuthModal
+                show={showAuthModal}
+                onHide={() => setShowAuthModal(false)}
+                isLoginMode={isLoginMode}
+                onToggleMode={() => setIsLoginMode(prev => !prev)}
+            />
         </Layout>
     );
 };

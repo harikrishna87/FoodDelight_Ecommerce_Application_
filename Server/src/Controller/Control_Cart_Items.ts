@@ -1,8 +1,14 @@
 import Cart, { ICartItem } from "../Models/Model_Cart_Items";
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 
 const Add_Cart_item = async (req: Request, res: Response): Promise<void> => {
     try {
+        const userId = req.user?._id;
+        if (!userId) {
+            res.status(401).json({ success: false, message: "Not authorized, please log in" });
+            return;
+        }
+
         const newItem = req.body as ICartItem;
         
         if (!newItem.name || !newItem.image || !newItem.original_price || !newItem.discount_price || !newItem.quantity || !newItem.category) {
@@ -10,9 +16,9 @@ const Add_Cart_item = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        let cart = await Cart.findOne();
+        let cart = await Cart.findOne({ user: userId });
         if (!cart) {
-            cart = new Cart({ items: [newItem] });
+            cart = new Cart({ user: userId, items: [newItem] });
         } else {
             const exists = cart.items.some(item => item.name.toLowerCase() === newItem.name.toLowerCase());
             if (exists) {
@@ -35,7 +41,13 @@ const Add_Cart_item = async (req: Request, res: Response): Promise<void> => {
 
 const Get_Cart_Items = async (req: Request, res: Response): Promise<void> => {
     try {
-        const cart = await Cart.findOne();
+        const userId = req.user?._id;
+        if (!userId) {
+            res.status(401).json({ success: false, message: "Not authorized, please log in" });
+            return;
+        }
+
+        const cart = await Cart.findOne({ user: userId });
         res.status(200).json({
             success: true,
             message: "Cart details fetched successfully",
@@ -49,13 +61,19 @@ const Get_Cart_Items = async (req: Request, res: Response): Promise<void> => {
 
 const Delete_Cart_Item = async (req: Request, res: Response): Promise<void> => {
     try {
+        const userId = req.user?._id;
+        if (!userId) {
+            res.status(401).json({ success: false, message: "Not authorized, please log in" });
+            return;
+        }
+
         const { name } = req.params;
         if (!name) {
             res.status(400).json({ success: false, message: "Item name is required" });
             return;
         }
 
-        const cart = await Cart.findOne();
+        const cart = await Cart.findOne({ user: userId }); 
         if (!cart) {
             res.status(404).json({ success: false, message: "Cart not found" });
             return;
@@ -82,6 +100,12 @@ const Delete_Cart_Item = async (req: Request, res: Response): Promise<void> => {
 
 const Update_Cart_Item_Quantity = async (req: Request, res: Response): Promise<void> => {
     try {
+        const userId = req.user?._id;
+        if (!userId) {
+            res.status(401).json({ success: false, message: "Not authorized, please log in" });
+            return;
+        }
+
         const { _id, quantity } = req.body;
         if (!_id || typeof quantity !== 'number' || quantity < 1) {
             res.status(400).json({
@@ -91,7 +115,7 @@ const Update_Cart_Item_Quantity = async (req: Request, res: Response): Promise<v
             return;
         }
         
-        const cart = await Cart.findOne();
+        const cart = await Cart.findOne({ user: userId });
         if (!cart) {
             res.status(404).json({
                 success: false,
@@ -127,11 +151,17 @@ const Update_Cart_Item_Quantity = async (req: Request, res: Response): Promise<v
 
 const Clear_Cart = async (req: Request, res: Response): Promise<void> => {
     try {
-        const cart = await Cart.findOne();
+        const userId = req.user?._id;
+        if (!userId) {
+            res.status(401).json({ success: false, message: "Not authorized, please log in" });
+            return;
+        }
+
+        const cart = await Cart.findOne({ user: userId });
         if (!cart) {
-            res.status(404).json({
-                success: false,
-                message: "Cart not found"
+            res.status(200).json({
+                success: true,
+                message: "Cart already empty or not found for this user."
             });
             return;
         }

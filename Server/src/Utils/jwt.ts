@@ -11,7 +11,6 @@ interface TokenOptions {
 const sendToken = (user: IUser, statusCode: number, res: Response) => {
   const token = user.getJwtToken();
 
-  // Get cookie expiration from env or default to 7 days
   const cookieExpireDays = Number(process.env.COOKIE_EXPIRE) || 7;
 
   const options: TokenOptions = {

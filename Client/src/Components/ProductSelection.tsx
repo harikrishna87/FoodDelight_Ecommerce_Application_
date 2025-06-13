@@ -3,12 +3,13 @@ import { Row, Col, Card, Button, Alert, Tag, Pagination, Typography, Spin, messa
 import { SearchOutlined, ShoppingCartOutlined, CloseOutlined, StarFilled, StarOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import AuthModal from "../Components/AuthModal"
 
 const { Title, Text } = Typography;
 
 interface Product {
   id: number;
-  name: string;
+  name: string
   description: string;
   image: string;
   price: number;
@@ -41,6 +42,9 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
   const [messageApi, contextHolder] = message.useMessage();
   const auth = useContext(AuthContext);
 
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+  const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
+
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const calculateDiscountedPrice = (originalPrice: number, category: string) => {
@@ -51,13 +55,8 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
 
   const addToCart = async (product: Product) => {
     if (!auth?.isAuthenticated) {
-      messageApi.error({
-        content: "You need to login to add items to cart",
-        duration: 3,
-        style: {
-          marginTop: '10vh',
-        },
-      });
+      setShowAuthModal(true);
+      setIsLoginMode(true);
       return;
     }
 
@@ -74,7 +73,9 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
         discount_price: calculateDiscountedPrice(product.price, product.category),
       };
 
-      const response = await axios.post(`${backendUrl}/api/cart/add_item`, cartItem);
+      const response = await axios.post(`${backendUrl}/api/cart/add_item`, cartItem, {
+        withCredentials: true
+      });
       messageApi.success({
         content: response.data.message || "Item added to cart successfully",
         duration: 3,
@@ -82,8 +83,8 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
           marginTop: '10vh',
         },
       });
-      if (window.updateCartCount) {
-        window.updateCartCount();
+      if ((window as any).updateCartCount) {
+        (window as any).updateCartCount();
       }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 400) {
@@ -174,7 +175,7 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
         <>
           <Row gutter={[16, 16]}>
             {selectedProducts.map(product => (
-              <Col xs={24} md={12} lg={6} key={product.id}>
+              <Col xs={24} sm={12} md={12} lg={8} xl={6} key={product.id}>
                 <Card
                   hoverable
                   style={{
@@ -322,6 +323,12 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
           }}
         />
       )}
+      <AuthModal
+        show={showAuthModal}
+        onHide={() => setShowAuthModal(false)}
+        isLoginMode={isLoginMode}
+        onToggleMode={() => setIsLoginMode(prev => !prev)}
+      />
     </div>
   );
 };

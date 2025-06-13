@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import User from '../Models/Users';
 import sendToken from '../Utils/jwt';
 import dotenv from 'dotenv';
-import { IUser } from '../Types';
 
 dotenv.config();
 
