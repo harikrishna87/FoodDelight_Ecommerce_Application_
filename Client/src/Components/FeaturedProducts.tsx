@@ -50,7 +50,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const addToCart = async (product: Product) => {
-    if (!auth?.isAuthenticated) {
+    if (!auth?.isAuthenticated || !auth?.user) {
       setShowAuthModal(true);
       setIsLoginMode(true);
       return;
@@ -60,6 +60,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
       setAddingToCart(prev => ({ ...prev, [product.id]: true }));
 
       const cartItem = {
+        product_id: product.id,
         name: product.name,
         image: product.image,
         category: product.category,
@@ -69,9 +70,18 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
         discount_price: calculateDiscountedPrice(product.price, product.category)
       };
 
-      const response = await axios.post(`${backendUrl}/api/cart/add_item`, cartItem, {
-        withCredentials: true 
-      });
+      const token = auth.token || localStorage.getItem('token') || sessionStorage.getItem('token');
+      
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        withCredentials: true
+      };
+
+      const response = await axios.post(`${backendUrl}/api/cart/add_item`, cartItem, config);
+      
       messageApi.success({
         content: response.data.message || "Item added to cart successfully",
         duration: 3,
@@ -80,28 +90,57 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
         },
       });
 
-      if ((window as any).updateCartCount) {
+      if (typeof (window as any).updateCartCount === 'function') {
         (window as any).updateCartCount();
       }
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 400) {
-        messageApi.info({
-          content: error.response.data.message || "Item already exists in cart",
-          duration: 3,
-          style: {
-            marginTop: '10vh',
-          },
-        });
+      console.error("Error adding item to cart:", error);
+      
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          messageApi.error({
+            content: "Please login to add items to cart",
+            duration: 3,
+            style: {
+              marginTop: '10vh',
+            },
+          });
+          setShowAuthModal(true);
+          setIsLoginMode(true);
+        } else if (error.response?.status === 400) {
+          messageApi.info({
+            content: error.response.data.message || "Item already exists in cart",
+            duration: 3,
+            style: {
+              marginTop: '10vh',
+            },
+          });
+        } else if (error.response?.status === 404) {
+          messageApi.error({
+            content: "Product not found",
+            duration: 3,
+            style: {
+              marginTop: '10vh',
+            },
+          });
+        } else {
+          messageApi.error({
+            content: error.response?.data?.message || "Failed to add item to cart",
+            duration: 3,
+            style: {
+              marginTop: '10vh'
+            },
+          });
+        }
       } else {
         messageApi.error({
-          content: "Failed to add item to cart",
+          content: "Network error. Please try again.",
           duration: 3,
           style: {
             marginTop: '10vh'
           },
         });
       }
-      console.error("Error adding item to cart:", error);
     } finally {
       setAddingToCart(prev => ({ ...prev, [product.id]: false }));
     }

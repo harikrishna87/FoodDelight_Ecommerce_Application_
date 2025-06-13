@@ -199,12 +199,11 @@ const customStyles = `
 }
 `;
 
-// Helper function to shuffle an array (Fisher-Yates algorithm)
 const shuffleArray = (array: Product[]) => {
-    const newArray = [...array]; // Create a shallow copy to avoid mutating the original
+    const newArray = [...array];
     for (let i = newArray.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]]; // Swap elements
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
     }
     return newArray;
 };
@@ -250,13 +249,12 @@ const Store: React.FC = () => {
             try {
                 setLoading(true);
                 const response = await axios.get('https://json-data-1-nrnj.onrender.com/products/');
-                
-                // Shuffle the products after fetching
+
                 const shuffledProducts = shuffleArray(response.data);
 
-                setProducts(shuffledProducts); // Store the shuffled products
-                setFilteredProducts(shuffledProducts); // Initialize filtered products with shuffled ones
-                
+                setProducts(shuffledProducts);
+                setFilteredProducts(shuffledProducts);
+
                 const uniqueCategories = [...new Set(response.data.map((product: Product) => product.category))] as string[];
                 setCategories(uniqueCategories);
 
@@ -277,10 +275,10 @@ const Store: React.FC = () => {
         };
 
         fetchProducts();
-    }, []); // Empty dependency array means this runs once on mount
+    }, []);
 
     useEffect(() => {
-        let results = [...products]; // Start with the (potentially shuffled) full product list
+        let results = [...products];
 
         if (searchTerm) {
             results = results.filter(product =>
@@ -299,8 +297,8 @@ const Store: React.FC = () => {
         results = results.filter(product => product.rating.rate >= filters.minRating);
 
         setFilteredProducts(results);
-        setCurrentPage(1); // Reset to first page whenever filters/search change
-    }, [searchTerm, filters, products]); // Depend on 'products' to re-filter if the base list changes
+        setCurrentPage(1);
+    }, [searchTerm, filters, products]);
 
     const indexOfLastProduct = currentPage * productsPerPage;
     const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
@@ -341,9 +339,21 @@ const Store: React.FC = () => {
                 discount_price: calculateDiscountedPrice(product.price, product.category)
             };
 
+            const token = localStorage.getItem('token') || auth?.token;
+
+            const headers: any = {
+                'Content-Type': 'application/json'
+            };
+
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await axios.post(`${backendUrl}/api/cart/add_item`, cartItem, {
-                withCredentials: true 
+                withCredentials: true,
+                headers: headers
             });
+
             messageApi.success({
                 content: response.data.message || "Item added to cart successfully",
                 duration: 3,
@@ -356,24 +366,45 @@ const Store: React.FC = () => {
                 (window as any).updateCartCount();
             }
         } catch (error) {
-            if (axios.isAxiosError(error) && error.response?.status === 400) {
-                messageApi.info({
-                    content: error.response.data.message || "Item already exists in cart",
-                    duration: 3,
-                    style: {
-                        marginTop: '10vh',
-                    },
-                });
+            console.error("Error adding item to cart:", error);
+
+            if (axios.isAxiosError(error)) {
+                if (error.response?.status === 401) {
+                    messageApi.error({
+                        content: "Please login to add items to cart",
+                        duration: 3,
+                        style: {
+                            marginTop: '10vh',
+                        },
+                    });
+                    setShowAuthModal(true);
+                    setIsLoginMode(true);
+                } else if (error.response?.status === 400) {
+                    messageApi.info({
+                        content: error.response.data.message || "Item already exists in cart",
+                        duration: 3,
+                        style: {
+                            marginTop: '10vh',
+                        },
+                    });
+                } else {
+                    messageApi.error({
+                        content: "Failed to add item to cart",
+                        duration: 3,
+                        style: {
+                            marginTop: '10vh',
+                        },
+                    });
+                }
             } else {
                 messageApi.error({
-                    content: "Failed to add item to cart",
+                    content: "Network error. Please try again.",
                     duration: 3,
                     style: {
                         marginTop: '10vh',
                     },
                 });
             }
-            console.error("Error adding item to cart:", error);
         } finally {
             setAddingToCart(prev => ({ ...prev, [product.id]: false }));
         }
@@ -667,13 +698,13 @@ const Store: React.FC = () => {
                                                     <Button
                                                         type="primary"
                                                         size="small"
+                                                        icon={<ShoppingCartOutlined />}
+                                                        loading={addingToCart[product.id]}
+                                                        onClick={() => addToCart(product)}
                                                         style={{
                                                             backgroundColor: '#52c41a',
                                                             borderColor: '#52c41a'
                                                         }}
-                                                        loading={addingToCart[product.id]}
-                                                        onClick={() => addToCart(product)}
-                                                        icon={<ShoppingCartOutlined />}
                                                     >
                                                         Add to Cart
                                                     </Button>
@@ -685,38 +716,39 @@ const Store: React.FC = () => {
                             ) : (
                                 <Col span={24}>
                                     <Empty
-                                        description="No products found"
                                         image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                        style={{
-                                            padding: '64px 0',
-                                            color: '#8c8c8c'
-                                        }}
+                                        description="No products found"
+                                        style={{ margin: '50px 0' }}
                                     />
                                 </Col>
                             )}
                         </Row>
 
                         {filteredProducts.length > productsPerPage && (
-                            <div style={{ margin: "25px auto 0px auto", width: 'fit-content' }}>
+                            <div style={{ textAlign: 'center', marginTop: '40px' }}>
                                 <Pagination
                                     current={currentPage}
                                     total={filteredProducts.length}
                                     pageSize={productsPerPage}
                                     onChange={(page) => setCurrentPage(page)}
                                     showSizeChanger={false}
+                                    showQuickJumper
+                                    style={{
+                                        display: 'inline-block'
+                                    }}
                                 />
                             </div>
                         )}
                     </div>
-                    {contextHolder}
                 </div>
+                {contextHolder}
+                <AuthModal
+                    show={showAuthModal}
+                    onHide={() => setShowAuthModal(false)}
+                    isLoginMode={isLoginMode}
+                    onToggleMode={() => setIsLoginMode(!isLoginMode)}
+                />
             </Content>
-            <AuthModal
-                show={showAuthModal}
-                onHide={() => setShowAuthModal(false)}
-                isLoginMode={isLoginMode}
-                onToggleMode={() => setIsLoginMode(prev => !prev)}
-            />
         </Layout>
     );
 };

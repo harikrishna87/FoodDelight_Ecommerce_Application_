@@ -71,53 +71,74 @@ const FoodNavbar: React.FC = () => {
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.async = true;
     script.onload = () => {
-        console.log('Razorpay SDK loaded successfully');
+      console.log('Razorpay SDK loaded successfully');
     };
     script.onerror = (error) => {
-        console.error('Failed to load Razorpay SDK:', error);
-        messageApi.error({
-            content: "Failed to load payment gateway. Please check your internet connection.",
-            duration: 5,
-            style: {
-                marginTop: '10vh',
-            },
-        });
+      console.error('Failed to load Razorpay SDK:', error);
+      messageApi.error({
+        content: "Failed to load payment gateway. Please check your internet connection.",
+        duration: 5,
+        style: {
+          marginTop: '10vh',
+        },
+      });
     };
     document.body.appendChild(script);
 
     return () => {
+      if (document.body.contains(script)) {
         document.body.removeChild(script);
+      }
     };
   }, []);
 
-
   const fetchCartItems = async () => {
-    if (!auth?.isAuthenticated) {
+    if (!auth?.isAuthenticated || !auth?.token) {
       setCartItems([]);
       setCartCount(0);
       return;
     }
+
     try {
       const res = await fetch(`${backendUrl}/api/cart/get_cart_items`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${auth.token}`,
+          'Content-Type': 'application/json'
+        },
         credentials: 'include'
       });
+
+      if (res.status === 401) {
+        if (auth?.logout) {
+          auth.logout();
+        }
+        setCartItems([]);
+        setCartCount(0);
+        return;
+      }
+
       const data = await res.json();
       if (data && data.Cart_Items) {
         setCartItems(data.Cart_Items);
         const count = data.Cart_Items.reduce((total: number, item: CartItem) => total + item.quantity, 0);
         setCartCount(count);
       } else if (!data.success && data.message === "Not authorized, please log in") {
+        if (auth?.logout) {
+          auth.logout();
+        }
         setCartItems([]);
         setCartCount(0);
-        console.log("Session expired or unauthorized. Cart data cleared.");
       }
     } catch (error) {
       console.error('Failed to fetch cart items:', error);
+      setCartItems([]);
+      setCartCount(0);
     }
   };
 
   const clearCart = async () => {
-    if (!auth?.isAuthenticated) {
+    if (!auth?.isAuthenticated || !auth?.token) {
       messageApi.error({
         content: "Please log in to clear your cart.",
         duration: 3,
@@ -128,8 +149,19 @@ const FoodNavbar: React.FC = () => {
     try {
       const response = await fetch(`${backendUrl}/api/cart/clear_cart`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${auth.token}`,
+          'Content-Type': 'application/json'
+        },
         credentials: 'include'
       });
+
+      if (response.status === 401) {
+        if (auth?.logout) {
+          auth.logout();
+        }
+        return;
+      }
 
       if (response.ok) {
         setCartItems([]);
@@ -153,14 +185,23 @@ const FoodNavbar: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchCartItems();
+    let pollingInterval: NodeJS.Timeout | null = null;
 
-    const pollingInterval = setInterval(() => {
+    if (auth?.isAuthenticated && auth?.token) {
       fetchCartItems();
-    }, 5000);
+
+      pollingInterval = setInterval(() => {
+        fetchCartItems();
+      }, 10000);
+    } else {
+      setCartItems([]);
+      setCartCount(0);
+    }
 
     const handleCartUpdate = () => {
-      fetchCartItems();
+      if (auth?.isAuthenticated && auth?.token) {
+        fetchCartItems();
+      }
     };
 
     window.addEventListener('cartUpdated', handleCartUpdate);
@@ -168,10 +209,12 @@ const FoodNavbar: React.FC = () => {
 
     return () => {
       window.removeEventListener('cartUpdated', handleCartUpdate);
-      clearInterval(pollingInterval);
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
       delete (window as any).updateCartCount;
     };
-  }, [auth?.isAuthenticated]);
+  }, [auth?.isAuthenticated, auth?.token]);
 
   const logout = async () => {
     try {
@@ -179,20 +222,21 @@ const FoodNavbar: React.FC = () => {
         method: 'POST',
         credentials: 'include',
         headers: {
+          'Authorization': `Bearer ${auth?.token}`,
           'Content-Type': 'application/json',
         }
       });
 
+      if (auth?.logout) {
+        auth.logout();
+      }
+
+      setCartItems([]);
+      setCartCount(0);
+      setShowCart(false);
+      setMobileMenuVisible(false);
+
       if (response.ok) {
-        if (auth?.logout) {
-          auth.logout();
-        }
-
-        setCartItems([]);
-        setCartCount(0);
-        setShowCart(false);
-        setMobileMenuVisible(false);
-
         messageApi.success({
           content: "User Logged Out successfully",
           duration: 3,
@@ -200,22 +244,16 @@ const FoodNavbar: React.FC = () => {
             marginTop: '10vh',
           },
         });
-
-        setTimeout(() => {
-          navigate("/")
-        }, 1000);
-      } else {
-        const errorData = await response.json();
-        messageApi.error({
-          content: errorData.message || "Logout failed",
-          duration: 3,
-          style: {
-            marginTop: '10vh',
-          },
-        });
       }
+
+      setTimeout(() => {
+        navigate("/")
+      }, 1000);
     } catch (err) {
       console.error('Error logging out:', err);
+      if (auth?.logout) {
+        auth.logout();
+      }
       messageApi.error({
         content: "Logout failed. Please try again.",
         duration: 3,
@@ -246,7 +284,7 @@ const FoodNavbar: React.FC = () => {
   };
 
   const handleDeleteItem = async (name: string) => {
-    if (!auth?.isAuthenticated) {
+    if (!auth?.isAuthenticated || !auth?.token) {
       messageApi.error({
         content: "Please log in to remove items from your cart.",
         duration: 3,
@@ -257,8 +295,20 @@ const FoodNavbar: React.FC = () => {
     try {
       const res = await fetch(`${backendUrl}/api/cart/delete_cart_item/${encodeURIComponent(name)}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${auth.token}`,
+          'Content-Type': 'application/json'
+        },
         credentials: 'include'
       });
+
+      if (res.status === 401) {
+        if (auth?.logout) {
+          auth.logout();
+        }
+        return;
+      }
+
       if (res.ok) {
         setCartItems(prevItems => prevItems.filter(item => item.name !== name));
         messageApi.success({
@@ -268,7 +318,6 @@ const FoodNavbar: React.FC = () => {
             marginTop: '10vh',
           },
         });
-        // Trigger global cart update
         if ((window as any).updateCartCount) {
           (window as any).updateCartCount();
         }
@@ -295,7 +344,7 @@ const FoodNavbar: React.FC = () => {
   };
 
   const handleUpdateQuantity = async (_id: string, quantity: number) => {
-    if (!auth?.isAuthenticated) {
+    if (!auth?.isAuthenticated || !auth?.token) {
       messageApi.error({
         content: "Please log in to update cart item quantity.",
         duration: 3,
@@ -314,11 +363,20 @@ const FoodNavbar: React.FC = () => {
       const res = await fetch(`${backendUrl}/api/cart/update_cart_quantity`, {
         method: 'PATCH',
         headers: {
+          'Authorization': `Bearer ${auth.token}`,
           'Content-Type': 'application/json',
         },
         credentials: 'include',
         body: JSON.stringify({ _id, quantity }),
       });
+
+      if (res.status === 401) {
+        if (auth?.logout) {
+          auth.logout();
+        }
+        return;
+      }
+
       if (!res.ok) {
         throw new Error('Failed to update item quantity');
       }
@@ -412,7 +470,7 @@ const FoodNavbar: React.FC = () => {
             marginTop: '10vh',
           },
         });
-        clearCart(); 
+        clearCart();
         setShowCart(false);
         triggerConfetti();
       } else {
@@ -426,6 +484,9 @@ const FoodNavbar: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Error creating order:", error);
+      if (error.response?.status === 401 && auth?.logout) {
+        auth.logout();
+      }
       messageApi.error({
         content: error.response?.data?.message || "Failed to finalize order",
         duration: 3,
@@ -437,7 +498,7 @@ const FoodNavbar: React.FC = () => {
   };
 
   const checkoutHandler = async (amount: number | string) => {
-    if (!auth?.isAuthenticated) {
+    if (!auth?.isAuthenticated || !auth?.token) {
       setShowAuthModal(true);
       setIsLoginMode(true);
       return;
@@ -455,14 +516,14 @@ const FoodNavbar: React.FC = () => {
     }
 
     if (typeof Razorpay === 'undefined') {
-        messageApi.error({
-            content: "Payment gateway not loaded. Please try again or refresh the page.",
-            duration: 5,
-            style: {
-                marginTop: '10vh',
-            },
-        });
-        return;
+      messageApi.error({
+        content: "Payment gateway not loaded. Please try again or refresh the page.",
+        duration: 5,
+        style: {
+          marginTop: '10vh',
+        },
+      });
+      return;
     }
 
     try {
@@ -519,6 +580,9 @@ const FoodNavbar: React.FC = () => {
       rzp.open();
     } catch (error: any) {
       console.error("Checkout error:", error);
+      if (error.response?.status === 401 && auth?.logout) {
+        auth.logout();
+      }
       messageApi.error({
         content: error.response?.data?.message || "Failed to initiate payment",
         duration: 3,

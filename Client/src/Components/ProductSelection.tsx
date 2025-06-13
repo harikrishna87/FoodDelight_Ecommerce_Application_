@@ -74,8 +74,13 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
       };
 
       const response = await axios.post(`${backendUrl}/api/cart/add_item`, cartItem, {
-        withCredentials: true
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': auth?.token ? `Bearer ${auth.token}` : ''
+        }
       });
+
       messageApi.success({
         content: response.data.message || "Item added to cart successfully",
         duration: 3,
@@ -83,28 +88,51 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
           marginTop: '10vh',
         },
       });
+
       if ((window as any).updateCartCount) {
         (window as any).updateCartCount();
       }
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 400) {
-        messageApi.info({
-          content: error.response.data.message || "Item already exists in cart",
-          duration: 3,
-          style: {
-            marginTop: '10vh',
-          },
-        });
+      console.error("Error adding item to cart:", error);
+      
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          auth?.logout?.();
+          setShowAuthModal(true);
+          setIsLoginMode(true);
+          messageApi.error({
+            content: "Session expired. Please login again.",
+            duration: 3,
+            style: {
+              marginTop: '10vh',
+            },
+          });
+        } else if (error.response?.status === 400) {
+          messageApi.info({
+            content: error.response.data.message || "Item already exists in cart",
+            duration: 3,
+            style: {
+              marginTop: '10vh',
+            },
+          });
+        } else {
+          messageApi.error({
+            content: error.response?.data?.message || "Failed to add item to cart",
+            duration: 3,
+            style: {
+              marginTop: '10vh',
+            },
+          });
+        }
       } else {
         messageApi.error({
-          content: "Failed to add item to cart",
+          content: "Network error. Please try again.",
           duration: 3,
           style: {
             marginTop: '10vh',
           },
         });
       }
-      console.error("Error adding item to cart:", error);
     } finally {
       setAddingToCart(prev => ({ ...prev, [product.id]: false }));
     }
