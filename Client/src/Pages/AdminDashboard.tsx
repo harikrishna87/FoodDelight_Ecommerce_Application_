@@ -210,13 +210,10 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({ orders }) => {
             columns={columns}
             dataSource={orders}
             rowKey="_id"
-            size="small"
+            size="large"
             pagination={{
-              pageSize: 5,
+              pageSize: 2,
               showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total, range) =>
-                `${range[0]}-${range[1]} of ${total} payments`,
             }}
           />
         </div>
@@ -764,11 +761,8 @@ const AdminDashboard: React.FC = () => {
                 rowKey="_id"
                 scroll={{ x: 1000 }}
                 pagination={{
-                  pageSize: 10,
+                  pageSize: 5,
                   showSizeChanger: true,
-                  showQuickJumper: true,
-                  showTotal: (total, range) =>
-                    `${range[0]}-${range[1]} of ${total} orders`,
                 }}
                 loading={statusUpdateLoading !== null}
               />

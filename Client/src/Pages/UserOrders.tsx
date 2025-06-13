@@ -286,7 +286,6 @@ const UserOrders: React.FC = () => {
                   pageSize: 10,
                   showSizeChanger: true,
                   pageSizeOptions: ['10', '20', '30'],
-                  showTotal: (total, range) => `${range[0]}-${range[1]} of ${total}`,
                   style: {
                     margin: '20px 0 0 0',
                     flexShrink: 0
@@ -450,7 +449,6 @@ const UserOrders: React.FC = () => {
               )}
             </Row>
 
-            {/* Pagination for Order Items */}
             {totalItems > itemsPerPage && (
               <div style={{
                 display: 'flex',
@@ -464,9 +462,6 @@ const UserOrders: React.FC = () => {
                   onChange={handlePageChange}
                   showSizeChanger={false}
                   showQuickJumper={false}
-                  showTotal={(total, range) =>
-                    `${range[0]}-${range[1]} of ${total} items`
-                  }
                   size={isMobile ? 'small' : 'default'}
                 />
               </div>

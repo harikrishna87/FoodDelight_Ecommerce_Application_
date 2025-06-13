@@ -181,6 +181,10 @@ const customStyles = `
     .store-container {
         padding: 20px 16px;
     }
+    .ant-card {
+        width: 301px;
+        margin: 0 auto;
+    }
 }
 @media (max-width: 1440px) {
     .store-container {
@@ -677,7 +681,7 @@ const Store: React.FC = () => {
                         </Row>
 
                         {filteredProducts.length > productsPerPage && (
-                            <div style={{ textAlign: 'left', marginTop: '32px' }}>
+                            <div style={{ margin: "25px auto 0px auto", width: 'fit-content' }}>
                                 <Pagination
                                     current={currentPage}
                                     total={filteredProducts.length}
@@ -685,9 +689,6 @@ const Store: React.FC = () => {
                                     onChange={(page) => setCurrentPage(page)}
                                     showSizeChanger={false}
                                     showQuickJumper
-                                    showTotal={(total, range) =>
-                                        `${range[0]}-${range[1]} of ${total} products`
-                                    }
                                 />
                             </div>
                         )}
