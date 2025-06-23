@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
@@ -17,7 +18,8 @@ import {
     message,
     Tag,
     Typography,
-    Spin
+    Spin,
+    Layout
 } from 'antd';
 import {
     PlusOutlined,
@@ -32,6 +34,7 @@ import type { ColumnsType } from 'antd/es/table';
 const { Search } = Input;
 const { Option } = Select;
 const { Title, Text } = Typography;
+const { Content } = Layout;
 
 interface Rating {
     rate: number;
@@ -70,6 +73,15 @@ interface ApiResponse {
     items?: Product[];
 }
 
+const shuffleArray = <T,>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+};
+
 const getErrorMessage = (error: unknown): string => {
     if (axios.isAxiosError(error)) {
         if (error.response?.status === 500) {
@@ -104,6 +116,7 @@ const ProductsPage: React.FC = () => {
     const [formData, setFormData] = useState<FormData>({});
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [loading, setLoading] = useState<boolean>(false);
+    const [tableLoading, setTableLoading] = useState<boolean>(false);
     const pageSize: number = 10;
 
     const [messageApi, contextHolder] = message.useMessage();
@@ -137,11 +150,12 @@ const ProductsPage: React.FC = () => {
                 return;
             }
 
-            setProducts(fetchedProducts);
-            setFilteredProducts(fetchedProducts);
+            const shuffledProducts = shuffleArray(fetchedProducts);
+            setProducts(shuffledProducts);
+            setFilteredProducts(shuffledProducts);
 
             const categoryCount: { [key: string]: number } = {};
-            fetchedProducts.forEach((product: Product) => {
+            shuffledProducts.forEach((product: Product) => {
                 if (product.category) {
                     categoryCount[product.category] = (categoryCount[product.category] || 0) + 1;
                 }
@@ -155,7 +169,7 @@ const ProductsPage: React.FC = () => {
             setCategories(categoryData);
 
             messageApi.success({
-                content: `Successfully loaded ${fetchedProducts.length} products`,
+                content: `Successfully loaded ${shuffledProducts.length} products`,
                 key: 'loading',
                 duration: 2,
                 style: {
@@ -178,6 +192,16 @@ const ProductsPage: React.FC = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const shuffleTableData = () => {
+        setTableLoading(true);
+        setTimeout(() => {
+            const shuffledFiltered = shuffleArray(filteredProducts);
+            setFilteredProducts(shuffledFiltered);
+            setCurrentPage(1);
+            setTableLoading(false);
+        }, 500);
     };
 
     useEffect(() => {
@@ -481,26 +505,18 @@ const ProductsPage: React.FC = () => {
             sorter: (a: Product, b: Product) => (a.price || 0) - (b.price || 0),
         },
         {
-            title: <span style={{ color: "#52c41a" }}>Category</span>,
+            title: <span style={{color: "#52c41a"}}>Category</span>,
             dataIndex: 'category',
             key: 'category',
-            render: (category: string) => {
-                const categoryColors: { [key: string]: string } = {
-                    "NonVeg": 'green',
-                    "Veg": 'cyan',
-                    "Desserts": 'purple',
-                    "IceCream": 'yellow',
-                    "Fruit Juice": 'red',
-                    "Pizzas": 'orange',
-                };
-                const color = categoryColors[category] || 'default';
-                return <Tag color={color}>{category}</Tag>;
-            },
+            render: (category: string) => (
+                <Tag color="cyan">{category}</Tag>
+            ),
         },
         {
             title: <span style={{ color: "#52c41a" }}>Description</span>,
             dataIndex: 'description',
             key: 'description',
+            width: 200,
             render: (description: string) => (
                 <Text ellipsis={{ tooltip: description }} style={{ maxWidth: 200 }}>
                     {description}
@@ -554,70 +570,88 @@ const ProductsPage: React.FC = () => {
         },
     ];
 
-    return (
-        <Spin spinning={loading} size="large" tip="Loading products..." style={{
-            color: "#52c41a", 
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            minHeight: '60vh',
-            flexDirection: 'column'
-        }}>
-            <div style={{ padding: '24px', minHeight: '100vh', maxWidth: 1250, margin: '0 auto' }}>
-                {contextHolder}
-                <div style={{ textAlign: "center", marginBottom: "24px" }}>
-                    <Title level={2} style={{ color: '#52c41a', marginBottom: '8px' }}>
-                        <ShoppingCartOutlined /> Available Products in Cart
-                    </Title>
-                    <Text type="secondary" style={{ fontSize: '18px' }}>
-                        "Quality products, organized by category - your inventory at a glance"
-                    </Text>
-                </div>
+    if (loading) {
+        return (
+            <Layout style={{ minHeight: '75vh' }}>
+                <Content style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minHeight: '75vh',
+                    flexDirection: 'column'
+                }}>
+                    <Spin size="large" style={{ color: '#52c41a' }} />
+                    <Text style={{ marginTop: '16px', color: '#52c41a', fontSize: '18px' }}>Loading products...</Text>
+                </Content>
+            </Layout>
+        );
+    }
 
-                <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-                    <Col span={24}>
-                        <Card>
-                            <Title level={4} style={{ marginBottom: '16px', color: '#52c41a' }}>
-                                <AppstoreOutlined /> Categories
-                            </Title>
-                            <Row gutter={[8, 8]}>
-                                <Col key="all-category">
+    return (
+        <div style={{ padding: '24px', minHeight: '100vh', maxWidth: 1250, margin: '0 auto' }}>
+            {contextHolder}
+            <div style={{ textAlign: "center", marginBottom: "24px" }}>
+                <Title level={2} style={{ color: '#52c41a', marginBottom: '8px' }}>
+                    <ShoppingCartOutlined /> Available Products in Cart
+                </Title>
+                <Text type="secondary" style={{ fontSize: '18px' }}>
+                    "Quality products, organized by category - your inventory at a glance"
+                </Text>
+            </div>
+
+            <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
+                <Col span={24}>
+                    <Card>
+                        <Title level={4} style={{ marginBottom: '16px', color: '#52c41a' }}>
+                            <AppstoreOutlined /> Categories
+                        </Title>
+                        <Row gutter={[8, 8]}>
+                            <Col key="all-category">
+                                <Button
+                                    type={selectedCategory === 'all' ? 'primary' : 'default'}
+                                    onClick={() => setSelectedCategory('all')}
+                                    style={selectedCategory === 'all' ? { backgroundColor: '#52c41a', borderColor: '#52c41a' } : {}}
+                                >
+                                    All ({products.length})
+                                </Button>
+                            </Col>
+                            {categories.map((category: Category) => (
+                                <Col key={`category-${category.name}`}>
                                     <Button
-                                        type={selectedCategory === 'all' ? 'primary' : 'default'}
-                                        onClick={() => setSelectedCategory('all')}
-                                        style={selectedCategory === 'all' ? { backgroundColor: '#52c41a', borderColor: '#52c41a' } : {}}
+                                        type={selectedCategory === category.name ? 'primary' : 'default'}
+                                        onClick={() => handleCategoryClick(category.name)}
+                                        style={selectedCategory === category.name ? { backgroundColor: '#52c41a', borderColor: '#52c41a' } : {}}
                                     >
-                                        All ({products.length})
+                                        {category.name} ({category.count})
                                     </Button>
                                 </Col>
-                                {categories.map((category: Category) => (
-                                    <Col key={`category-${category.name}`}>
-                                        <Button
-                                            type={selectedCategory === category.name ? 'primary' : 'default'}
-                                            onClick={() => handleCategoryClick(category.name)}
-                                            style={selectedCategory === category.name ? { backgroundColor: '#52c41a', borderColor: '#52c41a' } : {}}
-                                        >
-                                            {category.name} ({category.count})
-                                        </Button>
-                                    </Col>
-                                ))}
-                            </Row>
-                        </Card>
-                    </Col>
-                </Row>
+                            ))}
+                        </Row>
+                    </Card>
+                </Col>
+            </Row>
 
-                <Card>
-                    <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: "5px" }}>
-                        <Search
-                            placeholder="Search products..."
-                            allowClear
-                            enterButton={<Button type="primary" style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}>
-                                <SearchOutlined />
-                            </Button>}
+            <Card>
+                <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: "5px", flexWrap: 'wrap' }}>
+                    <Search
+                        placeholder="Search products..."
+                        allowClear
+                        enterButton={<Button type="primary" style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}>
+                            <SearchOutlined />
+                        </Button>}
+                        size="large"
+                        style={{ width: 300 }}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                    />
+                    <Space>
+                        <Button
+                            type="default"
+                            onClick={shuffleTableData}
                             size="large"
-                            style={{ width: 300 }}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-                        />
+                            style={{ borderColor: '#52c41a', color: '#52c41a' }}
+                        >
+                            Shuffle
+                        </Button>
                         <Button
                             type="primary"
                             icon={<PlusOutlined />}
@@ -627,142 +661,144 @@ const ProductsPage: React.FC = () => {
                         >
                             Add Product
                         </Button>
-                    </div>
+                    </Space>
+                </div>
 
-                    <Spin spinning={false}>
-                        <Table
-                            columns={columns}
-                            dataSource={filteredProducts}
-                            rowKey="_id"
-                            pagination={{
-                                current: currentPage,
-                                pageSize: pageSize,
-                                total: filteredProducts.length,
-                                onChange: (page: number) => setCurrentPage(page),
-                                showSizeChanger: false,
-                            }}
-                            scroll={{ x: 800 }}
+                <Spin spinning={tableLoading}>
+                    <Table
+                        columns={columns}
+                        dataSource={filteredProducts}
+                        rowKey="_id"
+                        pagination={{
+                            current: currentPage,
+                            pageSize: pageSize,
+                            total: filteredProducts.length,
+                            onChange: (page: number) => setCurrentPage(page),
+                            showSizeChanger: false,
+                        }}
+                        scroll={{ x: 800 }}
+                        rowClassName={() => 'ant-table-row-hover'}
+                        className="custom-table"
+                    />
+                </Spin>
+            </Card>
+
+            <Modal
+                title={
+                    <span style={{ color: '#52c41a' }}>
+                        {editingProduct ? "Update Product" : "Add New Product"}
+                    </span>
+                }
+                open={isModalVisible}
+                onOk={handleModalOk}
+                onCancel={() => {
+                    setIsModalVisible(false);
+                    setFormData({});
+                }}
+                style={{ color: "#52c41a" }}
+                width={600}
+                okText={editingProduct ? "Update" : "Add"}
+                okButtonProps={{
+                    style: { backgroundColor: '#52c41a', borderColor: '#52c41a' }
+                }}
+            >
+                <div style={{ maxHeight: '60vh' }}>
+                    <div style={{ marginBottom: '16px' }}>
+                        <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Product Title *</label>
+                        <Input
+                            placeholder="Enter product title"
+                            value={formData.title || ''}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, title: e.target.value })}
                         />
-                    </Spin>
-                </Card>
-
-                <Modal
-                    title={
-                        <span style={{ color: '#52c41a' }}>
-                            {editingProduct ? "Update Product" : "Add New Product"}
-                        </span>
-                    }
-                    open={isModalVisible}
-                    onOk={handleModalOk}
-                    onCancel={() => {
-                        setIsModalVisible(false);
-                        setFormData({});
-                    }}
-                    style={{ color: "#52c41a" }}
-                    width={600}
-                    okText={editingProduct ? "Update" : "Add"}
-                    okButtonProps={{
-                        style: { backgroundColor: '#52c41a', borderColor: '#52c41a' }
-                    }}
-                >
-                    <div style={{ maxHeight: '60vh' }}>
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Product Title *</label>
-                            <Input
-                                placeholder="Enter product title"
-                                value={formData.title || ''}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, title: e.target.value })}
-                            />
-                        </div>
-
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Description (Max 100 characters) *</label>
-                            <Input.TextArea
-                                rows={3}
-                                placeholder="Enter product description"
-                                showCount
-                                maxLength={100}
-                                value={formData.description || ''}
-                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, description: e.target.value })}
-                            />
-                        </div>
-
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                <div style={{ marginBottom: '16px' }}>
-                                    <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Price (₹) *</label>
-                                    <InputNumber
-                                        style={{ width: '100%' }}
-                                        min={0}
-                                        step={0.01}
-                                        placeholder="295.00"
-                                        value={formData.price}
-                                        onChange={(value: number | null) => setFormData({ ...formData, price: value || undefined })}
-                                    />
-                                </div>
-                            </Col>
-                            <Col span={12}>
-                                <div style={{ marginBottom: '16px' }}>
-                                    <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Category *</label>
-                                    <Select
-                                        placeholder="Select category"
-                                        style={{ width: '100%' }}
-                                        value={formData.category}
-                                        onChange={(value: string) => setFormData({ ...formData, category: value })}
-                                    >
-                                        <Option value="NonVeg">NonVeg</Option>
-                                        <Option value="Veg">Veg</Option>
-                                        <Option value="Desserts">Desserts</Option>
-                                        <Option value="IceCream">IceCream</Option>
-                                        <Option value="Fruit Juice">Fruit Juice</Option>
-                                        <Option value="Pizzas">Pizzas</Option>
-                                    </Select>
-                                </div>
-                            </Col>
-                        </Row>
-
-                        <div style={{ marginBottom: '16px' }}>
-                            <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Image URL *</label>
-                            <Input
-                                placeholder="https://example.com/image.jpg"
-                                value={formData.image || ''}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, image: e.target.value })}
-                            />
-                        </div>
-
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                <div style={{ marginBottom: '16px' }}>
-                                    <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Rating *</label>
-                                    <InputNumber
-                                        style={{ width: '100%' }}
-                                        min={0}
-                                        max={5}
-                                        step={0.1}
-                                        placeholder="4.1"
-                                        value={formData.rate}
-                                        onChange={(value: number | null) => setFormData({ ...formData, rate: value || undefined })}
-                                    />
-                                </div>
-                            </Col>
-                            <Col span={12}>
-                                <div style={{ marginBottom: '16px' }}>
-                                    <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Rating Count *</label>
-                                    <InputNumber
-                                        style={{ width: '100%' }}
-                                        min={0}
-                                        placeholder="400"
-                                        value={formData.count}
-                                        onChange={(value: number | null) => setFormData({ ...formData, count: value || undefined })}
-                                    />
-                                </div>
-                            </Col>
-                        </Row>
                     </div>
-                </Modal>
-            </div>
-        </Spin>
+
+                    <div style={{ marginBottom: '16px' }}>
+                        <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Description (Max 100 characters) *</label>
+                        <Input.TextArea
+                            rows={3}
+                            placeholder="Enter product description"
+                            showCount
+                            maxLength={100}
+                            value={formData.description || ''}
+                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, description: e.target.value })}
+                        />
+                    </div>
+
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Price (₹) *</label>
+                                <InputNumber
+                                    style={{ width: '100%' }}
+                                    min={0}
+                                    step={0.01}
+                                    placeholder="295.00"
+                                    value={formData.price}
+                                    onChange={(value: number | null) => setFormData({ ...formData, price: value || undefined })}
+                                />
+                            </div>
+                        </Col>
+                        <Col span={12}>
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Category *</label>
+                                <Select
+                                    placeholder="Select category"
+                                    style={{ width: '100%' }}
+                                    value={formData.category}
+                                    onChange={(value: string) => setFormData({ ...formData, category: value })}
+                                >
+                                    <Option value="NonVeg">NonVeg</Option>
+                                    <Option value="Veg">Veg</Option>
+                                    <Option value="Desserts">Desserts</Option>
+                                    <Option value="IceCream">IceCream</Option>
+                                    <Option value="Fruit Juice">Fruit Juice</Option>
+                                    <Option value="Pizzas">Pizzas</Option>
+                                </Select>
+                            </div>
+                        </Col>
+                    </Row>
+
+                    <div style={{ marginBottom: '16px' }}>
+                        <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Image URL *</label>
+                        <Input
+                            placeholder="https://example.com/image.jpg"
+                            value={formData.image || ''}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, image: e.target.value })}
+                        />
+                    </div>
+
+                    <Row gutter={16}>
+                        <Col span={12}>
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Rating *</label>
+                                <InputNumber
+                                    style={{ width: '100%' }}
+                                    min={0}
+                                    max={5}
+                                    step={0.1}
+                                    placeholder="4.1"
+                                    value={formData.rate}
+                                    onChange={(value: number | null) => setFormData({ ...formData, rate: value || undefined })}
+                                />
+                            </div>
+                        </Col>
+                        <Col span={12}>
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Rating Count *</label>
+                                <InputNumber
+                                    style={{ width: '100%' }}
+                                    min={0}
+                                    placeholder="400"
+                                    value={formData.count}
+                                    onChange={(value: number | null) => setFormData({ ...formData, count: value || undefined })}
+                                />
+                            </div>
+                        </Col>
+                    </Row>
+                </div>
+            </Modal>
+        </div>
     );
-};
+}
 
 export default ProductsPage;
