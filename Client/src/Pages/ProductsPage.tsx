@@ -555,7 +555,14 @@ const ProductsPage: React.FC = () => {
     ];
 
     return (
-        <Spin spinning={loading} size="large" tip="Loading products..." style={{ color: "#52c41a" }}>
+        <Spin spinning={loading} size="large" tip="Loading products..." style={{
+            color: "#52c41a", 
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '60vh',
+            flexDirection: 'column'
+        }}>
             <div style={{ padding: '24px', minHeight: '100vh', maxWidth: 1250, margin: '0 auto' }}>
                 {contextHolder}
                 <div style={{ textAlign: "center", marginBottom: "24px" }}>

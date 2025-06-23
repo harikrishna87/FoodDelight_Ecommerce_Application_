@@ -123,14 +123,14 @@ const UserOrders: React.FC = () => {
 
   const columns = [
     {
-      title: 'Order ID',
+      title: <span style={{color: "#52c41a"}}>Order ID</span>,
       dataIndex: '_id',
       key: '_id',
       width: 120,
       render: (id: string) => <Tag color='blue'>{id}</Tag>,
     },
     {
-      title: 'Customer',
+      title:  <span style={{color: "#52c41a"}}>Customer</span>,
       dataIndex: 'user',
       key: 'user',
       width: 180,
@@ -142,21 +142,21 @@ const UserOrders: React.FC = () => {
       ),
     },
     {
-      title: 'Total Amount',
+      title:  <span style={{color: "#52c41a"}}>Amount</span>,
       dataIndex: 'totalAmount',
       key: 'totalAmount',
       width: 120,
       render: (amount: number) => <Paragraph style={{color: "#52c41a"}}>₹ {amount.toFixed(2)}</Paragraph>,
     },
     {
-      title: 'Status',
+      title:  <span style={{color: "#52c41a"}}>Status</span>,
       dataIndex: 'deliveryStatus',
       key: 'deliveryStatus',
       width: 120,
       render: (status: OrderDeliveryStatus) => getStatusBadge(status),
     },
     {
-      title: 'Order Date',
+      title:  <span style={{color: "#52c41a"}}>Order Date</span>,
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 130,
@@ -168,7 +168,7 @@ const UserOrders: React.FC = () => {
       ),
     },
     {
-      title: 'Items',
+      title:  <span style={{color: "#52c41a"}}>Items</span>,
       dataIndex: 'items',
       key: 'items',
       width: 100,
@@ -242,7 +242,7 @@ const UserOrders: React.FC = () => {
           marginBottom: '24px',
           padding: '0 20px'
         }}>
-          <Title level={2} style={{ color: '#52c41a', marginBottom: '8px', textAlign: 'center' }}>My Orders</Title>
+          <Title level={2} style={{ color: '#52c41a', marginBottom: '12px', textAlign: 'center' }}>My Orders List</Title>
           <Paragraph style={{ color: '#6c757d', marginBottom: '0', textAlign: 'center', fontSize: "18px" }}>
             View and manage all your placed orders here. Check the status, order details, and items for each order as of {new Date().toLocaleDateString()}.
           </Paragraph>
@@ -304,7 +304,6 @@ const UserOrders: React.FC = () => {
           )}
         </div>
 
-        {/* Enhanced Modal matching first code design */}
         {selectedOrder && (
           <Modal
             title={

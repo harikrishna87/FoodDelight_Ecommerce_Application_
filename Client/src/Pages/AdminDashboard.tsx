@@ -212,13 +212,13 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({ orders }) => {
 
   const columns = [
     {
-      title: 'Order ID',
+      title: <span style={{color: "#52c41a"}}>Order ID</span>,
       dataIndex: '_id',
       key: 'orderId',
       render: (id: string) => <Tag color="blue">{id}</Tag>,
     },
     {
-      title: 'Customer',
+      title: <span style={{color: "#52c41a"}}>Customer</span>,
       key: 'customer',
       render: (record: IOrder) => (
         <Space>
@@ -232,18 +232,18 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({ orders }) => {
       ),
     },
     {
-      title: 'Amount',
+      title: <span style={{color: "#52c41a"}}>Amount</span>,
       dataIndex: 'totalAmount',
       key: 'amount',
       render: (amount: number) => `₹${amount.toFixed(2)}`,
     },
     {
-      title: 'Status',
+      title: <span style={{color: "#52c41a"}}>Status</span>,
       key: 'status',
       render: () => <Tag color="success">Paid</Tag>,
     },
     {
-      title: 'Date',
+      title: <span style={{color: "#52c41a"}}>Date</span>,
       dataIndex: 'createdAt',
       key: 'date',
       render: (date: string) => (
@@ -284,12 +284,13 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({ orders }) => {
       {orders.length === 0 ? (
         <Alert message="No payments recorded yet." type="info" showIcon />
       ) : (
-        <div style={{ maxHeight: 525, overflowY: 'auto' }}>
+        <div>
           <Table
             columns={columns}
             dataSource={orders}
             rowKey="_id"
             size="large"
+            scroll={{ x: 1000 }}
             pagination={{
               pageSize: 5,
               showSizeChanger: true,
@@ -671,13 +672,13 @@ const AdminDashboard: React.FC = () => {
 
   const columns = [
     {
-      title: 'Order ID',
+      title: <span style={{color: "#52c41a"}}>Order ID</span>,
       dataIndex: '_id',
       key: 'orderId',
       render: (id: string) => <Tag color="blue">{id}</Tag>,
     },
     {
-      title: 'Customer',
+      title: <span style={{color: "#52c41a"}}>Customer</span>,
       key: 'customer',
       render: (record: IOrder) => (
         <Space direction="vertical" size="small">
@@ -689,7 +690,7 @@ const AdminDashboard: React.FC = () => {
       ),
     },
     {
-      title: 'Total Amount',
+      title: <span style={{color: "#52c41a"}}>Amount</span>,
       dataIndex: 'totalAmount',
       key: 'totalAmount',
       render: (amount: number) => (
@@ -697,13 +698,13 @@ const AdminDashboard: React.FC = () => {
       ),
     },
     {
-      title: 'Status',
+      title: <span style={{color: "#52c41a"}}>Status</span>,
       dataIndex: 'deliveryStatus',
       key: 'status',
       render: (status: OrderDeliveryStatus) => getStatusTag(status),
     },
     {
-      title: 'Order Date',
+      title: <span style={{color: "#52c41a"}}>Order Date</span>,
       dataIndex: 'createdAt',
       key: 'orderDate',
       render: (date: string) => (
@@ -713,7 +714,7 @@ const AdminDashboard: React.FC = () => {
       ),
     },
     {
-      title: 'Items',
+      title: <span style={{color: "#52c41a"}}>Items</span>,
       dataIndex: 'items',
       key: 'items',
       render: (items: any, record: IOrder) => (
@@ -728,7 +729,7 @@ const AdminDashboard: React.FC = () => {
       ),
     },
     {
-      title: 'Action',
+      title: <span style={{color: "#52c41a"}}>Actions</span>,
       key: 'action',
       render: (record: IOrder) => {
         const availableOptions = getAvailableStatusOptions(record.deliveryStatus);

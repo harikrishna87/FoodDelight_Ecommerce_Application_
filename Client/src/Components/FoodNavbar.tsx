@@ -6,7 +6,6 @@ import {
   Badge,
   Drawer,
   Card,
-  Image,
   Tag,
   Typography,
   Space,
@@ -813,7 +812,7 @@ const FoodNavbar: React.FC = () => {
                       hoverable
                     >
                       <div style={{ display: 'flex', gap: '12px' }}>
-                        <Image
+                        <img
                           src={item.image}
                           alt={item.name}
                           width={80}
