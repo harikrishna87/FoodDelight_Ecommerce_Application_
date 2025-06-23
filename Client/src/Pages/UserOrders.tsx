@@ -127,7 +127,7 @@ const UserOrders: React.FC = () => {
       dataIndex: '_id',
       key: '_id',
       width: 120,
-      render: (id: string) => id,
+      render: (id: string) => <Tag color='blue'>{id}</Tag>,
     },
     {
       title: 'Customer',
@@ -146,7 +146,7 @@ const UserOrders: React.FC = () => {
       dataIndex: 'totalAmount',
       key: 'totalAmount',
       width: 120,
-      render: (amount: number) => `₹${amount.toFixed(2)}`,
+      render: (amount: number) => <Paragraph style={{color: "#52c41a"}}>₹ {amount.toFixed(2)}</Paragraph>,
     },
     {
       title: 'Status',
@@ -180,7 +180,6 @@ const UserOrders: React.FC = () => {
     },
   ];
 
-  // Calculate pagination for modal items
   const totalItems = selectedOrder?.items?.length || 0;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;

@@ -30,12 +30,13 @@ import {
   UserOutlined,
   CalendarOutlined,
   InfoCircleOutlined,
-  LoadingOutlined
+  LoadingOutlined,
+  LineChartOutlined
 } from '@ant-design/icons';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { IOrder, OrderDeliveryStatus } from '../types';
-import { Pie } from '@ant-design/charts';
+import { Pie, Line } from '@ant-design/charts';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -45,13 +46,11 @@ interface OrderStatsProps {
 }
 
 const OrderStatistics: React.FC<OrderStatsProps> = ({ orders }) => {
-  const totalOrders = orders.length;
   const pendingOrders = orders.filter(o => o.deliveryStatus === 'Pending').length;
   const shippedOrders = orders.filter(o => o.deliveryStatus === 'Shipped').length;
   const deliveredOrders = orders.filter(o => o.deliveryStatus === 'Delivered').length;
 
   const data = [
-    { type: 'Total Orders', value: totalOrders },
     { type: 'Pending', value: pendingOrders },
     { type: 'Shipped', value: shippedOrders },
     { type: 'Delivered', value: deliveredOrders },
@@ -72,11 +71,10 @@ const OrderStatistics: React.FC<OrderStatsProps> = ({ orders }) => {
           overflow: 'hidden',
           textOverflow: 'ellipsis',
         },
-        content: `Total\nOrders`,
+        content: `Order\nStatus`,
       },
     },
     color: ({ type }: { type: string }) => {
-      if (type === 'Total Orders') return '#1890ff';
       if (type === 'Pending') return '#faad14';
       if (type === 'Shipped') return '#13c2c2';
       if (type === 'Delivered') return '#52c41a';
@@ -95,28 +93,21 @@ const OrderStatistics: React.FC<OrderStatsProps> = ({ orders }) => {
       style={{ height: '100%' }}
     >
       <Row gutter={16} style={{ marginBottom: 24, textAlign: 'center' }}>
-        <Col span={6}>
-          <Statistic
-            title="Total"
-            value={totalOrders}
-            valueStyle={{ color: '#1890ff', fontSize: '24px' }}
-          />
-        </Col>
-        <Col span={6}>
+        <Col span={8}>
           <Statistic
             title="Pending"
             value={pendingOrders}
-            valueStyle={{ color: '#faad14', fontSize: '24px' }}
+            valueStyle={{ color: 'violet', fontSize: '24px' }}
           />
         </Col>
-        <Col span={6}>
+        <Col span={8}>
           <Statistic
             title="Shipped"
             value={shippedOrders}
             valueStyle={{ color: '#13c2c2', fontSize: '24px' }}
           />
         </Col>
-        <Col span={6}>
+        <Col span={8}>
           <Statistic
             title="Delivered"
             value={deliveredOrders}
@@ -125,7 +116,7 @@ const OrderStatistics: React.FC<OrderStatsProps> = ({ orders }) => {
         </Col>
       </Row>
       <div style={{ height: 300 }}>
-        {totalOrders > 0 ? (
+        {orders.length > 0 ? (
           <Pie {...config} />
         ) : (
           <div style={{
@@ -136,6 +127,75 @@ const OrderStatistics: React.FC<OrderStatsProps> = ({ orders }) => {
             color: '#8c8c8c'
           }}>
             No order data available for chart.
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+};
+
+interface OrderGraphProps {
+  orders: IOrder[];
+}
+
+const OrderGraph: React.FC<OrderGraphProps> = ({ orders }) => {
+  const getOrdersPerDay = () => {
+    const orderCounts: { [key: string]: number } = {};
+    
+    orders.forEach(order => {
+      const date = new Date(order.createdAt).toLocaleDateString();
+      orderCounts[date] = (orderCounts[date] || 0) + 1;
+    });
+
+    return Object.entries(orderCounts)
+      .map(([date, count]) => ({
+        date,
+        orders: count
+      }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  };
+
+  const data = getOrdersPerDay();
+
+  const config = {
+    data,
+    xField: 'date',
+    yField: 'orders',
+    point: {
+      size: 5,
+      shape: 'diamond',
+    },
+    label: {
+      style: {
+        fill: '#aaa',
+      },
+    },
+    smooth: true,
+    color: '#52c41a',
+  };
+
+  return (
+    <Card
+      title={
+        <Space>
+          <LineChartOutlined style={{ color: '#52c41a' }} />
+          <span style={{ color: '#52c41a', fontWeight: 'bold' }}>Orders Per Day</span>
+        </Space>
+      }
+      style={{ height: '100%' }}
+    >
+      <div style={{ height: 350 }}>
+        {data.length > 0 ? (
+          <Line {...config} />
+        ) : (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100%',
+            color: '#8c8c8c'
+          }}>
+            No order data available for graph.
           </div>
         )}
       </div>
@@ -155,7 +215,21 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({ orders }) => {
       title: 'Order ID',
       dataIndex: '_id',
       key: 'orderId',
-      render: (id: string) => id,
+      render: (id: string) => <Tag color="blue">{id}</Tag>,
+    },
+    {
+      title: 'Customer',
+      key: 'customer',
+      render: (record: IOrder) => (
+        <Space>
+          <div>
+            <div>{record.user?.name || 'N/A'}</div>
+            <Text type="secondary" style={{ fontSize: '12px' }}>
+              {record.user?.email || 'N/A'}
+            </Text>
+          </div>
+        </Space>
+      ),
     },
     {
       title: 'Amount',
@@ -172,7 +246,12 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({ orders }) => {
       title: 'Date',
       dataIndex: 'createdAt',
       key: 'date',
-      render: (date: string) => new Date(date).toLocaleDateString(),
+      render: (date: string) => (
+        <Space>
+          <CalendarOutlined />
+          {new Date(date).toLocaleDateString()}
+        </Space>
+      ),
     },
   ];
 
@@ -205,14 +284,14 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({ orders }) => {
       {orders.length === 0 ? (
         <Alert message="No payments recorded yet." type="info" showIcon />
       ) : (
-        <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+        <div style={{ maxHeight: 525, overflowY: 'auto' }}>
           <Table
             columns={columns}
             dataSource={orders}
             rowKey="_id"
             size="large"
             pagination={{
-              pageSize: 2,
+              pageSize: 5,
               showSizeChanger: true,
             }}
           />
@@ -595,11 +674,7 @@ const AdminDashboard: React.FC = () => {
       title: 'Order ID',
       dataIndex: '_id',
       key: 'orderId',
-      render: (id: string) => (
-        <Text code style={{ fontSize: '12px' }}>
-          {id}
-        </Text>
-      ),
+      render: (id: string) => <Tag color="blue">{id}</Tag>,
     },
     {
       title: 'Customer',
@@ -633,8 +708,7 @@ const AdminDashboard: React.FC = () => {
       key: 'orderDate',
       render: (date: string) => (
         <Space>
-          <CalendarOutlined />
-          <Text>{new Date(date).toLocaleDateString()}</Text>
+          <CalendarOutlined />{new Date(date).toLocaleDateString()}
         </Space>
       ),
     },
@@ -733,6 +807,12 @@ const AdminDashboard: React.FC = () => {
           <OrderStatistics orders={orders} />
         </Col>
         <Col lg={12} xs={24}>
+          <OrderGraph orders={orders} />
+        </Col>
+      </Row>
+
+      <Row style={{ marginBottom: 40 }}>
+        <Col span={24}>
           <PaymentSection orders={orders} />
         </Col>
       </Row>

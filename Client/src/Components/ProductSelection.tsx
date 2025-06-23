@@ -3,13 +3,13 @@ import { Row, Col, Card, Button, Alert, Tag, Pagination, Typography, Spin, messa
 import { SearchOutlined, ShoppingCartOutlined, CloseOutlined, StarFilled, StarOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import AuthModal from "../Components/AuthModal"
+import AuthModal from "../Components/AuthModal";
 
 const { Title, Text } = Typography;
 
 interface Product {
-  id: number;
-  name: string
+  _id: string;
+  name: string;
   description: string;
   image: string;
   price: number;
@@ -38,7 +38,7 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
   filteredProducts,
   productsPerPage
 }) => {
-  const [addingToCart, setAddingToCart] = useState<{ [key: number]: boolean }>({});
+  const [addingToCart, setAddingToCart] = useState<{ [key: string]: boolean }>({});
   const [messageApi, contextHolder] = message.useMessage();
   const auth = useContext(AuthContext);
 
@@ -61,7 +61,7 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
     }
 
     try {
-      setAddingToCart(prev => ({ ...prev, [product.id]: true }));
+      setAddingToCart(prev => ({ ...prev, [product._id]: true }));
 
       const cartItem = {
         name: product.name,
@@ -94,7 +94,7 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
       }
     } catch (error) {
       console.error("Error adding item to cart:", error);
-      
+
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 401) {
           auth?.logout?.();
@@ -134,7 +134,7 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
         });
       }
     } finally {
-      setAddingToCart(prev => ({ ...prev, [product.id]: false }));
+      setAddingToCart(prev => ({ ...prev, [product._id]: false }));
     }
   };
 
@@ -149,7 +149,7 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
         {Array.from({ length: fullStars }, (_, i) => (
           <StarFilled key={`full-${i}`} />
         ))}
-        {hasHalfStar && <StarFilled style={{ clipPath: 'inset(0 50% 0 0)' }} />}
+        {hasHalfStar && <StarFilled key="half-star" style={{ clipPath: 'inset(0 50% 0 0)' }} />}
         {Array.from({ length: emptyStars }, (_, i) => (
           <StarOutlined key={`empty-${i}`} />
         ))}
@@ -202,8 +202,8 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
       {selectedProducts.length > 0 ? (
         <>
           <Row gutter={[16, 16]}>
-            {selectedProducts.map(product => (
-              <Col xs={24} sm={12} md={12} lg={8} xl={6} key={product.id}>
+            {selectedProducts.map((product, index) => (
+              <Col xs={24} sm={12} md={12} lg={8} xl={6} key={`${product._id}-${index}`}>
                 <Card
                   hoverable
                   style={{
@@ -311,10 +311,10 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
                         alignItems: 'center'
                       }}
                       onClick={() => addToCart(product)}
-                      disabled={addingToCart[product.id]}
-                      icon={addingToCart[product.id] ? <Spin size="small" /> : <ShoppingCartOutlined />}
+                      disabled={addingToCart[product._id]}
+                      icon={addingToCart[product._id] ? <Spin size="small" /> : <ShoppingCartOutlined />}
                     >
-                      {addingToCart[product.id] ? 'Adding...' : 'Add Item'}
+                      {addingToCart[product._id] ? 'Adding...' : 'Add Item'}
                     </Button>
                   </div>
                 </Card>

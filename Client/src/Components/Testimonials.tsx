@@ -15,35 +15,35 @@ interface Testimonial {
 const testimonials: Testimonial[] = [
     {
         id: 1,
-        name: "Harish Kumar",
+        name: "Hari Krishna",
         role: "Regular Customer",
         text: "The quality of products is exceptional. I've been shopping here for years!",
         rating: 5
     },
     {
         id: 2,
-        name: "Jaya Krishna",
+        name: "Mahitha",
         role: "Food Critic",
         text: "Their selection never fails to impress. A must-visit for food enthusiasts.",
         rating: 4.5
     },
     {
         id: 3,
-        name: "Manikanta",
+        name: "Indu Priya",
         role: "Chef",
         text: "The freshness and variety of products have transformed my cooking experience.",
         rating: 5
     },
     {
         id: 4,
-        name: "Rasheed",
+        name: "Revanth",
         role: "Nutritionist",
         text: "I recommend these products to all my clients. Premium quality and great value.",
         rating: 4
     },
     {
         id: 5,
-        name: "Mahesh",
+        name: "Srikanth",
         role: "Food Blogger",
         text: "The flavors are authentic and the service is always exceptional!",
         rating: 4.5

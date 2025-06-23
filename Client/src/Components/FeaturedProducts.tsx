@@ -13,12 +13,12 @@ import {
 import { ShoppingCartOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import AuthModal from "../Components/AuthModal"
+import AuthModal from "../Components/AuthModal";
 
 const { Title, Text, Paragraph } = Typography;
 
 interface Product {
-  id: number;
+  _id: string;
   name: string;
   description: string;
   image: string;
@@ -40,7 +40,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
   calculateDiscountedPrice,
   renderStarRating
 }) => {
-  const [addingToCart, setAddingToCart] = useState<{ [key: number]: boolean }>({});
+  const [addingToCart, setAddingToCart] = useState<{ [key: string]: boolean }>({});
   const [messageApi, contextHolder] = message.useMessage();
   const auth = useContext(AuthContext);
 
@@ -57,10 +57,10 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
     }
 
     try {
-      setAddingToCart(prev => ({ ...prev, [product.id]: true }));
+      setAddingToCart(prev => ({ ...prev, [product._id]: true }));
 
       const cartItem = {
-        product_id: product.id,
+        product_id: product._id,
         name: product.name,
         image: product.image,
         category: product.category,
@@ -142,13 +142,13 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
         });
       }
     } finally {
-      setAddingToCart(prev => ({ ...prev, [product.id]: false }));
+      setAddingToCart(prev => ({ ...prev, [product._id]: false }));
     }
   };
 
   const CustomCard = ({ product, index }: { product: Product; index: number }) => (
     <Card
-      key={`${product.id}-${index}`}
+      key={`${product._id}-${index}`}
       className="mx-2 shadow-sm product-card"
       style={{
         minWidth: '300px',
@@ -275,13 +275,13 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
               borderColor: '#52c41a'
             }}
             onClick={() => addToCart(product)}
-            disabled={addingToCart[product.id]}
-            icon={addingToCart[product.id] ?
+            disabled={addingToCart[product._id]}
+            icon={addingToCart[product._id] ?
               <Spin size="small" /> :
               <ShoppingCartOutlined />
             }
           >
-            {addingToCart[product.id] ? 'Adding...' : 'Add Item'}
+            {addingToCart[product._id] ? 'Adding...' : 'Add Item'}
           </Button>
         </Flex>
       </Space>
@@ -311,7 +311,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
           >
             {[...featuredProducts, ...featuredProducts].map((product, index) => (
               <CustomCard
-                key={`${product.id}-${index}`}
+                key={`${product._id}-${index}`}
                 product={product}
                 index={index}
               />

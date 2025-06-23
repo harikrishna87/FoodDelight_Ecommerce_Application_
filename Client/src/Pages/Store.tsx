@@ -26,14 +26,14 @@ import {
 import axios from 'axios';
 import 'antd/dist/reset.css';
 import { AuthContext } from '../context/AuthContext';
-import AuthModal from "../Components/AuthModal"
+import AuthModal from "../Components/AuthModal";
 
 const { Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
 
 interface Product {
-    id: number;
+    _id: string;
     title: string;
     price: number;
     description: string;
@@ -215,7 +215,7 @@ const Store: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [showFilters, setShowFilters] = useState<boolean>(false);
     const [categories, setCategories] = useState<string[]>([]);
-    const [addingToCart, setAddingToCart] = useState<{ [key: number]: boolean }>({});
+    const [addingToCart, setAddingToCart] = useState<{ [key: string]: boolean }>({}); // Changed key from number to string
     const [filters, setFilters] = useState<FilterOptions>({
         category: '',
         minPrice: 0,
@@ -248,14 +248,13 @@ const Store: React.FC = () => {
         const fetchProducts = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get('https://json-data-1-nrnj.onrender.com/products/');
-
-                const shuffledProducts = shuffleArray(response.data);
+                const response = await axios.get(`${backendUrl}/api/products/getallproducts`);
+                const shuffledProducts = shuffleArray(response.data.data);
 
                 setProducts(shuffledProducts);
                 setFilteredProducts(shuffledProducts);
 
-                const uniqueCategories = [...new Set(response.data.map((product: Product) => product.category))] as string[];
+                const uniqueCategories = [...new Set(response.data.data.map((product: Product) => product.category))] as string[];
                 setCategories(uniqueCategories);
 
                 const discounts: CategoryDiscount = {};
@@ -327,7 +326,7 @@ const Store: React.FC = () => {
         }
 
         try {
-            setAddingToCart(prev => ({ ...prev, [product.id]: true }));
+            setAddingToCart(prev => ({ ...prev, [product._id]: true })); // Changed from product.id
 
             const cartItem = {
                 name: product.title,
@@ -406,7 +405,7 @@ const Store: React.FC = () => {
                 });
             }
         } finally {
-            setAddingToCart(prev => ({ ...prev, [product.id]: false }));
+            setAddingToCart(prev => ({ ...prev, [product._id]: false })); // Changed from product.id
         }
     };
 
@@ -533,8 +532,8 @@ const Store: React.FC = () => {
                                                 placeholder="All Categories"
                                             >
                                                 <Option value="">All Categories</Option>
-                                                {categories.map((category, index) => (
-                                                    <Option key={index} value={category}>
+                                                {categories.map((category) => (
+                                                    <Option key={category} value={category}>
                                                         {category.charAt(0).toUpperCase() + category.slice(1)}
                                                         {categoryDiscounts[category] ? ` (${categoryDiscounts[category]}% OFF)` : ''}
                                                     </Option>
@@ -607,7 +606,7 @@ const Store: React.FC = () => {
                         <Row gutter={[24, 24]}>
                             {currentProducts.length > 0 ? (
                                 currentProducts.map((product) => (
-                                    <Col xl={6} lg={8} md={12} sm={12} xs={24} key={product.id}>
+                                    <Col xl={6} lg={8} md={12} sm={12} xs={24} key={product._id}>
                                         <Card
                                             className="product-card"
                                             style={{
@@ -699,7 +698,7 @@ const Store: React.FC = () => {
                                                         type="primary"
                                                         size="small"
                                                         icon={<ShoppingCartOutlined />}
-                                                        loading={addingToCart[product.id]}
+                                                        loading={addingToCart[product._id]}
                                                         onClick={() => addToCart(product)}
                                                         style={{
                                                             backgroundColor: '#52c41a',
@@ -732,7 +731,6 @@ const Store: React.FC = () => {
                                     pageSize={productsPerPage}
                                     onChange={(page) => setCurrentPage(page)}
                                     showSizeChanger={false}
-                                    showQuickJumper
                                     style={{
                                         display: 'inline-block'
                                     }}

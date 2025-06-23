@@ -14,6 +14,7 @@ import AuthPage from './Pages/Auth'
 import AdminDashboard from './Pages/AdminDashboard'
 import UserOrders from './Pages/UserOrders'
 import ProtectedRoute from './Components/ProtectedRoute'
+import ProductsPage from './Pages/ProductsPage'
 
 const AppContent: React.FC = () => {
   const auth = useContext(AuthContext)
@@ -25,6 +26,7 @@ const AppContent: React.FC = () => {
         <Container className='mb-4 mt-4'>
           <Routes>
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path='/productspage' element={<ProductsPage/>}/>
             <Route path="*" element={<Navigate to="/admin" replace />} />
           </Routes>
         </Container>

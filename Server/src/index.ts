@@ -4,6 +4,7 @@ import router_cart_item from "./Routes/Routes_Cart_Items";
 import authRoutes from "./Routes/AuthRoutes";
 import orderRoutes from "./Routes/OrderRoutes";
 import payment_router from "./Routes/Razorpay_payment"
+import product_router from "./Routes/ProductRoutes"
 import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
@@ -47,6 +48,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/cart", router_cart_item);
+app.use("/api/products", product_router);
 app.use("/razorpay", payment_router)
 
 const PORT = process.env.PORT || 3000;

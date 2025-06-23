@@ -14,12 +14,14 @@ import {
   PercentageOutlined, 
   ShoppingCartOutlined,
   StarFilled,
+  StarOutlined,
 } from '@ant-design/icons';
 import customStyles from "../styles/Styles";
 import Testimonials from '../Components/Testimonials';
 import ProductCategories from '../Components/ProductCategories';
 import ProductSelection from '../Components/ProductSelection';
 import FeaturedProducts from '../Components/FeaturedProducts';
+import axios from "axios";
 
 const { Content } = Layout;
 const { Title, Paragraph } = Typography;
@@ -31,7 +33,7 @@ const LeafIconCustom = () => (
 );
 
 interface Product {
-  id: number;
+  _id: string;
   name: string;
   description: string;
   image: string;
@@ -61,6 +63,8 @@ export default function Homepage() {
     return newArray;
   };
 
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
   useEffect(() => {
     const styleElement = document.createElement('style');
     styleElement.innerHTML = customStyles;
@@ -74,14 +78,14 @@ export default function Homepage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('https://json-data-1-nrnj.onrender.com/products/');
-        if (!response.ok) {
+        const response = await axios.get(`${backendUrl}/api/products/getallproducts`);
+        if (!response) {
           throw new Error('Failed to fetch products');
         }
 
-        const data = await response.json();
+        const data = await response.data.data
         const typedProducts: Product[] = data.map((item: any) => ({
-          id: item.id,
+          _id: item._id,
           name: item.title,
           description: item.description || 'No description available',
           image: item.image || '',
@@ -163,9 +167,10 @@ export default function Homepage() {
         {Array.from({ length: fullStars }, (_, i) => (
           <StarFilled key={`full-${i}`} />
         ))}
-        {hasHalfStar && <StarFilled style={{ clipPath: 'inset(0 50% 0 0)' }} />}
-        {Array.from({ length: emptyStars })}^
-
+        {hasHalfStar && <StarFilled key="half" style={{ clipPath: 'inset(0 50% 0 0)' }} />}
+        {Array.from({ length: emptyStars }, (_, i) => (
+          <StarOutlined key={`empty-${i}`} />
+        ))}
         <span style={{ color: '#8c8c8c', marginLeft: '4px' }}>({safeRating.toFixed(1)})</span>
       </Space>
     );

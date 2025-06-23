@@ -4,16 +4,18 @@ import { ArrowRightOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
+interface Product {
+  _id: string;
+  name: string;
+  description: string;
+  image: string;
+  price: number;
+  category: string;
+  rating?: number;
+}
+
 interface ProductCategoriesProps {
-  products: Array<{
-    id: number;
-    name: string;
-    description: string;
-    image: string;
-    price: number;
-    category: string;
-    rating?: number;
-  }>;
+  products: Product[];
   categoryDiscounts: { [key: string]: number };
   selectedCategory: string | null;
   handleCategoryClick: (category: string) => void;
@@ -31,8 +33,8 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
         <Title level={2} className="section-title">Product Categories</Title>
       </div>
       <Row gutter={[16, 16]}>
-        {Array.from(new Set(products.map(p => p.category))).map((category, index) => (
-          <Col xs={24} md={8} key={index}>
+        {Array.from(new Set(products.map(p => p.category))).map((category) => (
+          <Col xs={24} md={8} key={category}>
             <Card
               hoverable
               style={{

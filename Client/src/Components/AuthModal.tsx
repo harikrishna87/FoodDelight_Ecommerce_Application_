@@ -66,7 +66,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
       if (response.data.success) {
         auth.login(response.data.user, response.data.token);
         messageApi.success({
-          content: isLoginMode ? 'Welcome back!' : 'Account created successfully!',
+          content: isLoginMode ? `Welcome back ${response.data.user.email}` : 'Account created successfully!',
           duration: 3,
           style: {
             marginTop: '10vh',

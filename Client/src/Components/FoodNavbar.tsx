@@ -25,7 +25,8 @@ import {
   UnorderedListOutlined,
   MenuOutlined,
   HomeOutlined,
-  ContactsOutlined
+  ContactsOutlined,
+  ProductOutlined
 } from '@ant-design/icons';
 import { NavLink, useNavigate } from 'react-router-dom';
 import axios from "axios";
@@ -608,6 +609,11 @@ const FoodNavbar: React.FC = () => {
             key: 'admin',
             icon: <DashboardOutlined />,
             label: <span onClick={() => { setMobileMenuVisible(false); navigate('/admin'); }}>Admin Dashboard</span>,
+          },
+          {
+            key: 'products',
+            icon: <ProductOutlined />,
+            label: <span onClick={() => { setMobileMenuVisible(false); navigate('/productspage'); }}>Products</span>,
           },
           {
             key: 'logout',

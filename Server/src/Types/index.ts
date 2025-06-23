@@ -26,7 +26,7 @@ export interface ICartItem {
 }
 
 export interface ICart extends Document {
-  user: IUser['_id']; // Added user reference for user-specific carts
+  user: IUser['_id'];
   items: ICartItem[];
 }
 
@@ -44,6 +44,22 @@ export interface IOrder extends Document {
   items: IOrderItem[];
   totalAmount: number;
   deliveryStatus: OrderDeliveryStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IRating {
+  rate: number;
+  count: number;
+}
+
+export interface IProduct extends Document {
+  title: string;
+  description: string;
+  price: number;
+  category: string;
+  image: string;
+  rating: IRating;
   createdAt: Date;
   updatedAt: Date;
 }
