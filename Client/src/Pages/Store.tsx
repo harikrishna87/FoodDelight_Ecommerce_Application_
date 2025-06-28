@@ -666,8 +666,14 @@ const Store: React.FC = () => {
 
                                                 <Paragraph
                                                     type="secondary"
-                                                    style={{ fontSize: '12px', marginBottom: '16px' }}
-                                                    ellipsis={{ rows: 2 }}
+                                                    style={{
+                                                        fontSize: '12px', 
+                                                        marginBottom: '16px', 
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        whiteSpace: 'nowrap',
+                                                        display: 'block',
+                                                    }}
                                                 >
                                                     {product.description || 'No description available'}
                                                 </Paragraph>

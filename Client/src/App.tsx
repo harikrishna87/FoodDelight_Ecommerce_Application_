@@ -15,6 +15,12 @@ import AdminDashboard from './Pages/AdminDashboard'
 import UserOrders from './Pages/UserOrders'
 import ProtectedRoute from './Components/ProtectedRoute'
 import ProductsPage from './Pages/ProductsPage'
+import FAQ from './Pages/FAQ'
+import NewArrivals from './Pages/NewArrivals'
+import DealsDiscounts from './Pages/DealsDiscounts'
+import GiftCards from './Pages/GiftCards'
+import ShoppingInfo from './Pages/ShoppingInfo'
+import ReturnsExchanges from './Pages/ReturnsExchanges'
 
 const AppContent: React.FC = () => {
   const auth = useContext(AuthContext)
@@ -44,6 +50,12 @@ const AppContent: React.FC = () => {
           <Route path="/menu-items" element={<Store/>} />
           <Route path="/contact" element={<Contact/>}/>
           <Route path="/privacy" element={<PrivacyPolicy/>} />
+          <Route path='/faq' element={<FAQ/>}/>
+          <Route path='/newarrivals' element={<NewArrivals/>}/>
+          <Route path='/dealsdiscount' element={<DealsDiscounts/>}/>
+          <Route path='/giftcards' element={<GiftCards/>}/>
+          <Route path='/shoppinginfo' element={<ShoppingInfo/>} />
+          <Route path='/returnexchanges' element={<ReturnsExchanges/>} />
           <Route path='/terms' element={<TermsOfService/>} />
           <Route path='/auth' element={<AuthPage/>} />
           

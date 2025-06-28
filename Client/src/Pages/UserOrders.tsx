@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { Layout, Table, Tag, Spin, Alert, Typography, Modal, Button, Descriptions, Space, Tooltip, Row, Col, Card, Pagination, message } from 'antd';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { IOrder, OrderDeliveryStatus } from '../types';
-import { CheckCircleOutlined, TruckOutlined, ClockCircleOutlined, EyeOutlined, CalendarOutlined, ShoppingCartOutlined, UserOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, TruckOutlined, ClockCircleOutlined, EyeOutlined, CalendarOutlined, ShoppingCartOutlined, UserOutlined, DownloadOutlined } from '@ant-design/icons';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
@@ -18,6 +20,8 @@ const UserOrders: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const receiptContentRef = useRef<HTMLDivElement>(null);
   const itemsPerPage = 4;
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -71,7 +75,7 @@ const UserOrders: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [auth?.token, backendUrl]);
+  }, [auth?.token, backendUrl, messageApi]);
 
   useEffect(() => {
     fetchUserOrders();
@@ -86,6 +90,44 @@ const UserOrders: React.FC = () => {
     setIsModalVisible(false);
     setSelectedOrder(null);
   };
+
+  const handleDownloadReceipt = async () => {
+    if (!receiptContentRef.current || !selectedOrder) {
+      messageApi.error('Could not generate receipt. Content not found.');
+      return;
+    }
+
+    setIsDownloading(true);
+    messageApi.loading({ content: 'Generating your receipt...', key: 'pdf-download', duration: 0 });
+
+    try {
+      const receiptElement = receiptContentRef.current;
+      const canvas = await html2canvas(receiptElement, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height],
+      });
+
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save(`Receipt-Order-${selectedOrder._id}.pdf`);
+
+      messageApi.success({ content: 'Receipt downloaded successfully!', key: 'pdf-download', duration: 3 });
+
+    } catch (err) {
+      console.error('Error generating PDF receipt:', err);
+      messageApi.error({ content: 'Failed to download receipt. Please try again.', key: 'pdf-download', duration: 3 });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
 
   const truncateText = (text: string, maxLength: number) => {
     if (text.length <= maxLength) return text;
@@ -237,6 +279,7 @@ const UserOrders: React.FC = () => {
         display: 'flex',
         flexDirection: 'column'
       }}>
+        {contextHolder}
         <div style={{
           flexShrink: 0,
           marginBottom: '24px',
@@ -314,7 +357,21 @@ const UserOrders: React.FC = () => {
             }
             open={isModalVisible}
             onCancel={handleCancel}
-            footer={null}
+            footer={[
+              <Button key="back" onClick={handleCancel}>
+                Close
+              </Button>,
+              <Button
+                key="download"
+                type="primary"
+                icon={<DownloadOutlined />}
+                loading={isDownloading}
+                onClick={handleDownloadReceipt}
+                style={{backgroundColor: "#52c41a"}}
+              >
+                Download Receipt
+              </Button>,
+            ]}
             width={isMobile ? '95%' : 800}
             style={isMobile ? { top: 15 } : { top: 15 }}
           >
@@ -366,165 +423,89 @@ const UserOrders: React.FC = () => {
             <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>
               Order Items ({totalItems} items)
             </Title>
-
             <Row gutter={[16, 16]}>
-              {currentItems.length > 0 ? (
-                currentItems.map((item, idx) => (
-                  <Col
-                    span={isMobile ? 24 : 12}
-                    key={startIndex + idx}
-                  >
-                    <Card size="small" hoverable style={{ padding: '16px', height: '100%' }}>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '16px'
-                      }}>
-                        {item.image && (
-                          <div style={{
-                            flexShrink: 0
-                          }}>
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              style={{
-                                width: 80,
-                                height: 80,
-                                borderRadius: 8,
-                                objectFit: 'cover',
-                                border: '1px solid #d9d9d9'
-                              }}
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RUG8G+5BhMlyJFAcxBOJqhE8wQ7kKQQtKSlkZzZnZklBW1KKaUKZhJFM7MpIQ6lJTJKKJGJ6GElJvK5Z+cFklVVr6vr9e/39v3V/e8P";
-                              }}
-                            />
+              {currentItems.map((item, idx) => (
+                  <Col span={isMobile ? 24 : 12} key={startIndex + idx}>
+                      <Card size="small" hoverable style={{ padding: '16px', height: '100%' }}>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                              {item.image && (
+                                  <div style={{ flexShrink: 0 }}>
+                                      <img src={item.image} alt={item.name} style={{ width: 80, height: 80, borderRadius: 8, objectFit: 'cover', border: '1px solid #d9d9d9' }} onError={(e) => { (e.target as HTMLImageElement).src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RUG8G+5BhMlyJFAcxBOJqhE8wQ7kKQQtKSlkZzZnZklBW1KKaUKZhJFM7MpIQ6lJTJKKJGJ6GElJvK5Z+cFklVVr6vr9e/39v3V/e8P"; }} />
+                                  </div>
+                              )}
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                  <Title level={5} style={{ margin: '0 0 8px 0', fontSize: '16px' }}>{item.name || 'Unknown Item'}</Title>
+                                  <div style={{ marginBottom: '8px' }}><Text type="secondary" style={{ fontSize: '14px' }}>Quantity: <Text strong>{item.quantity || 0}</Text></Text></div>
+                                  <div><div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                      <Text delete style={{ color: '#8c8c8c', fontSize: '14px' }}>₹{((item as any).original_price || 0).toFixed(2)}</Text>
+                                      <Text strong style={{ color: '#52c41a', fontSize: '16px' }}>₹{((item as any).discount_price || 0).toFixed(2)}</Text>
+                                  </div></div>
+                              </div>
                           </div>
-                        )}
-                        <div style={{
-                          flex: 1,
-                          minWidth: 0
-                        }}>
-                          <Title level={5} style={{
-                            margin: '0 0 8px 0',
-                            fontSize: '16px'
-                          }}>
-                            {item.name || 'Unknown Item'}
-                          </Title>
-                          <div style={{ marginBottom: '8px' }}>
-                            <Text type="secondary" style={{ fontSize: '14px' }}>
-                              Quantity: <Text strong>{item.quantity || 0}</Text>
-                            </Text>
-                          </div>
-                          <div>
-                            <div style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px'
-                            }}>
-                              <Text
-                                delete
-                                style={{
-                                  color: '#8c8c8c',
-                                  fontSize: '14px'
-                                }}
-                              >
-                                ₹{((item as any).original_price || 0).toFixed(2)}
-                              </Text>
-                              <Text strong style={{ color: '#52c41a', fontSize: '16px' }}>
-                                ₹{((item as any).discount_price || 0).toFixed(2)}
-                              </Text>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
+                      </Card>
                   </Col>
-                ))
-              ) : (
-                <Col span={24}>
-                  <Alert message="No items found in this order" type="info" showIcon />
-                </Col>
-              )}
+              ))}
             </Row>
 
             {totalItems > itemsPerPage && (
-              <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                marginTop: 24
-              }}>
-                <Pagination
-                  current={currentPage}
-                  total={totalItems}
-                  pageSize={itemsPerPage}
-                  onChange={handlePageChange}
-                  showSizeChanger={false}
-                  showQuickJumper={false}
-                  size={isMobile ? 'small' : 'default'}
-                />
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>
+                <Pagination current={currentPage} total={totalItems} pageSize={itemsPerPage} onChange={handlePageChange} showSizeChanger={false} showQuickJumper={false} size={isMobile ? 'small' : 'default'} />
               </div>
             )}
-            {contextHolder}
+            <div style={{ position: 'absolute', left: '-9999px', top: 0, zIndex: -1 }}>
+              <div ref={receiptContentRef} style={{
+                  width: '320px',
+                  padding: '20px',
+                  fontFamily: '"Courier New", Courier, monospace',
+                  fontSize: '12px',
+                  lineHeight: '1.6',
+                  color: '#000',
+                  backgroundColor: '#fff',
+              }}>
+                <div style={{ textAlign: 'center', marginBottom: '15px' }}>
+                  <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>FoodDelight</h3>
+                  <p style={{ margin: 0, fontSize: '11px' }}>1-23 Gourmet Street, Nellore - 524001</p>
+                  <p style={{ margin: 0, fontSize: '11px' }}>www.FoodDelight.com</p>
+                </div>
+                <p style={{ borderTop: '1px dashed #000', margin: '10px 0' }}></p>
+                <p style={{ margin: '2px 0' }}><strong>Order ID:</strong> {selectedOrder._id}</p>
+                <p style={{ margin: '2px 0' }}><strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</p>
+                <p style={{ margin: '2px 0' }}><strong>Customer:</strong> {selectedOrder.user.name}</p>
+                <p style={{ borderTop: '1px dashed #000', margin: '10px 0' }}></p>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign: 'left', paddingBottom: '5px' }}>ITEM</th>
+                      <th style={{ textAlign: 'center', paddingBottom: '5px' }}>QTY</th>
+                      <th style={{ textAlign: 'right', paddingBottom: '5px' }}>PRICE</th>
+                      <th style={{ textAlign: 'right', paddingBottom: '5px' }}>TOTAL</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedOrder.items.map((item, index) => (
+                      <tr key={`receipt-${index}`}>
+                        <td style={{ textAlign: 'left', verticalAlign: 'top' }}>{item.name}</td>
+                        <td style={{ textAlign: 'center', verticalAlign: 'top' }}>{item.quantity}</td>
+                        <td style={{ textAlign: 'right', verticalAlign: 'top' }}>{(item as any).discount_price.toFixed(2)}</td>
+                        <td style={{ textAlign: 'right', verticalAlign: 'top' }}>{(item.quantity * (item as any).discount_price).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p style={{ borderTop: '1px dashed #000', margin: '10px 0' }}></p>
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ margin: '2px 0' }}><strong>Subtotal:</strong> ₹{selectedOrder.totalAmount.toFixed(2)}</p>
+                  <p style={{ margin: '2px 0', fontSize: '14px', fontWeight: 'bold' }}><strong>TOTAL:</strong> ₹{selectedOrder.totalAmount.toFixed(2)}</p>
+                </div>
+                <p style={{ borderTop: '1px dashed #000', margin: '10px 0' }}></p>
+                <div style={{ textAlign: 'center', marginTop: '15px' }}>
+                  <p style={{ margin: 0 }}>Thank you for your order!</p>
+                </div>
+              </div>
+            </div>
           </Modal>
         )}
       </Content>
-      <style>{`
-        .custom-table :global(.ant-table-thead > tr > th) {
-          background-color: white !important;
-          color: black !important;
-          border-bottom: 1px solid #e8e8e8 !important;
-          font-weight: 600;
-          position: sticky !important;
-          top: 0 !important;
-          z-index: 1 !important;
-        }
-        .ant-table-row-hover:hover {
-          background-color: #f8f9fa !important;
-        }
-        .custom-table :global(.ant-table-tbody > tr > td) {
-          border-bottom: 1px solid #e8e8e8;
-        }
-        .custom-table :global(.ant-table) {
-          background-color: white;
-          display: flex;
-          flex-direction: column;
-        }
-        .custom-table :global(.ant-table-container) {
-          border-radius: 8px;
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
-        }
-        .custom-table :global(.ant-table-header) {
-          flex-shrink: 0;
-        }
-        .custom-table :global(.ant-table-body) {
-          overflow-y: auto;
-        }
-        .custom-table :global(.ant-pagination) {
-          flex-shrink: 0;
-          margin-top: 20px;
-          margin-right: 0;
-        }
-        @media (max-width: 768px) {
-          .custom-table :global(.ant-table) {
-            font-size: 12px;
-          }
-          .custom-table :global(.ant-table-thead > tr > th) {
-            padding: 8px 4px;
-          }
-          .custom-table :global(.ant-table-tbody > tr > td) {
-            padding: 8px 4px;
-          }
-        }
-        .custom-table :global(.ant-spin-nested-loading) {
-          height: 100%;
-        }
-        .custom-table :global(.ant-spin-container) {
-          display: flex;
-          flex-direction: column;
-        }
-      `}</style>
     </Layout>
   );
 };

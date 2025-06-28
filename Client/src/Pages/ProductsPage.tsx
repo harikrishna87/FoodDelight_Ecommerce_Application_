@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
@@ -19,7 +18,7 @@ import {
     Tag,
     Typography,
     Spin,
-    Layout
+    Layout,
 } from 'antd';
 import {
     PlusOutlined,
@@ -64,6 +63,16 @@ interface FormData {
     image?: string;
     rate?: number;
     count?: number;
+}
+
+interface FormErrors {
+    title?: string;
+    description?: string;
+    price?: string;
+    category?: string;
+    image?: string;
+    rate?: string;
+    count?: string;
 }
 
 interface ApiResponse {
@@ -114,6 +123,7 @@ const ProductsPage: React.FC = () => {
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [formData, setFormData] = useState<FormData>({});
+    const [formErrors, setFormErrors] = useState<FormErrors>({});
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [loading, setLoading] = useState<boolean>(false);
     const [tableLoading, setTableLoading] = useState<boolean>(false);
@@ -121,6 +131,43 @@ const ProductsPage: React.FC = () => {
 
     const [messageApi, contextHolder] = message.useMessage();
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+    const validateForm = (): boolean => {
+        const errors: FormErrors = {};
+
+        if (!formData.title?.trim()) {
+            errors.title = 'Product title is required';
+        }
+
+        if (!formData.description?.trim()) {
+            errors.description = 'Product description is required';
+        } else if (formData.description.length > 100) {
+            errors.description = 'Description must be 100 characters or less';
+        }
+
+        if (!formData.price || formData.price <= 0) {
+            errors.price = 'Please enter a valid price greater than 0';
+        }
+
+        if (!formData.category) {
+            errors.category = 'Please select a product category';
+        }
+
+        if (!formData.image?.trim()) {
+            errors.image = 'Product image URL is required';
+        }
+
+        if (!formData.rate || formData.rate < 0 || formData.rate > 5) {
+            errors.rate = 'Please enter a valid rating between 0 and 5';
+        }
+
+        if (!formData.count || formData.count < 0) {
+            errors.count = 'Please enter a valid rating count';
+        }
+
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
 
     const fetchProducts = async (): Promise<void> => {
         try {
@@ -234,6 +281,7 @@ const ProductsPage: React.FC = () => {
     const handleAddProduct = (): void => {
         setEditingProduct(null);
         setFormData({});
+        setFormErrors({});
         setIsModalVisible(true);
     };
 
@@ -248,6 +296,7 @@ const ProductsPage: React.FC = () => {
             rate: product.rating.rate,
             count: product.rating.count
         });
+        setFormErrors({});
         setIsModalVisible(true);
     };
 
@@ -302,95 +351,19 @@ const ProductsPage: React.FC = () => {
     };
 
     const handleModalOk = async (): Promise<void> => {
-        if (!formData.title?.trim()) {
-            messageApi.warning({
-                content: 'Product title is required',
-                style: {
-                    marginTop: '10vh',
-                },
-            });
-            return;
-        }
-
-        if (!formData.description?.trim()) {
-            messageApi.warning({
-                content: 'Product description is required',
-                style: {
-                    marginTop: '10vh',
-                },
-            });
-            return;
-        }
-
-        if (!formData.price || formData.price <= 0) {
-            messageApi.warning({
-                content: 'Please enter a valid price greater than 0',
-                style: {
-                    marginTop: '10vh',
-                },
-            });
-            return;
-        }
-
-        if (!formData.category) {
-            messageApi.warning({
-                content: 'Please select a product category',
-                style: {
-                    marginTop: '10vh',
-                },
-            });
-            return;
-        }
-
-        if (!formData.image?.trim()) {
-            messageApi.warning({
-                content: 'Product image URL is required',
-                style: {
-                    marginTop: '10vh',
-                },
-            });
-            return;
-        }
-
-        if (!formData.rate || formData.rate < 0 || formData.rate > 5) {
-            messageApi.warning({
-                content: 'Please enter a valid rating between 0 and 5',
-                style: {
-                    marginTop: '10vh',
-                },
-            });
-            return;
-        }
-
-        if (!formData.count || formData.count < 0) {
-            messageApi.warning({
-                content: 'Please enter a valid rating count',
-                style: {
-                    marginTop: '10vh',
-                },
-            });
-            return;
-        }
-
-        if (formData.description && formData.description.length > 100) {
-            messageApi.error({
-                content: 'Description must be 100 characters or less',
-                style: {
-                    marginTop: '10vh',
-                },
-            });
+        if (!validateForm()) {
             return;
         }
 
         const productData = {
-            title: formData.title.trim(),
-            description: formData.description.trim(),
-            price: formData.price,
-            category: formData.category,
-            image: formData.image.trim(),
+            title: formData.title!.trim(),
+            description: formData.description!.trim(),
+            price: formData.price!,
+            category: formData.category!,
+            image: formData.image!.trim(),
             rating: {
-                rate: formData.rate,
-                count: formData.count
+                rate: formData.rate!,
+                count: formData.count!
             }
         };
 
@@ -456,6 +429,7 @@ const ProductsPage: React.FC = () => {
 
             setIsModalVisible(false);
             setFormData({});
+            setFormErrors({});
             setEditingProduct(null);
 
         } catch (error) {
@@ -470,6 +444,13 @@ const ProductsPage: React.FC = () => {
                     marginTop: '10vh',
                 },
             });
+        }
+    };
+
+    const handleFormChange = (field: keyof FormData, value: any) => {
+        setFormData({ ...formData, [field]: value });
+        if (formErrors[field]) {
+            setFormErrors({ ...formErrors, [field]: undefined });
         }
     };
 
@@ -694,6 +675,7 @@ const ProductsPage: React.FC = () => {
                 onCancel={() => {
                     setIsModalVisible(false);
                     setFormData({});
+                    setFormErrors({});
                 }}
                 style={{ color: "#52c41a" }}
                 width={600}
@@ -702,14 +684,20 @@ const ProductsPage: React.FC = () => {
                     style: { backgroundColor: '#52c41a', borderColor: '#52c41a' }
                 }}
             >
-                <div style={{ maxHeight: '60vh' }}>
+                <div>
                     <div style={{ marginBottom: '16px' }}>
                         <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Product Title *</label>
                         <Input
                             placeholder="Enter product title"
                             value={formData.title || ''}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, title: e.target.value })}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFormChange('title', e.target.value)}
+                            status={formErrors.title ? 'error' : ''}
                         />
+                        {formErrors.title && (
+                            <Text type="danger" style={{ fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                                {formErrors.title}
+                            </Text>
+                        )}
                     </div>
 
                     <div style={{ marginBottom: '16px' }}>
@@ -720,8 +708,14 @@ const ProductsPage: React.FC = () => {
                             showCount
                             maxLength={100}
                             value={formData.description || ''}
-                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData({ ...formData, description: e.target.value })}
+                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleFormChange('description', e.target.value)}
+                            status={formErrors.description ? 'error' : ''}
                         />
+                        {formErrors.description && (
+                            <Text type="danger" style={{ fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                                {formErrors.description}
+                            </Text>
+                        )}
                     </div>
 
                     <Row gutter={16}>
@@ -734,8 +728,14 @@ const ProductsPage: React.FC = () => {
                                     step={0.01}
                                     placeholder="295.00"
                                     value={formData.price}
-                                    onChange={(value: number | null) => setFormData({ ...formData, price: value || undefined })}
+                                    onChange={(value: number | null) => handleFormChange('price', value)}
+                                    status={formErrors.price ? 'error' : ''}
                                 />
+                                {formErrors.price && (
+                                    <Text type="danger" style={{ fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                                        {formErrors.price}
+                                    </Text>
+                                )}
                             </div>
                         </Col>
                         <Col span={12}>
@@ -745,7 +745,8 @@ const ProductsPage: React.FC = () => {
                                     placeholder="Select category"
                                     style={{ width: '100%' }}
                                     value={formData.category}
-                                    onChange={(value: string) => setFormData({ ...formData, category: value })}
+                                    onChange={(value: string) => handleFormChange('category', value)}
+                                    status={formErrors.category ? 'error' : ''}
                                 >
                                     <Option value="NonVeg">NonVeg</Option>
                                     <Option value="Veg">Veg</Option>
@@ -754,6 +755,11 @@ const ProductsPage: React.FC = () => {
                                     <Option value="Fruit Juice">Fruit Juice</Option>
                                     <Option value="Pizzas">Pizzas</Option>
                                 </Select>
+                                {formErrors.category && (
+                                    <Text type="danger" style={{ fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                                        {formErrors.category}
+                                    </Text>
+                                )}
                             </div>
                         </Col>
                     </Row>
@@ -763,8 +769,14 @@ const ProductsPage: React.FC = () => {
                         <Input
                             placeholder="https://example.com/image.jpg"
                             value={formData.image || ''}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, image: e.target.value })}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFormChange('image', e.target.value)}
+                            status={formErrors.image ? 'error' : ''}
                         />
+                        {formErrors.image && (
+                            <Text type="danger" style={{ fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                                {formErrors.image}
+                            </Text>
+                        )}
                     </div>
 
                     <Row gutter={16}>
@@ -778,8 +790,14 @@ const ProductsPage: React.FC = () => {
                                     step={0.1}
                                     placeholder="4.1"
                                     value={formData.rate}
-                                    onChange={(value: number | null) => setFormData({ ...formData, rate: value || undefined })}
+                                    onChange={(value: number | null) => handleFormChange('rate', value)}
+                                    status={formErrors.rate ? 'error' : ''}
                                 />
+                                {formErrors.rate && (
+                                    <Text type="danger" style={{ fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                                        {formErrors.rate}
+                                    </Text>
+                                )}
                             </div>
                         </Col>
                         <Col span={12}>

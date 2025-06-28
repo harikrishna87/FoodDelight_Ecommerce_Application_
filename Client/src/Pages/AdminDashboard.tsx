@@ -16,13 +16,14 @@ import {
   Space,
   Statistic,
   message,
-  Tooltip
+  Tooltip,
+  Flex
 } from 'antd';
 import {
   CheckCircleOutlined,
   TruckOutlined,
   ClockCircleOutlined,
-  DollarOutlined,
+  // DollarOutlined was here, now removed
   PieChartOutlined,
   UnorderedListOutlined,
   EyeOutlined,
@@ -31,12 +32,15 @@ import {
   CalendarOutlined,
   InfoCircleOutlined,
   LoadingOutlined,
-  LineChartOutlined
+  LineChartOutlined,
+  DownloadOutlined
 } from '@ant-design/icons';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { IOrder, OrderDeliveryStatus } from '../types';
 import { Pie, Line } from '@ant-design/charts';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -259,7 +263,8 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({ orders }) => {
     <Card
       title={
         <Space>
-          <DollarOutlined style={{ color: '#52c41a' }} />
+          {/* --- CHANGE: Replaced DollarOutlined with Rupee symbol --- */}
+          <span style={{ color: '#52c41a', fontSize: '18px', fontWeight: 'bold' }}>₹</span>
           <span style={{ color: '#52c41a', fontWeight: 'bold' }}>Payment Overview</span>
         </Space>
       }
@@ -670,6 +675,65 @@ const AdminDashboard: React.FC = () => {
     setModalVisible(true);
   };
 
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.setFont('times', 'bold');
+    doc.setFontSize(22);
+    doc.setTextColor('#52c41a');
+    doc.text('FoodDelights', 14, 22);
+
+    const tableColumns = ["Order ID", "Customer", "Amount(₹)", "Status", "Date", "Items"];
+    const tableRows: (string | number)[][] = [];
+
+    orders.forEach(order => {
+        const itemsList = order.items.map((item, index) => 
+            `${index + 1}. ${item.name} (Qty: ${item.quantity})`
+        ).join('\n');
+
+        const amountString = `${order.totalAmount.toFixed(2)}`;
+
+        const orderData = [
+            order._id,
+            `${order.user.name}\n${order.user.email}`,
+            amountString,
+            order.deliveryStatus,
+            new Date(order.createdAt).toLocaleDateString(),
+            itemsList
+        ];
+        tableRows.push(orderData);
+    });
+
+    autoTable(doc, {
+        head: [tableColumns],
+        body: tableRows,
+        startY: 30,
+        theme: 'grid',
+        headStyles: { 
+            fillColor: [82, 196, 26],
+            textColor: [255, 255, 255],
+            font: 'times',
+            fontStyle: 'bold'
+        },
+        styles: {
+            font: 'times',
+            fontSize: 8,
+            cellPadding: 2,
+            valign: 'middle',
+        },
+        columnStyles: {
+            0: { cellWidth: 35 },
+            1: { cellWidth: 40 },
+            2: { cellWidth: 20 },
+            3: { cellWidth: 18 },
+            4: { cellWidth: 20 },
+            5: { cellWidth: 'auto' },
+        }
+    });
+
+    doc.save('order-details.pdf');
+  };
+
   const columns = [
     {
       title: <span style={{color: "#52c41a"}}>Order ID</span>,
@@ -694,7 +758,7 @@ const AdminDashboard: React.FC = () => {
       dataIndex: 'totalAmount',
       key: 'totalAmount',
       render: (amount: number) => (
-        <Text strong style={{ color: '#52c41a' }}>₹{amount.toFixed(2)}</Text>
+        <Text strong style={{ color: '#52c41a' }}>₹ {amount.toFixed(2)}</Text>
       ),
     },
     {
@@ -822,10 +886,24 @@ const AdminDashboard: React.FC = () => {
         <Col span={24}>
           <Card
             title={
-              <Space>
-                <UnorderedListOutlined style={{ color: '#52c41a' }} />
-                <span style={{ color: '#52c41a', fontWeight: 'bold' }}>Order Management</span>
-              </Space>
+                <Flex justify='space-between' align='center' wrap gap={10}>
+                    <Space>
+                        <UnorderedListOutlined style={{ color: '#52c41a' }} />
+                        <span style={{ color: '#52c41a', fontWeight: 'bold' }}>Order Management</span>
+                    </Space>
+                    <Tag 
+                        icon={<DownloadOutlined />} 
+                        onClick={handleDownloadPDF}
+                        color='green'
+                        style={{
+                          cursor: 'pointer',
+                          padding: "5px 10px",
+                          fontSize: "15px"
+                        }}
+                    >
+                        Download Order Details
+                    </Tag>
+                </Flex>
             }
           >
             {orders.length === 0 ? (

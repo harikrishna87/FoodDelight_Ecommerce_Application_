@@ -208,31 +208,31 @@ const Footer: React.FC<FooterProps> = ({
                   padding: '4px 0',
                   marginBottom: '4px'
                 }}
-                onClick={(e) => e.preventDefault()}
+                onClick={handleNavigation('/newarrivals')}
               >
                 New Arrivals
               </Link>
               <Link
-                to="#"
+                to="/dealsdiscount"
                 style={{
                   color: '#212529',
                   textDecoration: 'none',
                   padding: '4px 0',
                   marginBottom: '4px'
                 }}
-                onClick={(e) => e.preventDefault()}
+                onClick={handleNavigation('/dealsdiscount')}
               >
                 Deals & Discounts
               </Link>
               <Link
-                to="#"
+                to="/giftcards"
                 style={{
                   color: '#212529',
                   textDecoration: 'none',
                   padding: '4px 0',
                   marginBottom: '4px'
                 }}
-                onClick={(e) => e.preventDefault()}
+                onClick={handleNavigation('/giftcards')}
               >
                 Gift Cards
               </Link>
@@ -257,38 +257,38 @@ const Footer: React.FC<FooterProps> = ({
                 Contact Us
               </Link>
               <Link
-                to="#"
+                to="/faq"
                 style={{
                   color: '#212529',
                   textDecoration: 'none',
                   padding: '4px 0',
                   marginBottom: '4px'
                 }}
-                onClick={(e) => e.preventDefault()}
+                onClick={handleNavigation("/faq")}
               >
                 FAQ
               </Link>
               <Link
-                to="#"
+                to="/shoppinginfo"
                 style={{
                   color: '#212529',
                   textDecoration: 'none',
                   padding: '4px 0',
                   marginBottom: '4px'
                 }}
-                onClick={(e) => e.preventDefault()}
+                onClick={handleNavigation('/shoppinginfo')}
               >
                 Shipping Info
               </Link>
               <Link
-                to="#"
+                to="/returnexchanges"
                 style={{
                   color: '#212529',
                   textDecoration: 'none',
                   padding: '4px 0',
                   marginBottom: '4px'
                 }}
-                onClick={(e) => e.preventDefault()}
+                onClick={handleNavigation('/returnexchanges')}
               >
                 Returns & Exchanges
               </Link>

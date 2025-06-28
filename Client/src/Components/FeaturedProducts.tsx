@@ -71,7 +71,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
       };
 
       const token = auth.token || localStorage.getItem('token') || sessionStorage.getItem('token');
-      
+
       const config = {
         headers: {
           'Content-Type': 'application/json',
@@ -81,7 +81,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
       };
 
       const response = await axios.post(`${backendUrl}/api/cart/add_item`, cartItem, config);
-      
+
       messageApi.success({
         content: response.data.message || "Item added to cart successfully",
         duration: 3,
@@ -95,7 +95,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
       }
     } catch (error) {
       console.error("Error adding item to cart:", error);
-      
+
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 401) {
           messageApi.error({
@@ -199,15 +199,15 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
       }
     >
       <Space direction="vertical" size="small" style={{ width: '100%' }}>
-        <Tag 
-              color="green"
-              style={{ 
-                fontSize: '12px',
-                padding: '2px 8px'
-              }}
-            >
-              {product.category}
-            </Tag>
+        <Tag
+          color="green"
+          style={{
+            fontSize: '12px',
+            padding: '2px 8px'
+          }}
+        >
+          {product.category}
+        </Tag>
         <Title
           level={5}
           style={{
@@ -225,9 +225,12 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
         {renderStarRating(product.rating || 0)}
 
         <Paragraph
-          ellipsis={{ rows: 1 }}
           style={{
-            color: '#666'
+            color: '#666',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            display: 'block',
           }}
         >
           {product.description}

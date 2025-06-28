@@ -269,7 +269,10 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
                     style={{
                       fontSize: '14px',
                       display: 'block',
-                      marginBottom: '12px'
+                      marginBottom: '12px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     {truncateDescription(product.description)}
