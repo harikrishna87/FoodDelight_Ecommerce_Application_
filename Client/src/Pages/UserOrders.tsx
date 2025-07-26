@@ -35,7 +35,7 @@ const OrderStatusTracker: React.FC<OrderStatusTrackerProps> = ({ currentStatus }
     },
     {
       key: 'Shipped', 
-      title: 'IN TRANSIT',
+      title: 'SHIPPED',
       icon: <TruckOutlined />,
       index: 1
     },
