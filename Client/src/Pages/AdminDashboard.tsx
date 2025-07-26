@@ -23,7 +23,6 @@ import {
   CheckCircleOutlined,
   TruckOutlined,
   ClockCircleOutlined,
-  // DollarOutlined was here, now removed
   PieChartOutlined,
   UnorderedListOutlined,
   EyeOutlined,
@@ -213,6 +212,7 @@ interface PaymentSectionProps {
 
 const PaymentSection: React.FC<PaymentSectionProps> = ({ orders }) => {
   const totalPaymentReceived = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+  const sortedPaymentOrders = [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const columns = [
     {
@@ -263,7 +263,6 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({ orders }) => {
     <Card
       title={
         <Space>
-          {/* --- CHANGE: Replaced DollarOutlined with Rupee symbol --- */}
           <span style={{ color: '#52c41a', fontSize: '18px', fontWeight: 'bold' }}>₹</span>
           <span style={{ color: '#52c41a', fontWeight: 'bold' }}>Payment Overview</span>
         </Space>
@@ -292,7 +291,7 @@ const PaymentSection: React.FC<PaymentSectionProps> = ({ orders }) => {
         <div>
           <Table
             columns={columns}
-            dataSource={orders}
+            dataSource={sortedPaymentOrders}
             rowKey="_id"
             size="large"
             scroll={{ x: 1000 }}
@@ -734,6 +733,8 @@ const AdminDashboard: React.FC = () => {
     doc.save('order-details.pdf');
   };
 
+  const sortedOrders = [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
   const columns = [
     {
       title: <span style={{color: "#52c41a"}}>Order ID</span>,
@@ -916,7 +917,7 @@ const AdminDashboard: React.FC = () => {
             ) : (
               <Table
                 columns={columns}
-                dataSource={orders}
+                dataSource={sortedOrders}
                 rowKey="_id"
                 scroll={{ x: 1000 }}
                 pagination={{

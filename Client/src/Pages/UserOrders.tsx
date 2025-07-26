@@ -128,7 +128,6 @@ const UserOrders: React.FC = () => {
     }
   };
 
-
   const truncateText = (text: string, maxLength: number) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
@@ -162,6 +161,8 @@ const UserOrders: React.FC = () => {
   const getStatusBadge = (status: OrderDeliveryStatus) => {
     return getStatusTag(status);
   };
+
+  const sortedOrders = [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const columns = [
     {
@@ -321,7 +322,7 @@ const UserOrders: React.FC = () => {
             }}>
               <Table
                 columns={columns}
-                dataSource={orders}
+                dataSource={sortedOrders}
                 rowKey="_id"
                 bordered={false}
                 pagination={{
