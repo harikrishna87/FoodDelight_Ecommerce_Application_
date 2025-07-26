@@ -3,12 +3,149 @@ import { Layout, Table, Tag, Spin, Alert, Typography, Modal, Button, Description
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { IOrder, OrderDeliveryStatus } from '../types';
-import { CheckCircleOutlined, TruckOutlined, ClockCircleOutlined, EyeOutlined, CalendarOutlined, ShoppingCartOutlined, UserOutlined, DownloadOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, TruckOutlined, ClockCircleOutlined, EyeOutlined, CalendarOutlined, ShoppingCartOutlined, UserOutlined, DownloadOutlined, GiftOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
+
+interface OrderStatusTrackerProps {
+  currentStatus: 'Pending' | 'Shipped' | 'Delivered';
+}
+
+const OrderStatusTracker: React.FC<OrderStatusTrackerProps> = ({ currentStatus }) => {
+  const getStatusIndex = (status: string) => {
+    switch (status) {
+      case 'Pending': return 0;
+      case 'Shipped': return 1;
+      case 'Delivered': return 2;
+      default: return 0;
+    }
+  };
+
+  const currentIndex = getStatusIndex(currentStatus);
+
+  const steps = [
+    {
+      key: 'Pending',
+      title: 'ORDERED',
+      icon: <ClockCircleOutlined />,
+      index: 0
+    },
+    {
+      key: 'Shipped', 
+      title: 'IN TRANSIT',
+      icon: <TruckOutlined />,
+      index: 1
+    },
+    {
+      key: 'Delivered',
+      title: 'DELIVERED', 
+      icon: <GiftOutlined />,
+      index: 2
+    }
+  ];
+
+  return (
+    <div style={{
+      padding: '30px 20px',
+      backgroundColor: '#f0f9f0',
+      borderRadius: '12px',
+      margin: '20px 0'
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'relative',
+        maxWidth: '500px',
+        margin: '0 auto'
+      }}>
+        <div style={{
+          position: 'absolute',
+          top: '20px',
+          left: '20px',
+          right: '20px',
+          height: '4px',
+          backgroundColor: '#e8e8e8',
+          borderRadius: '2px',
+          zIndex: 1
+        }}>
+          <div style={{
+            height: '100%',
+            backgroundColor: '#52c41a',
+            borderRadius: '2px',
+            width: `${(currentIndex / (steps.length - 1)) * 100}%`,
+            transition: 'width 0.3s ease'
+          }} />
+        </div>
+
+        {steps.map((step, index) => {
+          const isCompleted = index <= currentIndex;
+          const isActive = index === currentIndex;
+          
+          return (
+            <div key={step.key} style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              position: 'relative',
+              zIndex: 2
+            }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                backgroundColor: isCompleted ? '#52c41a' : '#e8e8e8',
+                border: isActive ? '3px solid #52c41a' : '3px solid transparent',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: isCompleted ? 'white' : '#999',
+                fontSize: '16px',
+                transition: 'all 0.3s ease',
+                boxShadow: isActive ? '0 0 0 4px rgba(82, 196, 26, 0.2)' : 'none'
+              }}>
+                {isCompleted ? <CheckCircleOutlined /> : step.icon}
+              </div>
+              
+              <span style={{
+                marginTop: '12px',
+                fontSize: '12px',
+                fontWeight: '600',
+                color: isCompleted ? '#52c41a' : '#999',
+                textAlign: 'center',
+                letterSpacing: '0.5px'
+              }}>
+                {step.title}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      
+      <div style={{
+        textAlign: 'center',
+        marginTop: '20px',
+        padding: '10px',
+        backgroundColor: 'white',
+        borderRadius: '8px',
+        border: '1px solid #d9f7be'
+      }}>
+        <span style={{
+          color: '#52c41a',
+          fontWeight: '500',
+          fontSize: '14px'
+        }}>
+          {currentStatus === 'Pending' && 'Your order has been placed and is being processed'}
+          {currentStatus === 'Shipped' && 'Your order is on its way to you'}
+          {currentStatus === 'Delivered' && 'Your order has been successfully delivered'}
+        </span>
+      </div>
+    </div>
+  );
+};
 
 const UserOrders: React.FC = () => {
   const auth = useContext(AuthContext);
@@ -16,8 +153,10 @@ const UserOrders: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [isStatusModalVisible, setIsStatusModalVisible] = useState<boolean>(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
+  const [selectedOrderForStatus, setSelectedOrderForStatus] = useState<IOrder | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -86,9 +225,19 @@ const UserOrders: React.FC = () => {
     setIsModalVisible(true);
   };
 
+  const showStatusModal = (order: IOrder) => {
+    setSelectedOrderForStatus(order);
+    setIsStatusModalVisible(true);
+  };
+
   const handleCancel = () => {
     setIsModalVisible(false);
     setSelectedOrder(null);
+  };
+
+  const handleStatusModalCancel = () => {
+    setIsStatusModalVisible(false);
+    setSelectedOrderForStatus(null);
   };
 
   const handleDownloadReceipt = async () => {
@@ -158,8 +307,18 @@ const UserOrders: React.FC = () => {
     }
   };
 
-  const getStatusBadge = (status: OrderDeliveryStatus) => {
-    return getStatusTag(status);
+  const getStatusBadge = (order: IOrder) => {
+    return (
+      <Button 
+        type="link" 
+        size="small" 
+        icon={<InfoCircleOutlined />}
+        onClick={() => showStatusModal(order)}
+        style={{ padding: 0 }}
+      >
+        Track Status
+      </Button>
+    );
   };
 
   const sortedOrders = [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -195,8 +354,8 @@ const UserOrders: React.FC = () => {
       title:  <span style={{color: "#52c41a"}}>Status</span>,
       dataIndex: 'deliveryStatus',
       key: 'deliveryStatus',
-      width: 120,
-      render: (status: OrderDeliveryStatus) => getStatusBadge(status),
+      width: 100,
+      render: (_: OrderDeliveryStatus, record: IOrder) => getStatusBadge(record),
     },
     {
       title:  <span style={{color: "#52c41a"}}>Order Date</span>,
@@ -504,6 +663,29 @@ const UserOrders: React.FC = () => {
                 </div>
               </div>
             </div>
+          </Modal>
+        )}
+
+        {selectedOrderForStatus && (
+          <Modal
+            title={
+              <Space>
+                <TruckOutlined />
+                <span>Order Status Tracking - {isMobile ? selectedOrderForStatus._id.substring(0, 6) + '...' : selectedOrderForStatus._id}</span>
+              </Space>
+            }
+            open={isStatusModalVisible}
+            onCancel={handleStatusModalCancel}
+            footer={[
+              <Button key="close" onClick={handleStatusModalCancel}>
+                Close
+              </Button>,
+            ]}
+            width={isMobile ? '95%' : 600}
+            style={isMobile ? { top: 20 } : { top: 50 }}
+          >
+            <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>Delivery Progress</Title>
+            <OrderStatusTracker currentStatus={selectedOrderForStatus.deliveryStatus} />
           </Modal>
         )}
       </Content>
