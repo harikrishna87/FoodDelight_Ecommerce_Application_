@@ -348,7 +348,8 @@ const UserOrders: React.FC = () => {
       dataIndex: 'totalAmount',
       key: 'totalAmount',
       width: 120,
-      render: (amount: number) => <Paragraph style={{color: "#52c41a"}}>₹ {amount.toFixed(2)}</Paragraph>,
+      align: 'center' as const,
+      render: (amount: number) => <Paragraph style={{color: "#52c41a", fontSize: '16px', margin: 0}}>₹ {amount.toFixed(2)}</Paragraph>,
     },
     {
       title:  <span style={{color: "#52c41a"}}>Status</span>,
@@ -682,7 +683,7 @@ const UserOrders: React.FC = () => {
               </Button>,
             ]}
             width={isMobile ? '95%' : 600}
-            style={isMobile ? { top: 20 } : { top: 50 }}
+            style={isMobile ? { top: 150 } : { top: 175 }}
           >
             <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>Delivery Progress</Title>
             <OrderStatusTracker currentStatus={selectedOrderForStatus.deliveryStatus} />

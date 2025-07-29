@@ -15,12 +15,12 @@ import {
     Tag,
     message,
     Spin,
-    Layout
+    Layout,
+    Carousel
 } from 'antd';
 import {
     SearchOutlined,
     FilterOutlined,
-    ShopOutlined,
     ShoppingCartOutlined,
 } from '@ant-design/icons';
 import axios from 'axios';
@@ -55,6 +55,19 @@ interface FilterOptions {
 interface CategoryDiscount {
     [key: string]: number;
 }
+
+interface CarouselImage {
+    src: string;
+    alt: string;
+    title: string;
+    description: string;
+}
+
+const LeafIconCustom = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z" />
+    </svg>
+);
 
 const SkeletonPulse = ({ height = '20px', width = '100%', className = '', style = {} }) => (
     <div
@@ -215,7 +228,7 @@ const Store: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [showFilters, setShowFilters] = useState<boolean>(false);
     const [categories, setCategories] = useState<string[]>([]);
-    const [addingToCart, setAddingToCart] = useState<{ [key: string]: boolean }>({}); // Changed key from number to string
+    const [addingToCart, setAddingToCart] = useState<{ [key: string]: boolean }>({});
     const [filters, setFilters] = useState<FilterOptions>({
         category: '',
         minPrice: 0,
@@ -233,6 +246,39 @@ const Store: React.FC = () => {
     const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
 
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+    const carouselImages: CarouselImage[] = [
+        {
+            src: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80",
+            alt: "Fresh Vegetables",
+            title: "Fresh Vegetables",
+            description: "Farm-fresh organic vegetables delivered to your door"
+        },
+        {
+            src: "https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80",
+            alt: "Grilled Chicken",
+            title: "Premium Non-Veg",
+            description: "Succulent grilled meats and seafood specialties"
+        },
+        {
+            src: "https://images.unsplash.com/photo-1551024506-0bccd828d307?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80",
+            alt: "Delicious Pizza",
+            title: "Artisan Pizzas",
+            description: "Hand-tossed pizzas with premium toppings"
+        },
+        {
+            src: "https://images.unsplash.com/photo-1488477181946-6428a0291777?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80",
+            alt: "Sweet Desserts",
+            title: "Divine Desserts",
+            description: "Indulgent treats to satisfy your sweet cravings"
+        },
+        {
+            src: "https://images.unsplash.com/photo-1551024601-bec78aea704b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80",
+            alt: "Fresh Fruit Juices",
+            title: "Fresh Juices",
+            description: "Refreshing natural fruit juices and smoothies"
+        }
+    ];
 
     useEffect(() => {
         const styleElement = document.createElement('style');
@@ -326,7 +372,7 @@ const Store: React.FC = () => {
         }
 
         try {
-            setAddingToCart(prev => ({ ...prev, [product._id]: true })); // Changed from product.id
+            setAddingToCart(prev => ({ ...prev, [product._id]: true }));
 
             const cartItem = {
                 name: product.title,
@@ -405,7 +451,7 @@ const Store: React.FC = () => {
                 });
             }
         } finally {
-            setAddingToCart(prev => ({ ...prev, [product._id]: false })); // Changed from product.id
+            setAddingToCart(prev => ({ ...prev, [product._id]: false }));
         }
     };
 
@@ -454,39 +500,90 @@ const Store: React.FC = () => {
                         </svg>
                     </div>
 
-                    <div className="store-container">
-                        <div className="header-section" style={{ textAlign: 'center', marginBottom: '40px' }}>
-                            <div className="header-ribbon" style={{ position: 'relative' }}>
-                                <Title level={2} style={{ color: '#52c41a', margin: 0, fontWeight: 'bold', fontSize: '2em' }}>
-                                    For the Love of Delicious Food
-                                </Title>
-                                <div style={{
-                                    position: 'absolute',
-                                    left: '10px',
-                                    top: '50%',
-                                    transform: 'translateY(-50%)'
-                                }}>
-                                    <ShopOutlined style={{ color: '#52c41a', opacity: 0.5, fontSize: '24px' }} />
-                                </div>
-                                <div style={{
-                                    position: 'absolute',
-                                    right: '10px',
-                                    top: '50%',
-                                    transform: 'translateY(-50%)'
-                                }}>
-                                    <ShoppingCartOutlined style={{ color: '#52c41a', opacity: 0.5, fontSize: '24px' }} />
-                                </div>
-                            </div>
-                            <Title level={5} style={{
-                                textAlign: 'center',
-                                margin: '16px 0 0 0',
-                                fontStyle: 'italic',
-                                color: '#8c8c8c'
-                            }}>
-                                "Come with family & feel the joy of mouthwatering foods"
-                            </Title>
-                        </div>
+                    <div style={{
+                        maxWidth: '1200px',
+                        width: '90%',
+                        margin: '0 auto',
+                        marginBottom: '30px',
+                        marginTop: "30px"
+                    }}>
+                        <Carousel
+                            autoplay
+                            dots={true}
+                            arrows={false}
+                            style={{
+                                width: '100%',
+                                borderRadius: '12px',
+                                overflow: 'hidden'
+                            }}
+                        >
+                            {carouselImages.map((image, index) => (
+                                <div key={index}>
+                                    <div
+                                        style={{
+                                            height: window.innerWidth >= 768 ? '200px' : '175px',
+                                            background: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${image.src})`,
+                                            backgroundSize: 'cover',
+                                            backgroundPosition: 'center',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            flexDirection: 'column',
+                                            position: 'relative'
+                                        }}
+                                    >
+                                        <div style={{
+                                            textAlign: 'center',
+                                            padding: '20px',
+                                            maxWidth: '1200px',
+                                            margin: '0 auto'
+                                        }}>
+                                            <Title level={1} style={{ color: 'white', margin: 10, fontWeight: 'bold', fontSize: '2em' }}>
+                                                For the Love of Delicious Food
+                                            </Title>
+                                            <Paragraph
+                                                style={{
+                                                    color: 'white',
+                                                    fontSize: window.innerWidth >= 768 ? '1.4rem' : '1.0rem',
+                                                    marginBottom: '24px',
+                                                    textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                                                    maxWidth: '800px',
+                                                    margin: '0 auto 24px auto',
+                                                    fontWeight: '500',
+                                                    lineHeight: '1.4'
+                                                }}
+                                            >
+                                                <q>Come with family & feel the joy of mouthwatering foods</q>
+                                            </Paragraph>
+                                        </div>
 
+                                        <div style={{
+                                            position: 'absolute',
+                                            left: '20px',
+                                            top: '20px',
+                                            color: 'white',
+                                            opacity: 0.7,
+                                            display: window.innerWidth >= 768 ? 'block' : 'none'
+                                        }}>
+                                            <LeafIconCustom />
+                                        </div>
+                                        <div style={{
+                                            position: 'absolute',
+                                            right: '20px',
+                                            top: '20px',
+                                            color: 'white',
+                                            opacity: 0.7,
+                                            display: window.innerWidth >= 768 ? 'block' : 'none'
+                                        }}>
+                                            <ShoppingCartOutlined style={{ fontSize: '24px' }} />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </Carousel>
+                    </div>
+
+                    <div className="store-container">
                         <Row gutter={[16, 16]} className="search-section">
                             <Col md={12} xs={24}>
                                 <Input.Search
@@ -535,7 +632,7 @@ const Store: React.FC = () => {
                                                 {categories.map((category) => (
                                                     <Option key={category} value={category}>
                                                         {category.charAt(0).toUpperCase() + category.slice(1)}
-                                                        {categoryDiscounts[category] ? ` (${categoryDiscounts[category]}% OFF)` : ''}
+                                                        {/* {categoryDiscounts[category] ? ` (${categoryDiscounts[category]}% OFF)` : ''} */}
                                                     </Option>
                                                 ))}
                                             </Select>
@@ -667,8 +764,8 @@ const Store: React.FC = () => {
                                                 <Paragraph
                                                     type="secondary"
                                                     style={{
-                                                        fontSize: '12px', 
-                                                        marginBottom: '16px', 
+                                                        fontSize: '12px',
+                                                        marginBottom: '16px',
                                                         overflow: 'hidden',
                                                         textOverflow: 'ellipsis',
                                                         whiteSpace: 'nowrap',
@@ -703,15 +800,26 @@ const Store: React.FC = () => {
                                                     <Button
                                                         type="primary"
                                                         size="small"
-                                                        icon={<ShoppingCartOutlined />}
-                                                        loading={addingToCart[product._id]}
                                                         onClick={() => addToCart(product)}
+                                                        disabled={addingToCart[product._id]}
                                                         style={{
                                                             backgroundColor: '#52c41a',
-                                                            borderColor: '#52c41a'
+                                                            borderColor: '#52c41a',
+                                                            minWidth: 110,
+                                                            height: 25,
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center'
                                                         }}
                                                     >
-                                                        Add to Cart
+                                                        {addingToCart[product._id] ? (
+                                                            <Spin size="small" />
+                                                        ) : (
+                                                            <>
+                                                                <ShoppingCartOutlined style={{ marginRight: 4 }} />
+                                                                Add to Cart
+                                                            </>
+                                                        )}
                                                     </Button>
                                                 </div>
                                             </div>

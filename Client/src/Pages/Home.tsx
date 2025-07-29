@@ -304,14 +304,15 @@ export default function Homepage() {
           style={{
             width: '100%',
             borderRadius: '12px',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            opacity: 0.85
           }}
         >
           {carouselImages.map((image, index) => (
             <div key={index}>
               <div
                 style={{
-                  height: window.innerWidth >= 768 ? '400px' : '250px',
+                  height: window.innerWidth >= 768 ? '250px' : '175px',
                   background: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${image.src})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
