@@ -7,14 +7,15 @@ import {
   Space, 
   Card, 
   Badge,
-  Spin
+  Spin,
+  Carousel
 } from 'antd';
 import { Link } from 'react-router-dom';
 import { 
   PercentageOutlined, 
   ShoppingCartOutlined,
   StarFilled,
-  StarOutlined,
+  StarOutlined
 } from '@ant-design/icons';
 import customStyles from "../styles/Styles";
 import Testimonials from '../Components/Testimonials';
@@ -42,6 +43,13 @@ interface Product {
   rating?: number;
 }
 
+interface CarouselImage {
+  src: string;
+  alt: string;
+  title: string;
+  description: string;
+}
+
 export default function Homepage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -54,6 +62,39 @@ export default function Homepage() {
   const [productsPerPage] = useState<number>(12);
   const [categoryDiscounts, setCategoryDiscounts] = useState<{ [key: string]: number }>({});
 
+  const carouselImages: CarouselImage[] = [
+    {
+      src: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80",
+      alt: "Fresh Vegetables",
+      title: "Fresh Vegetables",
+      description: "Farm-fresh organic vegetables delivered to your door"
+    },
+    {
+      src: "https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80",
+      alt: "Grilled Chicken",
+      title: "Premium Non-Veg",
+      description: "Succulent grilled meats and seafood specialties"
+    },
+    {
+      src: "https://images.unsplash.com/photo-1551024506-0bccd828d307?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80",
+      alt: "Delicious Pizza",
+      title: "Artisan Pizzas",
+      description: "Hand-tossed pizzas with premium toppings"
+    },
+    {
+      src: "https://images.unsplash.com/photo-1488477181946-6428a0291777?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80",
+      alt: "Sweet Desserts",
+      title: "Divine Desserts",
+      description: "Indulgent treats to satisfy your sweet cravings"
+    },
+    {
+      src: "https://images.unsplash.com/photo-1551024601-bec78aea704b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80",
+      alt: "Fresh Fruit Juices",
+      title: "Fresh Juices",
+      description: "Refreshing natural fruit juices and smoothies"
+    }
+  ];
+
   const shuffleArray = <T,>(array: T[]): T[] => {
     const newArray = [...array];
     for (let i = newArray.length - 1; i > 0; i--) {
@@ -63,7 +104,7 @@ export default function Homepage() {
     return newArray;
   };
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     const styleElement = document.createElement('style');
@@ -114,7 +155,7 @@ export default function Homepage() {
     };
 
     fetchProducts();
-  }, [productsPerPage]);
+  }, [productsPerPage, backendUrl]);
 
   useEffect(() => {
     if (selectedCategory) {
@@ -128,7 +169,7 @@ export default function Homepage() {
       setFilteredProducts([]);
       setSelectedProducts(shuffleArray<Product>([...products]).slice(0, productsPerPage));
     }
-  }, [selectedCategory, products]);
+  }, [selectedCategory, products, currentPage, productsPerPage]);
 
   useEffect(() => {
     if (selectedCategory && filteredProducts.length > 0) {
@@ -253,59 +294,97 @@ export default function Homepage() {
         maxWidth: '1200px',
         width: '90%',
         margin: '0 auto',
-        backgroundColor: 'rgba(82, 196, 26, 0.1)',
-        borderRadius: '10px',
-        padding: '32px 0',
-        marginBottom: '40px',
-        marginTop: "40px",
-        position: 'relative'
+        marginBottom: '30px',
+        marginTop: "30px"
       }}>
-        <Content style={{ 
-          textAlign: 'center', 
-          padding: '32px 24px'
-        }}>
-          <Title level={1} style={{ 
-            color: '#52c41a', 
-            fontSize: '3rem',
-            fontWeight: 'bold',
-            marginBottom: '16px'
-          }}>
-            Dive into Delights Of Delectable Food
-          </Title>
-          <Paragraph style={{ 
-            color: '#52c41a', 
-            fontSize: '1.25rem',
-            marginBottom: '24px'
-          }}>
-            <q>Where Each Plate Weaves a Story of Culinary Mastery and Passionate Craftsmanship</q>
-          </Paragraph>
-          <Button type="default" size="large" style={{ backgroundColor: '#fff', borderColor: '#52c41a' }}>
-            <Link to="/menu-items" style={{ color: '#52c41a', textDecoration: 'none' }}>
-              Shop Now
-            </Link>
-          </Button>
-          
-          <div style={{
-            position: 'absolute',
-            left: '10px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: 'white',
-            opacity: 0.5
-          }}>
-            <LeafIconCustom />
-          </div>
-          <div style={{
-            position: 'absolute',
-            right: '10px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: 'white',
-            opacity: 0.5
-          }}>
-            <ShoppingCartOutlined style={{ fontSize: '24px' }} />
-          </div>
-        </Content>
+        <Carousel 
+          autoplay 
+          dots={true}
+          arrows={false}
+          style={{
+            width: '100%',
+            borderRadius: '12px',
+            overflow: 'hidden'
+          }}
+        >
+          {carouselImages.map((image, index) => (
+            <div key={index}>
+              <div
+                style={{
+                  height: window.innerWidth >= 768 ? '400px' : '250px',
+                  background: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${image.src})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'column',
+                  position: 'relative'
+                }}
+              >
+                <div style={{
+                  textAlign: 'center',
+                  padding: '20px',
+                  maxWidth: '1200px',
+                  margin: '0 auto'
+                }}>
+                  <Paragraph 
+                    style={{ 
+                      color: 'white', 
+                      fontSize: window.innerWidth >= 768 ? '1.8rem' : '1.4rem',
+                      marginBottom: '24px',
+                      textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                      maxWidth: '800px',
+                      margin: '0 auto 24px auto',
+                      fontWeight: '500',
+                      lineHeight: '1.4'
+                    }}
+                  >
+                    {image.description}
+                  </Paragraph>
+
+                  <Button 
+                    type="default" 
+                    size={window.innerWidth >= 768 ? 'large' : 'middle'}
+                    style={{ 
+                      backgroundColor: 'transparent', 
+                      color: 'white',
+                      borderColor: '2px solid #52c41a',
+                      fontWeight: 'bold',
+                      padding: window.innerWidth >= 768 ? '8px 32px' : '6px 24px',
+                      height: 'auto'
+                    }}
+                  >
+                    <Link to="/menu-items" style={{ textDecoration: 'none' }}>
+                      Shop Now
+                    </Link>
+                  </Button>
+                </div>
+                
+                <div style={{
+                  position: 'absolute',
+                  left: '20px',
+                  top: '20px',
+                  color: 'white',
+                  opacity: 0.7,
+                  display: window.innerWidth >= 768 ? 'block' : 'none'
+                }}>
+                  <LeafIconCustom />
+                </div>
+                <div style={{
+                  position: 'absolute',
+                  right: '20px',
+                  top: '20px',
+                  color: 'white',
+                  opacity: 0.7,
+                  display: window.innerWidth >= 768 ? 'block' : 'none'
+                }}>
+                  <ShoppingCartOutlined style={{ fontSize: '24px' }} />
+                </div>
+              </div>
+            </div>
+          ))}
+        </Carousel>
       </div>
 
       <Content style={{ 
