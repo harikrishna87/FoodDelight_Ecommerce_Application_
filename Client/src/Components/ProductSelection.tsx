@@ -307,17 +307,26 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
                     <Button
                       type="primary"
                       size="small"
+                      onClick={() => addToCart(product)}
+                      disabled={addingToCart[product._id]}
                       style={{
                         backgroundColor: '#52c41a',
                         borderColor: '#52c41a',
+                        minWidth: 110,
+                        height: 25,
                         display: 'flex',
-                        alignItems: 'center'
+                        alignItems: 'center',
+                        justifyContent: 'center'
                       }}
-                      onClick={() => addToCart(product)}
-                      disabled={addingToCart[product._id]}
-                      icon={addingToCart[product._id] ? <Spin size="small" /> : <ShoppingCartOutlined />}
                     >
-                      {addingToCart[product._id] ? 'Adding...' : 'Add Item'}
+                      {addingToCart[product._id] ? (
+                        <Spin size="small" />
+                      ) : (
+                        <>
+                          <ShoppingCartOutlined style={{ marginRight: 4 }} />
+                          Add to Cart
+                        </>
+                      )}
                     </Button>
                   </div>
                 </Card>

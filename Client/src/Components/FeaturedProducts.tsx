@@ -273,18 +273,26 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
           <Button
             type="primary"
             size="small"
-            style={{
-              backgroundColor: '#52c41a',
-              borderColor: '#52c41a'
-            }}
             onClick={() => addToCart(product)}
             disabled={addingToCart[product._id]}
-            icon={addingToCart[product._id] ?
-              <Spin size="small" /> :
-              <ShoppingCartOutlined />
-            }
+            style={{
+              backgroundColor: '#52c41a',
+              borderColor: '#52c41a',
+              minWidth: 110,
+              height: 25,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
           >
-            {addingToCart[product._id] ? 'Adding...' : 'Add Item'}
+            {addingToCart[product._id] ? (
+              <Spin size="small" />
+            ) : (
+              <>
+                <ShoppingCartOutlined style={{ marginRight: 4 }} />
+                Add to Cart
+              </>
+            )}
           </Button>
         </Flex>
       </Space>
