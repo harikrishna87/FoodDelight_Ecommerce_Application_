@@ -304,8 +304,7 @@ export default function Homepage() {
           style={{
             width: '100%',
             borderRadius: '12px',
-            overflow: 'hidden',
-            opacity: 0.85
+            overflow: 'hidden'
           }}
         >
           {carouselImages.map((image, index) => (
