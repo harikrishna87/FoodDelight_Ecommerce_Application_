@@ -355,7 +355,7 @@ const LatestCampaign: React.FC<{ orders: IOrder[] }> = ({ orders }) => {
   };
 
   return (
-    <Card
+<Card
       title={
         <Space>
           <CalendarOutlined style={{ color: '#fa8c16' }} />
@@ -382,52 +382,94 @@ const LatestCampaign: React.FC<{ orders: IOrder[] }> = ({ orders }) => {
           >
             <div style={{ width: '100%' }}>
               <Row justify="space-between" align="middle" style={{ width: '100%' }}>
-                <Col flex="1" style={{ display: 'flex', alignItems: 'center' }}>
-                  <Avatar
-                    style={{
-                      backgroundColor: '#f6ffed',
-                      color: '#52c41a',
-                      border: '1px solid #b7eb8f',
-                      marginRight: '12px'
-                    }}
-                    icon={<UserOutlined />}
-                  />
-                  <div>
-                    <div>
-                      <Text strong style={{ fontSize: '14px' }}>
-                        {order.user?.name || 'Unknown Customer'}
-                      </Text>
-                    </div>
-                    <div>
-                      <Text type="secondary" style={{ fontSize: '12px' }}>
-                        {new Date(order.createdAt).toLocaleDateString('en-IN', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric'
-                        })}
-                      </Text>
+                <Col span={10}>
+                  <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <Avatar
+                      style={{
+                        backgroundColor: '#f6ffed',
+                        color: '#52c41a',
+                        border: '1px solid #b7eb8f',
+                        marginRight: '8px',
+                        flexShrink: 0
+                      }}
+                      icon={<UserOutlined />}
+                    />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div>
+                        <Text
+                          strong
+                          style={{
+                            fontSize: '14px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            display: 'block'
+                          }}
+                        >
+                          {order.user?.name || 'Unknown Customer'}
+                        </Text>
+                      </div>
+                      <div>
+                        <Text
+                          type="secondary"
+                          style={{
+                            fontSize: '12px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            display: 'block'
+                          }}
+                        >
+                          {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric'
+                          })}
+                        </Text>
+                      </div>
                     </div>
                   </div>
                 </Col>
 
-                <Col style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <Text strong style={{ fontSize: '14px', color: 'black', marginBottom: '4px' }}>Payment Status</Text>
-                  <Tag
-                    color="success"
-                    icon={<CheckCircleOutlined />}
-                    style={{
-                      border: '1px dashed #52c41a',
-                      fontWeight: '500'
-                    }}
-                  >
-                    Paid
-                  </Tag>
+                <Col span={7}>
+                  <div style={{ textAlign: 'center' }}>
+                    <Text
+                      strong
+                      style={{
+                        fontSize: '14px',
+                        color: 'black',
+                        marginBottom: '4px',
+                        display: 'block'
+                      }}
+                    >
+                      Pay_Status
+                    </Text>
+                    <Tag
+                      color="success"
+                      icon={<CheckCircleOutlined />}
+                      style={{
+                        border: '1px dashed #52c41a',
+                        fontWeight: '500',
+                        display: 'inline-flex',
+                        alignItems: 'center'
+                      }}
+                    >
+                      Paid
+                    </Tag>
+                  </div>
                 </Col>
 
-                <Col flex="1" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                  <div style={{ textAlign: 'right', marginBottom:'4px' }}>
-                    <div>
-                      <Text strong style={{ color: '#52c41a', fontSize: '14px' }}>
+                <Col span={7}>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ marginBottom: '4px' }}>
+                      <Text
+                        strong
+                        style={{
+                          color: '#52c41a',
+                          fontSize: '14px',
+                          display: 'block'
+                        }}
+                      >
                         ₹{order.totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                       </Text>
                     </div>
@@ -435,9 +477,22 @@ const LatestCampaign: React.FC<{ orders: IOrder[] }> = ({ orders }) => {
                       <Tag
                         color={getStatusColor(order.deliveryStatus)}
                         icon={getStatusIcon(order.deliveryStatus)}
-                        style={{ marginRight: 0, border: '1px dashed'}}
+                        style={{
+                          marginRight: 0,
+                          border: '1px dashed',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                        }}
                       >
-                        {order.deliveryStatus}
+                        <span style={{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          maxWidth: '80px',
+                          lineHeight: '1'
+                        }}>
+                          {order.deliveryStatus}
+                        </span>
                       </Tag>
                     </div>
                   </div>
