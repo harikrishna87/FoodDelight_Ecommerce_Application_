@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import AdminDashboard from '../Pages/AdminDashboard';
+import OrderAnalytics from '../Pages/OrderAnalytics';
 import Homepage from '../Pages/Home';
 import { Spin } from 'antd';
 
@@ -76,7 +76,7 @@ const RoleBasedApp: React.FC = () => {
           path="/admin" 
           element={
             <ProtectedRoute requiredRole="admin">
-              <AdminDashboard />
+              <OrderAnalytics />
             </ProtectedRoute>
           } 
         />

@@ -26,9 +26,9 @@ import {
   MenuOutlined,
   HomeOutlined,
   ContactsOutlined,
-  ProductOutlined
+  ProductOutlined,
 } from '@ant-design/icons';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import axios from "axios";
 import confetti from "canvas-confetti";
 import { AuthContext } from '../context/AuthContext';
@@ -82,9 +82,24 @@ const FoodNavbar: React.FC = () => {
 
   const auth = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
   const screens = useBreakpoint();
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+  const getActiveKey = (pathname: string): string => {
+    if (pathname === '/') return 'home';
+    if (pathname === '/menu-items') return 'menu';
+    if (pathname === '/contact') return 'contact';
+    if (pathname === '/my-orders') return 'orders';
+    if (pathname === '/admin/orderanalytics') return 'orderanalytics';
+    if (pathname === '/admin/productspage') return 'products';
+    if (pathname === '/admin/ordermanagement') return 'ordermanagement';
+    if (pathname === '/admin/paymentoverview') return 'paymentoverview';
+    return '';
+  };
+
+  const activeKey = getActiveKey(location.pathname);
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -688,14 +703,23 @@ const FoodNavbar: React.FC = () => {
       if (isAdmin) {
         return [
           {
-            key: 'admin',
-            icon: <DashboardOutlined />,
-            label: <span onClick={() => { setMobileMenuVisible(false); navigate('/admin'); }}>Admin Dashboard</span>,
+            key: 'orderanalytics',
+            icon: <DashboardOutlined style={{ color: activeKey === 'orderanalytics' ? '#52c41a' : 'inherit' }} />,
+            label: <span onClick={() => { setMobileMenuVisible(false); navigate('/admin/orderanalytics'); }} style={{ color: activeKey === 'orderanalytics' ? '#52c41a' : 'inherit' }}>Order Analytics</span>,
           },
           {
             key: 'products',
-            icon: <ProductOutlined />,
-            label: <span onClick={() => { setMobileMenuVisible(false); navigate('/productspage'); }}>Products</span>,
+            icon: <ProductOutlined style={{ color: activeKey === 'products' ? '#52c41a' : 'inherit' }} />,
+            label: <span onClick={() => { setMobileMenuVisible(false); navigate('/admin/productspage'); }} style={{ color: activeKey === 'products' ? '#52c41a' : 'inherit' }}>Products</span>,
+          },
+          {
+            key: 'ordermanagement',
+            icon: <UnorderedListOutlined style={{ color: activeKey === 'ordermanagement' ? '#52c41a' : 'inherit' }} />,
+            label: <span onClick={() => { setMobileMenuVisible(false); navigate('/admin/ordermanagement'); }} style={{ color: activeKey === 'ordermanagement' ? '#52c41a' : 'inherit' }}>Order Management</span>,
+          },
+          {
+            key: 'paymentoverview',
+            label: <span onClick={() => { setMobileMenuVisible(false); navigate('/admin/paymentoverview'); }} style={{ color: activeKey === 'paymentoverview' ? '#52c41a' : 'inherit' }}> ₹ Payment Overview</span>,
           },
           {
             key: 'logout',
@@ -708,23 +732,23 @@ const FoodNavbar: React.FC = () => {
         return [
           {
             key: 'home',
-            icon: <HomeOutlined />,
-            label: <span onClick={() => { setMobileMenuVisible(false); navigate('/'); }}>Home</span>,
+            icon: <HomeOutlined style={{ color: activeKey === 'home' ? '#52c41a' : 'inherit' }} />,
+            label: <span onClick={() => { setMobileMenuVisible(false); navigate('/'); }} style={{ color: activeKey === 'home' ? '#52c41a' : 'inherit' }}>Home</span>,
           },
           {
             key: 'menu',
-            icon: <MenuOutlined />,
-            label: <span onClick={() => { setMobileMenuVisible(false); navigate('/menu-items'); }}>Menu</span>,
+            icon: <MenuOutlined style={{ color: activeKey === 'menu' ? '#52c41a' : 'inherit' }} />,
+            label: <span onClick={() => { setMobileMenuVisible(false); navigate('/menu-items'); }} style={{ color: activeKey === 'menu' ? '#52c41a' : 'inherit' }}>Menu</span>,
           },
           {
             key: 'contact',
-            icon: <ContactsOutlined />,
-            label: <span onClick={() => { setMobileMenuVisible(false); navigate('/contact'); }}>Contact</span>,
+            icon: <ContactsOutlined style={{ color: activeKey === 'contact' ? '#52c41a' : 'inherit' }} />,
+            label: <span onClick={() => { setMobileMenuVisible(false); navigate('/contact'); }} style={{ color: activeKey === 'contact' ? '#52c41a' : 'inherit' }}>Contact</span>,
           },
           {
             key: 'orders',
-            icon: <UnorderedListOutlined />,
-            label: <span onClick={() => { setMobileMenuVisible(false); navigate('/my-orders'); }}>My Orders</span>,
+            icon: <UnorderedListOutlined style={{ color: activeKey === 'orders' ? '#52c41a' : 'inherit' }} />,
+            label: <span onClick={() => { setMobileMenuVisible(false); navigate('/my-orders'); }} style={{ color: activeKey === 'orders' ? '#52c41a' : 'inherit' }}>My Orders</span>,
           },
           {
             key: 'logout',
@@ -738,18 +762,18 @@ const FoodNavbar: React.FC = () => {
       return [
         {
           key: 'home',
-          icon: <HomeOutlined />,
-          label: <span onClick={() => { setMobileMenuVisible(false); navigate('/'); }}>Home</span>,
+          icon: <HomeOutlined style={{ color: activeKey === 'home' ? '#52c41a' : 'inherit' }} />,
+          label: <span onClick={() => { setMobileMenuVisible(false); navigate('/'); }} style={{ color: activeKey === 'home' ? '#52c41a' : 'inherit' }}>Home</span>,
         },
         {
           key: 'menu',
-          icon: <MenuOutlined />,
-          label: <span onClick={() => { setMobileMenuVisible(false); navigate('/menu-items'); }}>Menu</span>,
+          icon: <MenuOutlined style={{ color: activeKey === 'menu' ? '#52c41a' : 'inherit' }} />,
+          label: <span onClick={() => { setMobileMenuVisible(false); navigate('/menu-items'); }} style={{ color: activeKey === 'menu' ? '#52c41a' : 'inherit' }}>Menu</span>,
         },
         {
           key: 'contact',
-          icon: <ContactsOutlined />,
-          label: <span onClick={() => { setMobileMenuVisible(false); navigate('/contact'); }}>Contact</span>,
+          icon: <ContactsOutlined style={{ color: activeKey === 'contact' ? '#52c41a' : 'inherit' }} />,
+          label: <span onClick={() => { setMobileMenuVisible(false); navigate('/contact'); }} style={{ color: activeKey === 'contact' ? '#52c41a' : 'inherit' }}>Contact</span>,
         },
         {
           key: 'login',
@@ -801,6 +825,7 @@ const FoodNavbar: React.FC = () => {
           {screens.md && (
             <Menu
               mode="horizontal"
+              selectedKeys={[activeKey]}
               style={{
                 border: 'none',
                 background: 'transparent',
@@ -844,6 +869,7 @@ const FoodNavbar: React.FC = () => {
       >
         <Menu
           mode="vertical"
+          selectedKeys={[activeKey]}
           style={{ border: 'none' }}
           items={getMenuItems()}
         />
@@ -1121,7 +1147,7 @@ const FoodNavbar: React.FC = () => {
 
         .ant-menu-horizontal > .ant-menu-item-selected {
           background-color: transparent !important;
-          color: #333 !important;
+          color: #52c41a !important;
           font-weight: 700 !important;
           border-bottom: none !important;
         }
@@ -1132,7 +1158,7 @@ const FoodNavbar: React.FC = () => {
 
         .ant-menu-horizontal > .ant-menu-item-selected:hover {
           background-color: transparent !important;
-          color: #333 !important;
+          color: #52c41a !important;
           border-bottom: none !important;
         }
 
@@ -1161,13 +1187,13 @@ const FoodNavbar: React.FC = () => {
 
         .ant-menu-vertical > .ant-menu-item-selected {
           background-color: transparent !important;
-          color: #333 !important;
+          color: #52c41a !important;
           font-weight: 700 !important;
         }
 
         .ant-menu-vertical > .ant-menu-item-selected:hover {
           background-color: transparent !important;
-          color: #333 !important;
+          color: #52c41a !important;
         }
 
         .ant-drawer-body::-webkit-scrollbar {

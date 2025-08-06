@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
-import { Layout, Table, Tag, Spin, Alert, Typography, Modal, Button, Descriptions, Space, Tooltip, Row, Col, Card, Pagination, message } from 'antd';
+import { Table, Tag, Spin, Alert, Typography, Modal, Button, Descriptions, Space, Tooltip, Row, Col, Card, Pagination, message } from 'antd';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { IOrder, OrderDeliveryStatus } from '../types';
@@ -7,8 +7,7 @@ import { CheckCircleOutlined, TruckOutlined, ClockCircleOutlined, EyeOutlined, C
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-const { Content } = Layout;
-const { Title, Paragraph, Text } = Typography;
+const { Title, Text } = Typography;
 
 interface OrderStatusTrackerProps {
   currentStatus: 'Pending' | 'Shipped' | 'Delivered';
@@ -147,6 +146,23 @@ const OrderStatusTracker: React.FC<OrderStatusTrackerProps> = ({ currentStatus }
   );
 };
 
+const LoadingSpinner: React.FC = () => {
+  return (
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '60vh',
+      flexDirection: 'column'
+    }}>
+      <Spin size="large" />
+      <div style={{ marginTop: 16, color: '#52c41a' }}>
+        Loading your orders...
+      </div>
+    </div>
+  );
+};
+
 const UserOrders: React.FC = () => {
   const auth = useContext(AuthContext);
   const [orders, setOrders] = useState<IOrder[]>([]);
@@ -188,13 +204,22 @@ const UserOrders: React.FC = () => {
 
     try {
       setLoading(true);
+      setError(null);
+      
+      const minLoadingTime = new Promise(resolve => setTimeout(resolve, 1000));
+      
       const config = {
         headers: {
           Authorization: `Bearer ${auth.token}`,
         },
         withCredentials: true,
       };
-      const response = await axios.get(`${backendUrl}/api/orders/myorders`, config);
+      
+      const [response] = await Promise.all([
+        axios.get(`${backendUrl}/api/orders/myorders`, config),
+        minLoadingTime
+      ]);
+      
       if (response.data.success) {
         setOrders(response.data.orders);
         setError(null);
@@ -203,9 +228,10 @@ const UserOrders: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Error fetching user orders:', err);
-      setError(err.response?.data?.message || 'Failed to fetch your orders.');
+      const errorMessage = err.response?.data?.message || 'Failed to fetch your orders.';
+      setError(errorMessage);
       messageApi.error({
-        content: err.response?.data?.message || 'Failed to fetch your orders.',
+        content: errorMessage,
         duration: 3,
         style: {
           marginTop: '20vh',
@@ -286,19 +312,19 @@ const UserOrders: React.FC = () => {
     switch (status) {
       case 'Pending':
         return (
-          <Tag color="warning" style={{ borderRadius: '5px', padding: '2px 10px', display: 'flex', alignItems: 'center' }}>
+          <Tag color="warning" style={{ borderRadius: '5px', padding: '2px 10px', display: 'flex', alignItems: 'center', border:'1px dashed' }}>
             <ClockCircleOutlined style={{ marginRight: '4px' }} /> Pending
           </Tag>
         );
       case 'Shipped':
         return (
-          <Tag color="processing" style={{ borderRadius: '5px', padding: '2px 10px', display: 'flex', alignItems: 'center' }}>
+          <Tag color="processing" style={{ borderRadius: '5px', padding: '2px 10px', display: 'flex', alignItems: 'center', border:'1px dashed' }}>
             <TruckOutlined style={{ marginRight: '4px' }} /> Shipped
           </Tag>
         );
       case 'Delivered':
         return (
-          <Tag color="success" style={{ borderRadius: '5px', padding: '2px 10px', display: 'flex', alignItems: 'center' }}>
+          <Tag color="success" style={{ borderRadius: '5px', padding: '2px 10px', display: 'flex', alignItems: 'center', border:'1px dashed' }}>
             <CheckCircleOutlined style={{ marginRight: '4px' }} /> Delivered
           </Tag>
         );
@@ -321,63 +347,116 @@ const UserOrders: React.FC = () => {
     );
   };
 
+  if (loading) {
+    return (
+      <div style={{ 
+        padding: '40px 24px', 
+        maxWidth: 1400, 
+        margin: '0 auto' 
+      }}>
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ 
+        padding: '40px 24px', 
+        maxWidth: 1400, 
+        margin: '0 auto' 
+      }}>
+        {contextHolder}
+        <div style={{ padding: '40px 0', textAlign: 'center' }}>
+          <Alert
+            message="Access Denied or Error!"
+            description={
+              <div>
+                <p>{error}</p>
+                <p>Please ensure you are logged in to view your orders.</p>
+              </div>
+            }
+            type="error"
+            showIcon
+            icon={<InfoCircleOutlined />}
+          />
+        </div>
+      </div>
+    );
+  }
+
   const sortedOrders = [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const columns = [
     {
-      title: <span style={{color: "#52c41a"}}>Order ID</span>,
+      title: <span style={{color: "#52c41a", fontWeight: 600}}>Order ID</span>,
       dataIndex: '_id',
       key: '_id',
       width: 120,
       render: (id: string) => <Tag color='blue'>{id}</Tag>,
     },
     {
-      title:  <span style={{color: "#52c41a"}}>Customer</span>,
+      title: <span style={{color: "#52c41a", fontWeight: 600}}>Customer</span>,
       dataIndex: 'user',
       key: 'user',
-      width: 180,
+      width: 200,
       render: (user: any) => (
         <div>
-          <div>{user?.name || 'N/A'}</div>
-          <div style={{ color: '#6c757d', fontSize: '12px' }}>{user?.email || 'N/A'}</div>
+          <div style={{ fontWeight: 500, color: '#262626' }}>{user?.name || 'N/A'}</div>
+          <Text type="secondary" style={{ fontSize: '12px' }}>
+            {user?.email || 'N/A'}
+          </Text>
         </div>
       ),
     },
     {
-      title:  <span style={{color: "#52c41a"}}>Amount</span>,
+      title: <span style={{color: "#52c41a", fontWeight: 600}}>Amount</span>,
       dataIndex: 'totalAmount',
       key: 'totalAmount',
       width: 120,
       align: 'center' as const,
-      render: (amount: number) => <Paragraph style={{color: "#52c41a", fontSize: '16px', margin: 0}}>₹ {amount.toFixed(2)}</Paragraph>,
-    },
-    {
-      title:  <span style={{color: "#52c41a"}}>Status</span>,
-      dataIndex: 'deliveryStatus',
-      key: 'deliveryStatus',
-      width: 100,
-      render: (_: OrderDeliveryStatus, record: IOrder) => getStatusBadge(record),
-    },
-    {
-      title:  <span style={{color: "#52c41a"}}>Order Date</span>,
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      width: 130,
-      render: (date: string) => (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <CalendarOutlined style={{ marginRight: '4px' }} />
-          {new Date(date).toLocaleDateString()}
-        </div>
+      render: (amount: number) => (
+        <Text strong style={{ color: '#52c41a', fontSize: '14px' }}>
+          ₹{amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+        </Text>
       ),
     },
     {
-      title:  <span style={{color: "#52c41a"}}>Items</span>,
+      title: <span style={{color: "#52c41a", fontWeight: 600}}>Status</span>,
+      dataIndex: 'deliveryStatus',
+      key: 'deliveryStatus',
+      width: 130,
+      render: (_: OrderDeliveryStatus, record: IOrder) => getStatusBadge(record),
+    },
+    {
+      title: <span style={{color: "#52c41a", fontWeight: 600}}>Order Date</span>,
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      width: 140,
+      render: (date: string) => (
+        <Space>
+          <CalendarOutlined style={{ color: '#52c41a' }} />
+          <span>{new Date(date).toLocaleDateString('en-IN')}</span>
+        </Space>
+      ),
+    },
+    {
+      title: <span style={{color: "#52c41a", fontWeight: 600}}>Items</span>,
       dataIndex: 'items',
       key: 'items',
-      width: 100,
+      width: 150,
       render: (items: any, record: IOrder) => (
-        <Button type="link" onClick={() => showModal(record)} style={{ display: 'flex', alignItems: 'center', padding: 0 }}>
-          <EyeOutlined /> View Items ({items?.length || 0})
+        <Button 
+          type="link" 
+          onClick={() => showModal(record)} 
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            padding: 0
+          }}
+        >
+          <EyeOutlined style={{ marginRight: 4 }} /> 
+          View Items ({items?.length || 0})
         </Button>
       ),
     },
@@ -392,305 +471,258 @@ const UserOrders: React.FC = () => {
     setCurrentPage(page);
   };
 
-  if (loading) {
-    return (
-      <Layout style={{ minHeight: '75vh' }}>
-        <Content style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '75vh',
-          flexDirection: 'column'
-        }}>
-          <Spin size="large" style={{ color: '#28a745' }} />
-          <Paragraph style={{ marginTop: '16px', color: '#28a745' }}>Loading your orders...</Paragraph>
-        </Content>
-      </Layout>
-    );
-  }
-
-  if (error) {
-    return (
-      <Layout style={{ minHeight: '100vh' }}>
-        <Content style={{ padding: '50px', textAlign: 'center' }}>
-          <Alert
-            message="Error!"
-            description={
-              <>
-                <Paragraph>{error}</Paragraph>
-                <Paragraph>Please ensure you are logged in to view your orders.</Paragraph>
-              </>
-            }
-            type="error"
-            showIcon
-            style={{ maxWidth: '600px', margin: '0 auto' }}
-          />
-        </Content>
-      </Layout>
-    );
-  }
-
   return (
-    <Layout style={{ minHeight: '75vh' }}>
-      <Content style={{
-        padding: '20px',
-        width: '100%',
-        maxWidth: '1200px',
-        margin: '0 auto',
-        display: 'flex',
-        flexDirection: 'column'
+    <div style={{ 
+      padding: '32px 24px', 
+      maxWidth: 1250, 
+      margin: '0 auto'
+    }}>
+      {contextHolder}
+      
+      <div style={{ 
+        textAlign: 'center',
+        marginBottom: 32
       }}>
-        {contextHolder}
-        <div style={{
-          flexShrink: 0,
-          marginBottom: '24px',
-          padding: '0 20px'
+        <Title level={1} style={{ 
+          margin: 0, 
+          color: '#52c41a',
+          fontSize: '30px',
+          fontWeight: 700
         }}>
-          <Title level={2} style={{ color: '#52c41a', marginBottom: '12px', textAlign: 'center' }}>My Orders List</Title>
-          <Paragraph style={{ color: '#6c757d', marginBottom: '0', textAlign: 'center', fontSize: "18px" }}>
-            View and manage all your placed orders here. Check the status, order details, and items for each order as of {new Date().toLocaleDateString()}.
-          </Paragraph>
-        </div>
+          My Orders History
+        </Title>
+      </div>
 
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
-          {orders.length === 0 ? (
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              flex: 1
-            }}>
-              <Alert
-                message="You have not placed any orders yet."
-                type="info"
-                showIcon
-                style={{ maxWidth: '600px', textAlign: 'center' }}
-              />
-            </div>
-          ) : (
-            <div style={{
-              backgroundColor: 'white',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              padding: '20px'
-            }}>
-              <Table
-                columns={columns}
-                dataSource={sortedOrders}
-                rowKey="_id"
-                bordered={false}
-                pagination={{
-                  pageSize: 10,
-                  showSizeChanger: true,
-                  pageSizeOptions: ['10', '20', '30'],
-                  style: {
-                    margin: '20px 0 0 0',
-                    flexShrink: 0
-                  },
-                }}
-                rowClassName={() => 'ant-table-row-hover'}
-                className="custom-table"
-                scroll={{
-                  x: 'max-content'
-                }}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}
-              />
+      <Card
+        title={
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            fontSize: '20px',
+            fontWeight: 600,
+            color: '#52c41a'
+          }}>
+            <ShoppingCartOutlined style={{ marginRight: 12, fontSize: '24px', color: '#52c41a' }} />
+            Your Order History
+          </div>
+        }
+        style={{ 
+          borderRadius: '16px',
+          border: '2px dashed #b7eb8f',
+          boxShadow: '0 4px 16px rgba(183, 235, 143, 0.2)',
+          background: 'white'
+        }}
+        bodyStyle={{ padding: '24px' }}
+      >
+        {orders.length === 0 ? (
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '60px 20px',
+            background: '#f6ffed',
+            borderRadius: '12px',
+            border: '1px solid #d9f7be'
+          }}>
+            <ShoppingCartOutlined style={{ fontSize: '64px', color: '#52c41a', marginBottom: '16px' }} />
+            <Title level={4} style={{ color: '#52c41a', margin: 0 }}>No orders placed yet</Title>
+            <Text style={{ color: '#8c8c8c' }}>Your orders will appear here once you start shopping</Text>
+          </div>
+        ) : (
+          <Table
+            columns={columns}
+            dataSource={sortedOrders}
+            rowKey="_id"
+            size="large"
+            scroll={{ x: 1000 }}
+            pagination={{
+              pageSize: 10,
+              showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} orders`,
+            }}
+          />
+        )}
+      </Card>
+
+      {selectedOrder && (
+        <Modal
+          title={
+            <Space>
+              <ShoppingCartOutlined />
+              <span>Order Details - {isMobile ? selectedOrder._id.substring(0, 6) + '...' : selectedOrder._id}</span>
+            </Space>
+          }
+          open={isModalVisible}
+          onCancel={handleCancel}
+          footer={[
+            <Button key="back" onClick={handleCancel}>
+              Close
+            </Button>,
+            <Button
+              key="download"
+              type="primary"
+              icon={<DownloadOutlined />}
+              loading={isDownloading}
+              onClick={handleDownloadReceipt}
+              style={{backgroundColor: "#52c41a"}}
+            >
+              Download Receipt
+            </Button>,
+          ]}
+          width={isMobile ? '95%' : 800}
+          style={isMobile ? { top: 15 } : { top: 15 }}
+        >
+          <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>Customer Details</Title>
+          <Descriptions
+            bordered
+            column={isMobile ? 1 : 2}
+            size={isMobile ? 'small' : 'default'}
+            style={{ marginBottom: 24 }}
+          >
+            <Descriptions.Item label="Customer Name">
+              <Space>
+                <UserOutlined />
+                {selectedOrder.user?.name || 'N/A'}
+              </Space>
+            </Descriptions.Item>
+            <Descriptions.Item label="Customer Email">
+              <Tooltip title={selectedOrder.user?.email || 'N/A'}>
+                <Text>{isMobile ? truncateText(selectedOrder.user?.email || 'N/A', 20) : (selectedOrder.user?.email || 'N/A')}</Text>
+              </Tooltip>
+            </Descriptions.Item>
+          </Descriptions>
+
+          <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>Order Information</Title>
+          <Descriptions
+            bordered
+            column={isMobile ? 1 : 2}
+            size={isMobile ? 'small' : 'default'}
+            style={{ marginBottom: 24 }}
+          >
+            <Descriptions.Item label="Order ID">
+              <Tooltip title={selectedOrder._id}>
+                <Text code style={{color: '#52c41a'}}>{isMobile ? truncateText(selectedOrder._id, 15) : selectedOrder._id}</Text>
+              </Tooltip>
+            </Descriptions.Item>
+            <Descriptions.Item label="Order Date">
+              {new Date(selectedOrder.createdAt).toLocaleDateString()}
+            </Descriptions.Item>
+            <Descriptions.Item label="Total Amount">
+              <Text strong style={{ color: '#52c41a', fontSize: '16px' }}>
+                ₹{selectedOrder.totalAmount.toFixed(2)}
+              </Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="Status">
+              {getStatusTag(selectedOrder.deliveryStatus)}
+            </Descriptions.Item>
+          </Descriptions>
+
+          <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>
+            Order Items ({totalItems} items)
+          </Title>
+          <Row gutter={[16, 16]}>
+            {currentItems.map((item, idx) => (
+                <Col span={isMobile ? 24 : 12} key={startIndex + idx}>
+                    <Card size="small" hoverable style={{ padding: '16px', height: '100%', border:'2px dashed #b7eb8f' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
+                            {item.image && (
+                                <div style={{ flexShrink: 0 }}>
+                                    <img src={item.image} alt={item.name} style={{ width: 80, height: 80, borderRadius: 8, objectFit: 'cover', border: '2px solid #b7eb8f' }} onError={(e) => { (e.target as HTMLImageElement).src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RUG8G+5BhMlyJFAcxBOJqhE8wQ7kKQQtKSlkZzZnZklBW1KKaUKZhJFM7MpIQ6lJTJKKJGJ6GElJvK5Z+cFklVVr6vr9e/39v3V/e8P"; }} />
+                                </div>
+                            )}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <Title level={5} style={{ margin: '0 0 8px 0', fontSize: '16px' }}>{item.name || 'Unknown Item'}</Title>
+                                <div style={{ marginBottom: '8px' }}><Text type="secondary" style={{ fontSize: '14px' }}>Quantity: <Text strong>{item.quantity || 0}</Text></Text></div>
+                                <div><div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Text delete style={{ color: '#8c8c8c', fontSize: '14px' }}>₹{((item as any).original_price || 0).toFixed(2)}</Text>
+                                    <Text strong style={{ color: '#52c41a', fontSize: '16px' }}>₹{((item as any).discount_price || 0).toFixed(2)}</Text>
+                                </div></div>
+                            </div>
+                        </div>
+                    </Card>
+                </Col>
+            ))}
+          </Row>
+
+          {totalItems > itemsPerPage && (
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>
+              <Pagination current={currentPage} total={totalItems} pageSize={itemsPerPage} onChange={handlePageChange} showSizeChanger={false} showQuickJumper={false} size={isMobile ? 'small' : 'default'} />
             </div>
           )}
-        </div>
-
-        {selectedOrder && (
-          <Modal
-            title={
-              <Space>
-                <ShoppingCartOutlined />
-                <span>Order Details - {isMobile ? selectedOrder._id.substring(0, 6) + '...' : selectedOrder._id}</span>
-              </Space>
-            }
-            open={isModalVisible}
-            onCancel={handleCancel}
-            footer={[
-              <Button key="back" onClick={handleCancel}>
-                Close
-              </Button>,
-              <Button
-                key="download"
-                type="primary"
-                icon={<DownloadOutlined />}
-                loading={isDownloading}
-                onClick={handleDownloadReceipt}
-                style={{backgroundColor: "#52c41a"}}
-              >
-                Download Receipt
-              </Button>,
-            ]}
-            width={isMobile ? '95%' : 800}
-            style={isMobile ? { top: 15 } : { top: 15 }}
-          >
-            <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>Customer Details</Title>
-            <Descriptions
-              bordered
-              column={isMobile ? 1 : 2}
-              size={isMobile ? 'small' : 'default'}
-              style={{ marginBottom: 24 }}
-            >
-              <Descriptions.Item label="Customer Name">
-                <Space>
-                  <UserOutlined />
-                  {selectedOrder.user?.name || 'N/A'}
-                </Space>
-              </Descriptions.Item>
-              <Descriptions.Item label="Customer Email">
-                <Tooltip title={selectedOrder.user?.email || 'N/A'}>
-                  <Text>{isMobile ? truncateText(selectedOrder.user?.email || 'N/A', 20) : (selectedOrder.user?.email || 'N/A')}</Text>
-                </Tooltip>
-              </Descriptions.Item>
-            </Descriptions>
-
-            <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>Order Information</Title>
-            <Descriptions
-              bordered
-              column={isMobile ? 1 : 2}
-              size={isMobile ? 'small' : 'default'}
-              style={{ marginBottom: 24 }}
-            >
-              <Descriptions.Item label="Order ID">
-                <Tooltip title={selectedOrder._id}>
-                  <Text code>{isMobile ? truncateText(selectedOrder._id, 15) : selectedOrder._id}</Text>
-                </Tooltip>
-              </Descriptions.Item>
-              <Descriptions.Item label="Order Date">
-                {new Date(selectedOrder.createdAt).toLocaleDateString()}
-              </Descriptions.Item>
-              <Descriptions.Item label="Total Amount">
-                <Text strong style={{ color: '#52c41a', fontSize: '16px' }}>
-                  ₹{selectedOrder.totalAmount.toFixed(2)}
-                </Text>
-              </Descriptions.Item>
-              <Descriptions.Item label="Status">
-                {getStatusTag(selectedOrder.deliveryStatus)}
-              </Descriptions.Item>
-            </Descriptions>
-
-            <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>
-              Order Items ({totalItems} items)
-            </Title>
-            <Row gutter={[16, 16]}>
-              {currentItems.map((item, idx) => (
-                  <Col span={isMobile ? 24 : 12} key={startIndex + idx}>
-                      <Card size="small" hoverable style={{ padding: '16px', height: '100%' }}>
-                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-                              {item.image && (
-                                  <div style={{ flexShrink: 0 }}>
-                                      <img src={item.image} alt={item.name} style={{ width: 80, height: 80, borderRadius: 8, objectFit: 'cover', border: '1px solid #d9d9d9' }} onError={(e) => { (e.target as HTMLImageElement).src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RUG8G+5BhMlyJFAcxBOJqhE8wQ7kKQQtKSlkZzZnZklBW1KKaUKZhJFM7MpIQ6lJTJKKJGJ6GElJvK5Z+cFklVVr6vr9e/39v3V/e8P"; }} />
-                                  </div>
-                              )}
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                  <Title level={5} style={{ margin: '0 0 8px 0', fontSize: '16px' }}>{item.name || 'Unknown Item'}</Title>
-                                  <div style={{ marginBottom: '8px' }}><Text type="secondary" style={{ fontSize: '14px' }}>Quantity: <Text strong>{item.quantity || 0}</Text></Text></div>
-                                  <div><div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                      <Text delete style={{ color: '#8c8c8c', fontSize: '14px' }}>₹{((item as any).original_price || 0).toFixed(2)}</Text>
-                                      <Text strong style={{ color: '#52c41a', fontSize: '16px' }}>₹{((item as any).discount_price || 0).toFixed(2)}</Text>
-                                  </div></div>
-                              </div>
-                          </div>
-                      </Card>
-                  </Col>
-              ))}
-            </Row>
-
-            {totalItems > itemsPerPage && (
-              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>
-                <Pagination current={currentPage} total={totalItems} pageSize={itemsPerPage} onChange={handlePageChange} showSizeChanger={false} showQuickJumper={false} size={isMobile ? 'small' : 'default'} />
+          <div style={{ position: 'absolute', left: '-9999px', top: 0, zIndex: -1 }}>
+            <div ref={receiptContentRef} style={{
+                width: '320px',
+                padding: '20px',
+                fontFamily: '"Courier New", Courier, monospace',
+                fontSize: '12px',
+                lineHeight: '1.6',
+                color: '#000',
+                backgroundColor: '#fff',
+            }}>
+              <div style={{ textAlign: 'center', marginBottom: '15px' }}>
+                <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>FoodDelight</h3>
+                <p style={{ margin: 0, fontSize: '11px' }}>1-23 Gourmet Street, Nellore - 524001</p>
+                <p style={{ margin: 0, fontSize: '11px' }}>www.FoodDelight.com</p>
               </div>
-            )}
-            <div style={{ position: 'absolute', left: '-9999px', top: 0, zIndex: -1 }}>
-              <div ref={receiptContentRef} style={{
-                  width: '320px',
-                  padding: '20px',
-                  fontFamily: '"Courier New", Courier, monospace',
-                  fontSize: '12px',
-                  lineHeight: '1.6',
-                  color: '#000',
-                  backgroundColor: '#fff',
-              }}>
-                <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-                  <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>FoodDelight</h3>
-                  <p style={{ margin: 0, fontSize: '11px' }}>1-23 Gourmet Street, Nellore - 524001</p>
-                  <p style={{ margin: 0, fontSize: '11px' }}>www.FoodDelight.com</p>
-                </div>
-                <p style={{ borderTop: '1px dashed #000', margin: '10px 0' }}></p>
-                <p style={{ margin: '2px 0' }}><strong>Order ID:</strong> {selectedOrder._id}</p>
-                <p style={{ margin: '2px 0' }}><strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</p>
-                <p style={{ margin: '2px 0' }}><strong>Customer:</strong> {selectedOrder.user.name}</p>
-                <p style={{ borderTop: '1px dashed #000', margin: '10px 0' }}></p>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-                  <thead>
-                    <tr>
-                      <th style={{ textAlign: 'left', paddingBottom: '5px' }}>ITEM</th>
-                      <th style={{ textAlign: 'center', paddingBottom: '5px' }}>QTY</th>
-                      <th style={{ textAlign: 'right', paddingBottom: '5px' }}>PRICE</th>
-                      <th style={{ textAlign: 'right', paddingBottom: '5px' }}>TOTAL</th>
+              <p style={{ borderTop: '1px dashed #000', margin: '10px 0' }}></p>
+              <p style={{ margin: '2px 0' }}><strong>Order ID:</strong> {selectedOrder._id}</p>
+              <p style={{ margin: '2px 0' }}><strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</p>
+              <p style={{ margin: '2px 0' }}><strong>Customer:</strong> {selectedOrder.user.name}</p>
+              <p style={{ borderTop: '1px dashed #000', margin: '10px 0' }}></p>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', paddingBottom: '5px' }}>ITEM</th>
+                    <th style={{ textAlign: 'center', paddingBottom: '5px' }}>QTY</th>
+                    <th style={{ textAlign: 'right', paddingBottom: '5px' }}>PRICE</th>
+                    <th style={{ textAlign: 'right', paddingBottom: '5px' }}>TOTAL</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedOrder.items.map((item, index) => (
+                    <tr key={`receipt-${index}`}>
+                      <td style={{ textAlign: 'left', verticalAlign: 'top' }}>{item.name}</td>
+                      <td style={{ textAlign: 'center', verticalAlign: 'top' }}>{item.quantity}</td>
+                      <td style={{ textAlign: 'right', verticalAlign: 'top' }}>{(item as any).discount_price.toFixed(2)}</td>
+                      <td style={{ textAlign: 'right', verticalAlign: 'top' }}>{(item.quantity * (item as any).discount_price).toFixed(2)}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {selectedOrder.items.map((item, index) => (
-                      <tr key={`receipt-${index}`}>
-                        <td style={{ textAlign: 'left', verticalAlign: 'top' }}>{item.name}</td>
-                        <td style={{ textAlign: 'center', verticalAlign: 'top' }}>{item.quantity}</td>
-                        <td style={{ textAlign: 'right', verticalAlign: 'top' }}>{(item as any).discount_price.toFixed(2)}</td>
-                        <td style={{ textAlign: 'right', verticalAlign: 'top' }}>{(item.quantity * (item as any).discount_price).toFixed(2)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <p style={{ borderTop: '1px dashed #000', margin: '10px 0' }}></p>
-                <div style={{ textAlign: 'right' }}>
-                  <p style={{ margin: '2px 0' }}><strong>Subtotal:</strong> ₹{selectedOrder.totalAmount.toFixed(2)}</p>
-                  <p style={{ margin: '2px 0', fontSize: '14px', fontWeight: 'bold' }}><strong>TOTAL:</strong> ₹{selectedOrder.totalAmount.toFixed(2)}</p>
-                </div>
-                <p style={{ borderTop: '1px dashed #000', margin: '10px 0' }}></p>
-                <div style={{ textAlign: 'center', marginTop: '15px' }}>
-                  <p style={{ margin: 0 }}>Thank you for your order!</p>
-                </div>
+                  ))}
+                </tbody>
+              </table>
+              <p style={{ borderTop: '1px dashed #000', margin: '10px 0' }}></p>
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ margin: '2px 0' }}><strong>Subtotal:</strong> ₹{selectedOrder.totalAmount.toFixed(2)}</p>
+                <p style={{ margin: '2px 0', fontSize: '14px', fontWeight: 'bold' }}><strong>TOTAL:</strong> ₹{selectedOrder.totalAmount.toFixed(2)}</p>
+              </div>
+              <p style={{ borderTop: '1px dashed #000', margin: '10px 0' }}></p>
+              <div style={{ textAlign: 'center', marginTop: '15px' }}>
+                <p style={{ margin: 0 }}>Thank you for your order!</p>
               </div>
             </div>
-          </Modal>
-        )}
+          </div>
+        </Modal>
+      )}
 
-        {selectedOrderForStatus && (
-          <Modal
-            title={
-              <Space>
-                <TruckOutlined />
-                <span>Order Status Tracking - {isMobile ? selectedOrderForStatus._id.substring(0, 6) + '...' : selectedOrderForStatus._id}</span>
-              </Space>
-            }
-            open={isStatusModalVisible}
-            onCancel={handleStatusModalCancel}
-            footer={[
-              <Button key="close" onClick={handleStatusModalCancel}>
-                Close
-              </Button>,
-            ]}
-            width={isMobile ? '95%' : 600}
-            style={isMobile ? { top: 150 } : { top: 175 }}
-          >
-            <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>Delivery Progress</Title>
-            <OrderStatusTracker currentStatus={selectedOrderForStatus.deliveryStatus} />
-          </Modal>
-        )}
-      </Content>
-    </Layout>
+      {selectedOrderForStatus && (
+        <Modal
+          title={
+            <Space>
+              <TruckOutlined />
+              <span>Order Status Tracking - {isMobile ? selectedOrderForStatus._id.substring(0, 6) + '...' : selectedOrderForStatus._id}</span>
+            </Space>
+          }
+          open={isStatusModalVisible}
+          onCancel={handleStatusModalCancel}
+          footer={[
+            <Button key="close" onClick={handleStatusModalCancel}>
+              Close
+            </Button>,
+          ]}
+          width={isMobile ? '95%' : 600}
+          style={isMobile ? { top: 150 } : { top: 175 }}
+        >
+          <Title level={4} style={{ marginBottom: 16, color: '#52c41a' }}>Delivery Progress</Title>
+          <OrderStatusTracker currentStatus={selectedOrderForStatus.deliveryStatus} />
+        </Modal>
+      )}
+    </div>
   );
 };
 

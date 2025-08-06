@@ -18,7 +18,8 @@ import {
     Tag,
     Typography,
     Spin,
-    Layout,
+    Statistic,
+    Flex,
 } from 'antd';
 import {
     PlusOutlined,
@@ -26,14 +27,17 @@ import {
     EditOutlined,
     DeleteOutlined,
     ShoppingCartOutlined,
-    AppstoreOutlined
+    AppstoreOutlined,
+    InfoCircleOutlined,
+    StarOutlined,
+    TagsOutlined,
+    UnorderedListOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 
 const { Search } = Input;
 const { Option } = Select;
 const { Title, Text } = Typography;
-const { Content } = Layout;
 
 interface Rating {
     rate: number;
@@ -114,6 +118,27 @@ const getErrorMessage = (error: unknown): string => {
     return 'An unexpected error occurred. Please try again.';
 };
 
+const LoadingSpinner: React.FC = () => {
+    return (
+        <Row justify="center" align="middle" style={{ minHeight: '60vh' }}>
+            <Col>
+                <Row justify="center">
+                    <Col>
+                        <Spin size="large" />
+                    </Col>
+                </Row>
+                <Row justify="center" style={{ marginTop: '16px' }}>
+                    <Col>
+                        <Text style={{ color: '#52c41a', fontSize: '16px' }}>
+                            Loading products...
+                        </Text>
+                    </Col>
+                </Row>
+            </Col>
+        </Row>
+    );
+};
+
 const ProductsPage: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -174,7 +199,12 @@ const ProductsPage: React.FC = () => {
             setLoading(true);
             messageApi.loading({ content: 'Loading products...', key: 'loading' });
 
-            const response = await axios.get<ApiResponse | Product[]>(`${backendUrl}/api/products/getallproducts`);
+            const minLoadingTime = new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const [response] = await Promise.all([
+                axios.get<ApiResponse | Product[]>(`${backendUrl}/api/products/getallproducts`),
+                minLoadingTime
+            ]);
 
             let fetchedProducts: Product[] = [];
 
@@ -191,7 +221,7 @@ const ProductsPage: React.FC = () => {
                     content: 'Invalid data format received from server',
                     key: 'loading',
                     style: {
-                        marginTop: '10vh',
+                        marginTop: '20vh',
                     },
                 });
                 return;
@@ -220,7 +250,7 @@ const ProductsPage: React.FC = () => {
                 key: 'loading',
                 duration: 2,
                 style: {
-                    marginTop: '10vh',
+                    marginTop: '20vh',
                 },
             });
 
@@ -233,7 +263,7 @@ const ProductsPage: React.FC = () => {
                 key: 'loading',
                 duration: 4,
                 style: {
-                    marginTop: '10vh',
+                    marginTop: '20vh',
                 },
             });
         } finally {
@@ -331,7 +361,7 @@ const ProductsPage: React.FC = () => {
                 key: loadingKey,
                 duration: 3,
                 style: {
-                    marginTop: '10vh',
+                    marginTop: '20vh',
                 },
             });
 
@@ -344,7 +374,7 @@ const ProductsPage: React.FC = () => {
                 key: loadingKey,
                 duration: 4,
                 style: {
-                    marginTop: '10vh',
+                    marginTop: '20vh',
                 },
             });
         }
@@ -394,7 +424,7 @@ const ProductsPage: React.FC = () => {
                     key: loadingKey,
                     duration: 3,
                     style: {
-                        marginTop: '10vh',
+                        marginTop: '20vh',
                     },
                 });
             } else {
@@ -422,7 +452,7 @@ const ProductsPage: React.FC = () => {
                     key: loadingKey,
                     duration: 3,
                     style: {
-                        marginTop: '10vh',
+                        marginTop: '20vh',
                     },
                 });
             }
@@ -441,7 +471,7 @@ const ProductsPage: React.FC = () => {
                 key: loadingKey,
                 duration: 4,
                 style: {
-                    marginTop: '10vh',
+                    marginTop: '20vh',
                 },
             });
         }
@@ -454,9 +484,22 @@ const ProductsPage: React.FC = () => {
         }
     };
 
+    if (loading) {
+        return (
+            <div style={{ padding: '40px 24px', maxWidth: 1250, margin: '0 auto' }}>
+                <LoadingSpinner />
+            </div>
+        );
+    }
+
+    const totalProducts = products.length;
+    const totalValue = products.reduce((sum, product) => sum + (product.price || 0), 0);
+    const averagePrice = totalProducts > 0 ? totalValue / totalProducts : 0;
+    const averageRating = totalProducts > 0 ? products.reduce((sum, product) => sum + (product.rating?.rate || 0), 0) / totalProducts : 0;
+
     const columns: ColumnsType<Product> = [
         {
-            title: <span style={{ color: "#52c41a" }}>Image</span>,
+            title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Image</span>,
             dataIndex: 'image',
             key: 'image',
             width: 100,
@@ -467,34 +510,41 @@ const ProductsPage: React.FC = () => {
                     src={image}
                     style={{ objectFit: 'cover', borderRadius: '4px' }}
                     preview={false}
-                    fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
+                    fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RUG8G+5BhMlyJFAcxBOJqhE8wQ7kKQQtKSlkZzZnZklBW1KKaUKZhJFM7MpIQ6lJTJKKJGJ6GElJvK5Z+cFklVVr6vr9e/39v3V/e8P"
                 />
             ),
         },
         {
-            title: <span style={{ color: "#52c41a" }}>Name</span>,
+            title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Name</span>,
             dataIndex: 'title',
             key: 'title',
             width: 200,
             sorter: (a: Product, b: Product) => (a.title || '').localeCompare(b.title || ''),
-        },
-        {
-            title: <span style={{ color: "#52c41a" }}>Price</span>,
-            dataIndex: 'price',
-            key: 'price',
-            render: (price: number) => `₹${(price || 0).toFixed(2)}`,
-            sorter: (a: Product, b: Product) => (a.price || 0) - (b.price || 0),
-        },
-        {
-            title: <span style={{color: "#52c41a"}}>Category</span>,
-            dataIndex: 'category',
-            key: 'category',
-            render: (category: string) => (
-                <Tag color="cyan">{category}</Tag>
+            render: (title: string) => (
+                <Text strong style={{ color: '#262626' }}>{title}</Text>
             ),
         },
         {
-            title: <span style={{ color: "#52c41a" }}>Description</span>,
+            title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Price</span>,
+            dataIndex: 'price',
+            key: 'price',
+            render: (price: number) => (
+                <Text strong style={{ color: '#52c41a', fontSize: '14px' }}>
+                    ₹{(price || 0).toFixed(2)}
+                </Text>
+            ),
+            sorter: (a: Product, b: Product) => (a.price || 0) - (b.price || 0),
+        },
+        {
+            title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Category</span>,
+            dataIndex: 'category',
+            key: 'category',
+            render: (category: string) => (
+                <Tag color="cyan" style={{ borderRadius: '12px' }}>{category}</Tag>
+            ),
+        },
+        {
+            title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Description</span>,
             dataIndex: 'description',
             key: 'description',
             width: 200,
@@ -505,20 +555,20 @@ const ProductsPage: React.FC = () => {
             ),
         },
         {
-            title: <span style={{ color: "#52c41a" }}>Rating</span>,
+            title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Rating</span>,
             dataIndex: 'rating',
             key: 'rating',
             width: 200,
             render: (rating: Rating) => (
                 <Space direction="vertical" size={0}>
                     <Rate disabled defaultValue={rating?.rate || 0} style={{ fontSize: 14 }} />
-                    <Text type="secondary" style={{ fontSize: 12 }}>({rating?.count || 0})</Text>
+                    <Text type="secondary" style={{ fontSize: 12 }}>({rating?.count || 0} reviews)</Text>
                 </Space>
             ),
             sorter: (a: Product, b: Product) => (a.rating?.rate || 0) - (b.rating?.rate || 0),
         },
         {
-            title: <span style={{ color: "#52c41a" }}>Actions</span>,
+            title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Actions</span>,
             key: 'actions',
             width: 120,
             render: (_: any, record: Product) => (
@@ -551,57 +601,168 @@ const ProductsPage: React.FC = () => {
         },
     ];
 
-    if (loading) {
-        return (
-            <Layout style={{ minHeight: '75vh' }}>
-                <Content style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    minHeight: '75vh',
-                    flexDirection: 'column'
-                }}>
-                    <Spin size="large" style={{ color: '#52c41a' }} />
-                    <Text style={{ marginTop: '16px', color: '#52c41a', fontSize: '18px' }}>Loading products...</Text>
-                </Content>
-            </Layout>
-        );
-    }
-
     return (
-        <div style={{ padding: '24px', minHeight: '100vh', maxWidth: 1250, margin: '0 auto' }}>
+        <div style={{ padding: '40px 24px', maxWidth: 1250, margin: '0 auto' }}>
             {contextHolder}
-            <div style={{ textAlign: "center", marginBottom: "24px" }}>
-                <Title level={2} style={{ color: '#52c41a', marginBottom: '8px' }}>
-                    <ShoppingCartOutlined /> Available Products in Cart
-                </Title>
-                <Text type="secondary" style={{ fontSize: '18px' }}>
-                    "Quality products, organized by category - your inventory at a glance"
-                </Text>
-            </div>
+            
+            <Title level={2} style={{ textAlign: 'center', marginBottom: 40, color: "#52c41a" }}>
+                Product Management Dashboard
+            </Title>
+
+            <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
+                <Col xs={24} sm={12} md={6}>
+                    <Card 
+                        style={{ 
+                            borderRadius: '12px',
+                            border: '2px dashed #b7eb8f',
+                            boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
+                            background: 'white',
+                            height: '140px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center'
+                        }}
+                        bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
+                    >
+                        <Statistic
+                            title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Total Products</span>}
+                            value={totalProducts}
+                            valueStyle={{ 
+                                color: '#52c41a', 
+                                fontSize: '25px', 
+                                fontWeight: 700 
+                            }}
+                        />
+                        <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
+                            <ShoppingCartOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
+                            <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                                Available products
+                            </Text>
+                        </div>
+                    </Card>
+                </Col>
+                
+                <Col xs={24} sm={12} md={6}>
+                    <Card 
+                        style={{ 
+                            borderRadius: '12px',
+                            border: '2px dashed #b7eb8f',
+                            boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
+                            background: 'white',
+                            height: '140px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center'
+                        }}
+                        bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
+                    >
+                        <Statistic
+                            title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Total Value</span>}
+                            value={totalValue}
+                            precision={2}
+                            prefix="₹"
+                            valueStyle={{ 
+                                color: '#52c41a', 
+                                fontSize: '25px', 
+                                fontWeight: 700 
+                            }}
+                        />
+                        <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
+                            <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                                <span style={{color:'#52c41a', fontSize: '16px'}}>₹ </span>Inventory value
+                            </Text>
+                        </div>
+                    </Card>
+                </Col>
+                
+                <Col xs={24} sm={12} md={6}>
+                    <Card 
+                        style={{ 
+                            borderRadius: '12px',
+                            border: '2px dashed #b7eb8f',
+                            boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
+                            background: 'white',
+                            height: '140px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center'
+                        }}
+                        bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
+                    >
+                        <Statistic
+                            title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Average Price</span>}
+                            value={averagePrice}
+                            precision={2}
+                            prefix="₹"
+                            valueStyle={{ 
+                                color: '#52c41a', 
+                                fontSize: '25px', 
+                                fontWeight: 700 
+                            }}
+                        />
+                        <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
+                            <TagsOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
+                            <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                                Per product
+                            </Text>
+                        </div>
+                    </Card>
+                </Col>
+                
+                <Col xs={24} sm={12} md={6}>
+                    <Card 
+                        style={{ 
+                            borderRadius: '12px',
+                            border: '2px dashed #b7eb8f',
+                            boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
+                            background: 'white',
+                            height: '140px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center'
+                        }}
+                        bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
+                    >
+                        <Statistic
+                            title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Average Rating</span>}
+                            value={averageRating}
+                            precision={1}
+                            valueStyle={{ 
+                                color: '#52c41a', 
+                                fontSize: '25px', 
+                                fontWeight: 700 
+                            }}
+                        />
+                        <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
+                            <StarOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
+                            <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                                Customer rating
+                            </Text>
+                        </div>
+                    </Card>
+                </Col>
+            </Row>
 
             <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
                 <Col span={24}>
-                    <Card>
+                    <Card
+                        style={{ 
+                            borderRadius: '12px',
+                            border: '2px dashed #b7eb8f',
+                            boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
+                            background: 'white'
+                        }}
+                    >
                         <Title level={4} style={{ marginBottom: '16px', color: '#52c41a' }}>
                             <AppstoreOutlined /> Categories
                         </Title>
                         <Row gutter={[8, 8]}>
-                            <Col key="all-category">
-                                <Button
-                                    type={selectedCategory === 'all' ? 'primary' : 'default'}
-                                    onClick={() => setSelectedCategory('all')}
-                                    style={selectedCategory === 'all' ? { backgroundColor: '#52c41a', borderColor: '#52c41a' } : {}}
-                                >
-                                    All ({products.length})
-                                </Button>
-                            </Col>
                             {categories.map((category: Category) => (
                                 <Col key={`category-${category.name}`}>
                                     <Button
                                         type={selectedCategory === category.name ? 'primary' : 'default'}
                                         onClick={() => handleCategoryClick(category.name)}
-                                        style={selectedCategory === category.name ? { backgroundColor: '#52c41a', borderColor: '#52c41a' } : {}}
+                                        style={selectedCategory === category.name ? { backgroundColor: '#52c41a', borderColor: '#52c41a', borderRadius: '8px' } : { borderRadius: '8px', border: '1px dashed #b7eb8f' }}
                                     >
                                         {category.name} ({category.count})
                                     </Button>
@@ -612,8 +773,24 @@ const ProductsPage: React.FC = () => {
                 </Col>
             </Row>
 
-            <Card>
-                <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: "5px", flexWrap: 'wrap' }}>
+            <Card
+                title={
+                    <Flex justify='space-between' align='center' wrap gap={10}>
+                        <Space>
+                            <UnorderedListOutlined style={{ color: '#52c41a' }} />
+                            <span style={{ color: '#52c41a', fontWeight: 'bold' }}>Product Management</span>
+                        </Space>
+                    </Flex>
+                }
+                style={{ 
+                    borderRadius: '12px',
+                    border: '2px dashed #b7eb8f',
+                    boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
+                    background: 'white'
+                }}
+            >
+                {/* Search and Action Controls */}
+                <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: "10px", flexWrap: 'wrap' }}>
                     <Search
                         placeholder="Search products..."
                         allowClear
@@ -629,7 +806,7 @@ const ProductsPage: React.FC = () => {
                             type="default"
                             onClick={shuffleTableData}
                             size="large"
-                            style={{ borderColor: '#52c41a', color: '#52c41a' }}
+                            style={{ borderColor: '#52c41a', color: '#52c41a', borderRadius: '8px' }}
                         >
                             Shuffle
                         </Button>
@@ -638,32 +815,48 @@ const ProductsPage: React.FC = () => {
                             icon={<PlusOutlined />}
                             size="large"
                             onClick={handleAddProduct}
-                            style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+                            style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', borderRadius: '8px' }}
                         >
                             Add Product
                         </Button>
                     </Space>
                 </div>
-
-                <Spin spinning={tableLoading}>
-                    <Table
-                        columns={columns}
-                        dataSource={filteredProducts}
-                        rowKey="_id"
-                        pagination={{
-                            current: currentPage,
-                            pageSize: pageSize,
-                            total: filteredProducts.length,
-                            onChange: (page: number) => setCurrentPage(page),
-                            showSizeChanger: false,
-                        }}
-                        scroll={{ x: 800 }}
-                        rowClassName={() => 'ant-table-row-hover'}
-                        className="custom-table"
-                    />
-                </Spin>
+                {filteredProducts.length === 0 ? (
+                    <div style={{ 
+                        textAlign: 'center', 
+                        padding: '60px 20px',
+                        background: '#f6ffed',
+                        borderRadius: '12px',
+                        border: '1px dashed #d9f7be'
+                    }}>
+                        <InfoCircleOutlined style={{ fontSize: '64px', color: '#52c41a', marginBottom: '16px' }} />
+                        <Title level={4} style={{ color: '#52c41a', margin: 0 }}>No products found</Title>
+                        <Text style={{ color: '#8c8c8c' }}>Products will appear here once you add them to your inventory</Text>
+                    </div>
+                ) : (
+                    <Spin spinning={tableLoading}>
+                        <Table
+                            columns={columns}
+                            dataSource={filteredProducts}
+                            rowKey="_id"
+                            scroll={{ x: 'max-content' }}
+                            pagination={{
+                                current: currentPage,
+                                pageSize: pageSize,
+                                total: filteredProducts.length,
+                                onChange: (page: number) => setCurrentPage(page),
+                                showSizeChanger: false,
+                                showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} products`,
+                            }}
+                            rowClassName={(_, index) => 
+                                index % 2 === 0 ? 'table-row-light' : 'table-row-dark'
+                            }
+                        />
+                    </Spin>
+                )}
             </Card>
 
+            {/* Modal for Add/Edit Product */}
             <Modal
                 title={
                     <span style={{ color: '#52c41a' }}>
@@ -815,6 +1008,19 @@ const ProductsPage: React.FC = () => {
                     </Row>
                 </div>
             </Modal>
+            
+            <style>{`
+                .table-row-light {
+                    background-color: #fafafa;
+                }
+                .table-row-dark {
+                    background-color: #ffffff;
+                }
+                .table-row-light:hover,
+                .table-row-dark:hover {
+                    background-color: #f6ffed !important;
+                }
+            `}</style>
         </div>
     );
 }

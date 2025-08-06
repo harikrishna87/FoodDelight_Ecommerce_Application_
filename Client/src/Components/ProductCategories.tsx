@@ -43,7 +43,7 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
                 borderRadius: '12px',
                 transition: 'all 0.3s ease',
                 backgroundColor: 'rgba(82, 196, 26, 0.1)',
-                border: selectedCategory === category ? '2px solid #52c41a' : '1px solid #d9d9d9',
+                border: selectedCategory === category ? '2px dashed #52c41a' : '1px solid #d9d9d9',
                 position: 'relative'
               }}
               bodyStyle={{
@@ -83,11 +83,11 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({
                   backgroundColor: '#dc3545',
                   color: 'white',
                   padding: '2px 8px',
-                  borderRadius: '20px',
+                  borderRadius: '8px',
                   fontSize: '0.8rem',
                   fontWeight: 'bold'
                 }}>
-                  -{categoryDiscounts[category]}%
+                  -{categoryDiscounts[category]}% OFF
                 </div>
               )}
             </Card>

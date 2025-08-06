@@ -130,7 +130,7 @@ const Contact: React.FC = () => {
           </Row>
           <Row gutter={[24, 24]}>
             <Col xs={24} lg={10}>
-              <Card className="contact-info-card" style={{ height: '100%', border: 'none', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.09)' }} bodyStyle={{ padding: '32px' }}>
+              <Card className="contact-info-card" style={{ height: '100%', border: '2px dashed #b7eb8f', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.09)' }} bodyStyle={{ padding: '32px' }}>
                 <Title level={3} style={{ marginBottom: '32px' }}>Reach Out To Us</Title>
                 <div className="contact-info-item" style={{ display: 'flex', alignItems: 'center', marginBottom: '32px' }}>
                   <div className="icon-box" style={{ marginRight: '24px', color: '#52c41a' }}>
@@ -175,7 +175,7 @@ const Contact: React.FC = () => {
               </Card>
             </Col>
             <Col xs={24} lg={14}>
-              <Card className="contact-form-card" style={{ border: 'none', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.09)' }} bodyStyle={{ padding: '48px' }}>
+              <Card className="contact-form-card" style={{ border: '2px dashed #b7eb8f', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.09)' }} bodyStyle={{ padding: '48px' }}>
                 <Title level={3} style={{ marginBottom: '32px' }}>Send a Message</Title>
                 <Form form={form} onFinish={handleSubmit} layout="vertical" autoComplete="off">
                   <Row gutter={[16, 0]}>

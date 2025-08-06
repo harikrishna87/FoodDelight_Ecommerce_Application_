@@ -11,7 +11,7 @@ import PrivacyPolicy from './Pages/PrivacyPolicy'
 import TermsOfService from './Pages/TermsOfService'
 import { AuthProvider, AuthContext } from './context/AuthContext'
 import AuthPage from './Pages/Auth'
-import AdminDashboard from './Pages/AdminDashboard'
+// import AdminDashboard from './Pages/OrderAnalytics'
 import UserOrders from './Pages/UserOrders'
 import ProtectedRoute from './Components/ProtectedRoute'
 import ProductsPage from './Pages/ProductsPage'
@@ -21,6 +21,9 @@ import DealsDiscounts from './Pages/DealsDiscounts'
 import GiftCards from './Pages/GiftCards'
 import ShoppingInfo from './Pages/ShoppingInfo'
 import ReturnsExchanges from './Pages/ReturnsExchanges'
+import PaymentOverview from './Pages/PaymentOverview'
+import OrderManagement from './Pages/OrderManagement'
+import OrderAnalytics from './Pages/OrderAnalytics'
 
 const AppContent: React.FC = () => {
   const auth = useContext(AuthContext)
@@ -31,9 +34,11 @@ const AppContent: React.FC = () => {
         <FoodNavbar/>
         <Container className='mb-4 mt-4'>
           <Routes>
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path='/productspage' element={<ProductsPage/>}/>
-            <Route path="*" element={<Navigate to="/admin" replace />} />
+            <Route path="/admin/orderanalytics" element={<OrderAnalytics />} />
+            <Route path='/admin/productspage' element={<ProductsPage/>}/>
+            <Route path='/admin/paymentoverview' element={<PaymentOverview/>}/>
+            <Route path='/admin/ordermanagement' element={<OrderManagement/>}/>
+            <Route path="*" element={<Navigate to="/admin/orderanalytics" replace />} />
           </Routes>
         </Container>
         <FoodFooter/>
@@ -63,7 +68,7 @@ const AppContent: React.FC = () => {
             <Route path="/my-orders" element={<UserOrders />} />
           </Route>
           
-          <Route path="/admin" element={<Navigate to="/" replace />} />
+          <Route path="/admin/orderanalytics" element={<Navigate to="/" replace />} />
         </Routes>
       </Container>
       <FoodFooter/>
