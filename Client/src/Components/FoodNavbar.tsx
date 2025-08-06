@@ -101,6 +101,10 @@ const FoodNavbar: React.FC = () => {
 
   const activeKey = getActiveKey(location.pathname);
 
+  const isLargeScreen = () => {
+    return window.innerWidth > 900;
+  };
+
   useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
@@ -822,7 +826,7 @@ const FoodNavbar: React.FC = () => {
             </NavLink>
           </Title>
 
-          {screens.md && (
+          {isLargeScreen() && (
             <Menu
               mode="horizontal"
               selectedKeys={[activeKey]}
@@ -848,7 +852,7 @@ const FoodNavbar: React.FC = () => {
               </Badge>
             )}
 
-            {!screens.md && (
+            {!isLargeScreen() && (
               <Button
                 type="text"
                 icon={<MenuOutlined style={{ fontSize: '20px' }} />}
