@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import {
   Card,
   Table,
@@ -17,6 +17,9 @@ import {
   InfoCircleOutlined,
   CreditCardOutlined,
   CheckCircleOutlined,
+  DollarOutlined,
+  TrophyOutlined,
+  PieChartOutlined,
 } from '@ant-design/icons';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
@@ -101,6 +104,142 @@ const PaymentOverview: React.FC = () => {
     fetchOrders();
   }, [fetchOrders]);
 
+  const paymentAnalytics = useMemo(() => {
+    if (orders.length === 0) {
+      return {
+        totalPaymentReceived: 0,
+        totalOrders: 0,
+        averageOrderValue: 0,
+        highestPayment: 0,
+        monthlyPayments: [],
+        paymentRanges: []
+      };
+    }
+
+    const totalPaymentReceived = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+    const totalOrders = orders.length;
+    const averageOrderValue = totalOrders > 0 ? totalPaymentReceived / totalOrders : 0;
+    const highestPayment = Math.max(...orders.map(order => order.totalAmount));
+
+    const monthlyData: { [key: string]: number } = {};
+    orders.forEach(order => {
+      const month = new Date(order.createdAt).toLocaleString('default', { month: 'short', year: '2-digit' });
+      monthlyData[month] = (monthlyData[month] || 0) + order.totalAmount;
+    });
+
+    const monthlyPayments = Object.entries(monthlyData)
+      .map(([month, amount]) => ({ month, amount }))
+      .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime())
+      .slice(-6);
+
+    const ranges = [
+      { range: '₹0 - ₹500', min: 0, max: 500 },
+      { range: '₹501 - ₹1000', min: 501, max: 1000 },
+      { range: '₹1001 - ₹2000', min: 1001, max: 2000 },
+      { range: '₹2000+', min: 2001, max: Infinity }
+    ];
+
+    const paymentRanges = ranges.map(range => ({
+      ...range,
+      count: orders.filter(order => 
+        order.totalAmount >= range.min && order.totalAmount <= range.max
+      ).length
+    })).filter(range => range.count > 0);
+
+    return {
+      totalPaymentReceived,
+      totalOrders,
+      averageOrderValue,
+      highestPayment,
+      monthlyPayments,
+      paymentRanges
+    };
+  }, [orders]);
+
+  const createPaymentRangePieChart = () => {
+    if (paymentAnalytics.paymentRanges.length === 0) return null;
+    
+    const total = paymentAnalytics.paymentRanges.reduce((sum, item) => sum + item.count, 0);
+    let currentAngle = 0;
+    
+    const radius = 100;
+    const centerX = 100;
+    const centerY = 100;
+    const svgSize = 200;
+    
+    const rangeColors = ['#52c41a', '#1890ff', '#faad14', '#f5222d'];
+    
+    return (
+      <svg 
+        width="100%" 
+        height="100%" 
+        viewBox={`0 0 ${svgSize} ${svgSize}`}
+        style={{ maxWidth: '200px', maxHeight: '200px' }}
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <circle 
+          cx={centerX} 
+          cy={centerY} 
+          r="40" 
+          fill="white" 
+          stroke="#f0f0f0" 
+          strokeWidth="2" 
+        />
+        {paymentAnalytics.paymentRanges.map((item, index) => {
+          const percentage = (item.count / total) * 100;
+          const angle = (item.count / total) * 360;
+          const startAngle = currentAngle;
+          const endAngle = currentAngle + angle;
+          
+          const x1 = centerX + radius * Math.cos((startAngle * Math.PI) / 180);
+          const y1 = centerY + radius * Math.sin((startAngle * Math.PI) / 180);
+          const x2 = centerX + radius * Math.cos((endAngle * Math.PI) / 180);
+          const y2 = centerY + radius * Math.sin((endAngle * Math.PI) / 180);
+          
+          const largeArcFlag = angle > 180 ? 1 : 0;
+          
+          const pathData = [
+            `M ${centerX} ${centerY}`,
+            `L ${x1} ${y1}`,
+            `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+            'Z'
+          ].join(' ');
+          
+          const labelAngle = (startAngle + endAngle) / 2;
+          const labelRadius = radius * 0.65;
+          const labelX = centerX + labelRadius * Math.cos((labelAngle * Math.PI) / 180);
+          const labelY = centerY + labelRadius * Math.sin((labelAngle * Math.PI) / 180);
+          
+          currentAngle += angle;
+          
+          return (
+            <g key={item.range}>
+              <path
+                d={pathData}
+                fill={rangeColors[index % rangeColors.length]}
+                stroke="white"
+                strokeWidth="2"
+                style={{ cursor: 'pointer' }}
+              />
+              {percentage > 5 && (
+                <text
+                  x={labelX}
+                  y={labelY + 1}
+                  textAnchor="middle"
+                  fontSize="12px"
+                  fill="white"
+                  fontWeight="bold"
+                >
+                  {percentage.toFixed(1)}%
+                </text>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+    );
+  };
+
   if (loading) {
     return (
       <div style={{ padding: '40px 24px', maxWidth: 1400, margin: '0 auto' }}>
@@ -131,10 +270,8 @@ const PaymentOverview: React.FC = () => {
     );
   }
 
-  const totalPaymentReceived = orders.reduce((sum, order) => sum + order.totalAmount, 0);
-  const totalOrders = orders.length;
-  const averageOrderValue = totalOrders > 0 ? totalPaymentReceived / totalOrders : 0;
   const sortedPaymentOrders = [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const rangeColors = ['#52c41a', '#1890ff', '#faad14', '#f5222d'];
 
   const columns = [
     {
@@ -214,89 +351,314 @@ const PaymentOverview: React.FC = () => {
         </Title>
       </div>
 
-      <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
-        <Col xs={24} sm={8}>
-          <Card 
-            style={{ 
-              borderRadius: '16px',
+      <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
+        <Col xs={24} lg={12}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Card 
+                style={{ 
+                  borderRadius: '12px',
+                  border: '2px dashed #b7eb8f',
+                  boxShadow: '0 4px 16px rgba(183, 235, 143, 0.2)',
+                  background: 'white',
+                  height: '140px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center'
+                }}
+                bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
+              >
+                <Statistic
+                  title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Total Revenue</span>}
+                  value={paymentAnalytics.totalPaymentReceived}
+                  precision={2}
+                  prefix="₹"
+                  valueStyle={{ 
+                    color: '#52c41a', 
+                    fontSize: '25px', 
+                    fontWeight: 700 
+                  }}
+                />
+                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
+                  <DollarOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
+                  <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                    All time earnings
+                  </Text>
+                </div>
+              </Card>
+            </Col>
+            
+            <Col xs={24} md={12}>
+              <Card 
+                style={{ 
+                  borderRadius: '12px',
+                  border: '2px dashed #b7eb8f',
+                  boxShadow: '0 4px 16px rgba(183, 235, 143, 0.2)',
+                  background: 'white',
+                  height: '140px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center'
+                }}
+                bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
+              >
+                <Statistic
+                  title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Total Transactions</span>}
+                  value={paymentAnalytics.totalOrders}
+                  valueStyle={{ 
+                    color: '#52c41a', 
+                    fontSize: '25px', 
+                    fontWeight: 700 
+                  }}
+                />
+                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
+                  <CreditCardOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
+                  <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                    Successful payments
+                  </Text>
+                </div>
+              </Card>
+            </Col>
+            
+            <Col xs={24} md={12}>
+              <Card 
+                style={{ 
+                  borderRadius: '12px',
+                  border: '2px dashed #b7eb8f',
+                  boxShadow: '0 4px 16px rgba(183, 235, 143, 0.2)',
+                  background: 'white',
+                  height: '140px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center'
+                }}
+                bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
+              >
+                <Statistic
+                  title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Average Payment</span>}
+                  value={paymentAnalytics.averageOrderValue}
+                  precision={2}
+                  prefix="₹"
+                  valueStyle={{ 
+                    color: '#52c41a', 
+                    fontSize: '25px', 
+                    fontWeight: 700 
+                  }}
+                />
+                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
+                  <CheckCircleOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
+                  <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                    Per transaction value
+                  </Text>
+                </div>
+              </Card>
+            </Col>
+
+            <Col xs={24} md={12}>
+              <Card 
+                style={{ 
+                  borderRadius: '12px',
+                  border: '2px dashed #b7eb8f',
+                  boxShadow: '0 4px 16px rgba(183, 235, 143, 0.2)',
+                  background: 'white',
+                  height: '140px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center'
+                }}
+                bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
+              >
+                <Statistic
+                  title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Highest Payment</span>}
+                  value={paymentAnalytics.highestPayment}
+                  precision={2}
+                  prefix="₹"
+                  valueStyle={{ 
+                    color: '#52c41a', 
+                    fontSize: '25px', 
+                    fontWeight: 700 
+                  }}
+                />
+                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
+                  <TrophyOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
+                  <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                    Maximum single payment
+                  </Text>
+                </div>
+              </Card>
+            </Col>
+          </Row>
+        </Col>
+
+        <Col xs={24} lg={12}>
+          <Card
+            style={{
+              borderRadius: '12px',
               border: '2px dashed #b7eb8f',
-              boxShadow: '0 4px 16px rgba(183, 235, 143, 0.2)',
+              boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
               background: 'white',
-              color: 'white'
+              minHeight: '296px'
             }}
           >
-            <Statistic
-              title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Total Revenue</span>}
-              value={totalPaymentReceived}
-              precision={2}
-              prefix="₹"
-              valueStyle={{ 
-                color: '#52c41a', 
-                fontSize: '25px', 
-                fontWeight: 700 
-              }}
-            />
-            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
-              <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                <span style={{color:'#52c41a', fontSize: '16px'}}>₹ </span>All time earnings
-              </Text>
-            </div>
-          </Card>
-        </Col>
-        
-        <Col xs={24} sm={8}>
-          <Card 
-            style={{ 
-              borderRadius: '16px',
-              border: '2px dashed #b7eb8f',
-              boxShadow: '0 4px 16px rgba(183, 235, 143, 0.2)',
-              background: 'white'
-            }}
-          >
-            <Statistic
-              title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Total Orders</span>}
-              value={totalOrders}
-              valueStyle={{ 
-                color: '#52c41a', 
-                fontSize: '25px', 
-                fontWeight: 700 
-              }}
-            />
-            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
-              <CreditCardOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
-              <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                Successful transactions
-              </Text>
-            </div>
-          </Card>
-        </Col>
-        
-        <Col xs={24} sm={8}>
-          <Card 
-            style={{ 
-              borderRadius: '16px',
-              border: '2px dashed #b7eb8f',
-              boxShadow: '0 4px 16px rgba(183, 235, 143, 0.2)',
-              background: 'white'
-            }}
-          >
-            <Statistic
-              title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Average Order</span>}
-              value={averageOrderValue}
-              precision={2}
-              prefix="₹"
-              valueStyle={{ 
-                color: '#52c41a', 
-                fontSize: '25px', 
-                fontWeight: 700 
-              }}
-            />
-            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
-              <CheckCircleOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
-              <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                Per transaction value
-              </Text>
-            </div>
+            <Title level={4} style={{ marginBottom: '20px', color: '#52c41a'}}>
+              <PieChartOutlined /> Payment Range Distribution
+            </Title>
+            
+            {paymentAnalytics.paymentRanges.length > 0 ? (
+              <>
+                <div className="mobile-payments" style={{ display: 'block' }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    marginBottom: '20px'
+                  }}>
+                    <div style={{ 
+                      width: '100%', 
+                      maxWidth: '280px',
+                      aspectRatio: '1',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center'
+                    }}>
+                      {createPaymentRangePieChart()}
+                    </div>
+                  </div>
+                  
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '8px'
+                  }}>
+                    {paymentAnalytics.paymentRanges.map((item, index) => (
+                      <div 
+                        key={`range-${item.range}`}
+                        style={{ 
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '8px 12px',
+                          borderRadius: '6px',
+                          background: '#f9f9f9',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          border: '1px solid #e6f7ff',
+                          minHeight: '40px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#e6f7ff';
+                          e.currentTarget.style.transform = 'translateX(5px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = '#f9f9f9';
+                          e.currentTarget.style.transform = 'translateX(0px)';
+                        }}
+                      >
+                        <div 
+                          style={{ 
+                            width: '12px', 
+                            height: '12px', 
+                            backgroundColor: rangeColors[index % rangeColors.length],
+                            borderRadius: '50%',
+                            marginRight: '12px',
+                            border: '2px solid white',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                            flexShrink: 0
+                          }} 
+                        />
+                        <Text strong style={{ color: '#262626', fontSize: '14px', flex: 1 }}>
+                          {item.range}
+                        </Text>
+                        <Text style={{ color: '#52c41a', fontSize: '14px', fontWeight: 'bold' }}>
+                          {item.count}
+                        </Text>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="desktop-payments" style={{ display: 'none' }}>
+                  <Row gutter={[24, 24]}>
+                    <Col span={10}>
+                      <div style={{ 
+                        height: '200px', 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        alignItems: 'center' 
+                      }}>
+                        {createPaymentRangePieChart()}
+                      </div>
+                    </Col>
+                    <Col span={14}>
+                      <div style={{ 
+                        padding: '10px 0', 
+                        height: '200px', 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        justifyContent: 'center'
+                      }}>
+                        {paymentAnalytics.paymentRanges.map((item, index) => (
+                          <div 
+                            key={`range-${item.range}`}
+                            style={{ 
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '6px 12px',
+                              marginBottom: '4px',
+                              borderRadius: '6px',
+                              background: '#f9f9f9',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease',
+                              border: '1px solid #e6f7ff'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#e6f7ff';
+                              e.currentTarget.style.transform = 'translateX(5px)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = '#f9f9f9';
+                              e.currentTarget.style.transform = 'translateX(0px)';
+                            }}
+                          >
+                            <div 
+                              style={{ 
+                                width: '12px', 
+                                height: '12px', 
+                                backgroundColor: rangeColors[index % rangeColors.length],
+                                borderRadius: '50%',
+                                marginRight: '12px',
+                                border: '2px solid white',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                flexShrink: 0
+                              }} 
+                            />
+                            <Text strong style={{ color: '#262626', fontSize: '14px', flex: 1 }}>
+                              {item.range}
+                            </Text>
+                            <Text style={{ color: '#52c41a', fontSize: '14px', fontWeight: 'bold' }}>
+                              {item.count}
+                            </Text>
+                          </div>
+                        ))}
+                      </div>
+                    </Col>
+                  </Row>
+                </div>
+              </>
+            ) : (
+              <div style={{ 
+                textAlign: 'center', 
+                color: '#8c8c8c',
+                padding: '40px 20px',
+                minHeight: '200px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}>
+                <PieChartOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
+                <Text>No payment data available</Text>
+              </div>
+            )}
           </Card>
         </Col>
       </Row>
@@ -348,6 +710,26 @@ const PaymentOverview: React.FC = () => {
           />
         )}
       </Card>
+
+      <style>{`
+        @media (max-width: 991px) {
+          .desktop-payments {
+            display: none !important;
+          }
+          .mobile-payments {
+            display: block !important;
+          }
+        }
+        
+        @media (min-width: 992px) {
+          .mobile-payments {
+            display: none !important;
+          }
+          .desktop-payments {
+            display: block !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

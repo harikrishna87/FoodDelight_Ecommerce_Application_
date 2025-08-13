@@ -13,7 +13,9 @@ import {
   List,
   Avatar,
   Button,
-  Tag
+  Tag,
+  Modal,
+  Table
 } from 'antd';
 import {
   PieChartOutlined,
@@ -35,6 +37,7 @@ import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { IOrder } from '../types';
 import { Line, Column } from '@ant-design/charts';
+import { useNavigate } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 
@@ -355,7 +358,7 @@ const LatestCampaign: React.FC<{ orders: IOrder[] }> = ({ orders }) => {
   };
 
   return (
-<Card
+    <Card
       title={
         <Space>
           <CalendarOutlined style={{ color: '#fa8c16' }} />
@@ -636,26 +639,164 @@ const CustomerInsights: React.FC<{ orders: IOrder[] }> = ({ orders }) => {
 };
 
 const MyCampaign: React.FC<{ orders: IOrder[] }> = ({ orders }) => {
-  const totalOrders = orders.length;
+  const navigate = useNavigate();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalType, setModalType] = useState<'total' | 'active'>('total');
+
+  const handleOrderClick = () => {
+    navigate('/admin/ordermanagement');
+  };
+
+  const handlePaymentClick = () => {
+    navigate('/admin/paymentoverview');
+  };
+
   const totalUsers = new Set(orders.map(order => order.user?.email).filter(Boolean)).size;
-  const activeUsers = new Set(
+  const activeUsersSet = new Set(
     orders
       .filter(order =>
         new Date(order.createdAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
       )
       .map(order => order.user?.email || order.user?._id)
       .filter(Boolean)
-  ).size;
+  );
+  const activeUsers = activeUsersSet.size;
   const allSpend = orders.reduce((sum, order) => sum + order.totalAmount, 0);
+
+  const getAllUsers = () => {
+    const userMap = new Map();
+    orders.forEach(order => {
+      if (order.user?.email) {
+        const userId = order.user.email;
+        if (!userMap.has(userId)) {
+          userMap.set(userId, {
+            key: userId,
+            name: order.user.name || 'Unknown',
+            email: order.user.email,
+            totalOrders: 0,
+            totalSpent: 0,
+            lastOrderDate: order.createdAt
+          });
+        }
+        const user = userMap.get(userId);
+        user.totalOrders++;
+        user.totalSpent += order.totalAmount;
+        if (new Date(order.createdAt) > new Date(user.lastOrderDate)) {
+          user.lastOrderDate = order.createdAt;
+        }
+      }
+    });
+    return Array.from(userMap.values());
+  };
+
+  const getActiveUsers = () => {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const userMap = new Map();
+
+    orders
+      .filter(order => new Date(order.createdAt) > thirtyDaysAgo)
+      .forEach(order => {
+        if (order.user?.email) {
+          const userId = order.user.email;
+          if (!userMap.has(userId)) {
+            userMap.set(userId, {
+              key: userId,
+              name: order.user.name || 'Unknown',
+              email: order.user.email,
+              totalOrders: 0,
+              totalSpent: 0,
+              lastOrderDate: order.createdAt
+            });
+          }
+          const user = userMap.get(userId);
+          user.totalOrders++;
+          user.totalSpent += order.totalAmount;
+          if (new Date(order.createdAt) > new Date(user.lastOrderDate)) {
+            user.lastOrderDate = order.createdAt;
+          }
+        }
+      });
+    return Array.from(userMap.values());
+  };
+
+  const handleUserClick = (type: 'total' | 'active') => {
+    setModalType(type);
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+  };
+
+  const columns = [
+    {
+      title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Name</span>,
+      dataIndex: 'name',
+      key: 'name',
+      render: (text: string) => (
+        <div>
+          <Avatar size="small" style={{ backgroundColor: '#52c41a', marginRight: 8 }}>
+            {text.charAt(0).toUpperCase()}
+          </Avatar>
+          <Text strong style={{ color: '#262626' }}>{text}</Text>
+        </div>
+      ),
+    },
+    {
+      title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Email</span>,
+      dataIndex: 'email',
+      key: 'email',
+      render: (email: string) => (
+        <Text style={{ color: '#595959' }}>{email}</Text>
+      ),
+    },
+    {
+      title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Total Orders</span>,
+      dataIndex: 'totalOrders',
+      key: 'totalOrders',
+      render: (value: number) => (
+        <Tag color="cyan" style={{ border: '1px dashed'}}>{value}</Tag>
+      ),
+    },
+    {
+      title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Total Spent</span>,
+      dataIndex: 'totalSpent',
+      key: 'totalSpent',
+      render: (value: number) => (
+        <Text style={{ color: '#52c41a', fontWeight: 600 }}>
+          ₹{value.toLocaleString('en-IN')}
+        </Text>
+      ),
+    },
+    {
+      title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Last Order</span>,
+      dataIndex: 'lastOrderDate',
+      key: 'lastOrderDate',
+      render: (date: string) => (
+        <Text style={{ color: '#595959' }}>
+          {new Date(date).toLocaleDateString('en-IN', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+          })}
+        </Text>
+      ),
+    },
+  ];
+
+  const userData = modalType === 'total' ? getAllUsers() : getActiveUsers();
+  const modalTitle = modalType === 'total' ? 'All Users Details' : 'Active Users Details (Last 30 Days)';
 
   const stats = [
     {
       title: 'Total Orders',
-      value: totalOrders,
+      value: orders.length,
       change: '+2.6%',
       trend: 'up',
       color: '#52c41a',
-      icon: <ShoppingCartOutlined />
+      icon: <ShoppingCartOutlined />,
+      clickable: true,
+      onClick: handleOrderClick
     },
     {
       title: 'Total Users',
@@ -663,7 +804,9 @@ const MyCampaign: React.FC<{ orders: IOrder[] }> = ({ orders }) => {
       change: '+4.6%',
       trend: 'up',
       color: '#1890ff',
-      icon: <TeamOutlined />
+      icon: <TeamOutlined />,
+      clickable: true,
+      onClick: () => handleUserClick('total')
     },
     {
       title: 'Active Users',
@@ -671,7 +814,9 @@ const MyCampaign: React.FC<{ orders: IOrder[] }> = ({ orders }) => {
       change: '+1.8%',
       trend: 'up',
       color: '#722ed1',
-      icon: <UserOutlined />
+      icon: <UserOutlined />,
+      clickable: true,
+      onClick: () => handleUserClick('active')
     },
     {
       title: 'Total Revenue',
@@ -679,77 +824,126 @@ const MyCampaign: React.FC<{ orders: IOrder[] }> = ({ orders }) => {
       change: '+7.2%',
       trend: 'up',
       color: '#fa8c16',
-      icon: <span style={{ fontSize: '16px' }}>₹</span>
+      icon: <span style={{ fontSize: '16px' }}>₹</span>,
+      clickable: true,
+      onClick: handlePaymentClick
     }
   ];
 
   return (
-    <Row gutter={[24, 16]}>
-      {stats.map((stat, index) => (
-        <Col xs={24} sm={12} md={6} key={index}>
-          <Card
-            style={{
-              textAlign: 'center',
-              height: '100%',
-              border: '2px dashed #b7eb8f',
-              boxShadow: '0 4px 16px rgba(183, 235, 143, 0.2)',
-              borderRadius: '16px'
-            }}
-            bodyStyle={{ padding: '24px 16px' }}
-          >
-            <Row justify="center" style={{ marginBottom: 16 }}>
-              <Col>
-                <Avatar
-                  size={48}
-                  style={{
-                    backgroundColor: `${stat.color}15`,
-                    color: stat.color,
-                    marginBottom: 8
-                  }}
-                  icon={stat.icon}
-                />
-              </Col>
-            </Row>
-            <Row justify="center">
-              <Col span={24}>
-                <Statistic
-                  title={stat.title}
-                  value={typeof stat.value === 'number' ? stat.value : stat.value.replace('₹', '')}
-                  precision={typeof stat.value === 'string' && stat.value.includes('₹') ? 0 : undefined}
-                  prefix={typeof stat.value === 'string' && stat.value.includes('₹') ? '₹' : undefined}
-                  valueStyle={{
-                    color: '#262626',
-                    fontSize: '24px',
-                    fontWeight: 'bold'
-                  }}
-                />
-              </Col>
-            </Row>
-            <Row justify="center" align="middle" gutter={4} style={{ marginTop: 8 }}>
-              <Col>
-                {stat.trend === 'up' ? (
-                  <RiseOutlined style={{ color: '#52c41a', fontSize: '12px' }} />
-                ) : (
-                  <FallOutlined style={{ color: '#ff4d4f', fontSize: '12px' }} />
-                )}
-              </Col>
-              <Col>
-                <Text style={{
-                  color: stat.trend === 'up' ? '#52c41a' : '#ff4d4f',
-                  fontSize: '12px',
-                  fontWeight: '500'
-                }}>
-                  {stat.change}
-                </Text>
-              </Col>
-              <Col>
-                <Text type="secondary" style={{ fontSize: '12px' }}>vs last month</Text>
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-      ))}
-    </Row>
+    <>
+      <Row gutter={[24, 16]}>
+        {stats.map((stat, index) => (
+          <Col xs={24} sm={12} md={6} key={index}>
+            <Card
+              style={{
+                textAlign: 'center',
+                height: '100%',
+                border: '2px dashed #b7eb8f',
+                boxShadow: '0 4px 16px rgba(183, 235, 143, 0.2)',
+                borderRadius: '16px',
+                cursor: stat.clickable ? 'pointer' : 'default',
+                transition: 'all 0.3s ease'
+              }}
+              bodyStyle={{ padding: '24px 16px' }}
+              onClick={stat.onClick}
+              hoverable={stat.clickable}
+            >
+              <Row justify="center" style={{ marginBottom: 16 }}>
+                <Col>
+                  <Avatar
+                    size={48}
+                    style={{
+                      backgroundColor: `${stat.color}15`,
+                      color: stat.color,
+                      marginBottom: 8
+                    }}
+                    icon={stat.icon}
+                  />
+                </Col>
+              </Row>
+              <Row justify="center">
+                <Col span={24}>
+                  <Statistic
+                    title={stat.title}
+                    value={typeof stat.value === 'number' ? stat.value : stat.value.replace('₹', '')}
+                    precision={typeof stat.value === 'string' && stat.value.includes('₹') ? 0 : undefined}
+                    prefix={typeof stat.value === 'string' && stat.value.includes('₹') ? '₹' : undefined}
+                    valueStyle={{
+                      color: '#262626',
+                      fontSize: '24px',
+                      fontWeight: 'bold'
+                    }}
+                  />
+                </Col>
+              </Row>
+              <Row justify="center" align="middle" gutter={4} style={{ marginTop: 8 }}>
+                <Col>
+                  {stat.trend === 'up' ? (
+                    <RiseOutlined style={{ color: '#52c41a', fontSize: '12px' }} />
+                  ) : (
+                    <FallOutlined style={{ color: '#ff4d4f', fontSize: '12px' }} />
+                  )}
+                </Col>
+                <Col>
+                  <Text style={{
+                    color: stat.trend === 'up' ? '#52c41a' : '#ff4d4f',
+                    fontSize: '12px',
+                    fontWeight: '500'
+                  }}>
+                    {stat.change}
+                  </Text>
+                </Col>
+                <Col>
+                  <Text type="secondary" style={{ fontSize: '12px' }}>vs last month</Text>
+                </Col>
+              </Row>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+
+      <Modal
+        title={
+          <Space>
+            <TeamOutlined style={{ color: '#52c41a' }} />
+            <span style={{ color: '#52c41a', fontWeight: '600' }}>{modalTitle}</span>
+          </Space>
+        }
+        visible={modalVisible}
+        onCancel={closeModal}
+        footer={null}
+        width={1000}
+        centered
+        style={{
+          top: 0,
+        }}
+        bodyStyle={{
+          maxHeight: '70vh',
+          overflowY: 'auto',
+          backgroundColor: '#f6ffed',
+          borderRadius: '8px'
+        }}
+      >
+        <Table
+          columns={columns}
+          dataSource={userData}
+          pagination={{
+            pageSize: 10,
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`
+          }}
+          size="small"
+          scroll={{ x: 800 }}
+          style={{
+            backgroundColor: 'white',
+            borderRadius: '8px'
+          }}
+          rowClassName={(_, index) =>
+            index % 2 === 0 ? 'table-row-light' : 'table-row-dark'
+          }
+        />
+      </Modal>
+    </>
   );
 };
 
@@ -877,94 +1071,109 @@ const OrderAnalytics: React.FC = () => {
   }
 
   return (
-    <div style={{
-      padding: '24px',
-      maxWidth: 1250,
-      margin: '0 auto',
-      minHeight: '100vh'
-    }}>
-      {contextHolder}
+    <>
+      <style>{`
+        .table-row-light {
+          background-color: #fafafa;
+        }
+        .table-row-dark {
+          background-color: #ffffff;
+        }
+        .table-row-light:hover,
+        .table-row-dark:hover {
+          background-color: #f6ffed !important;
+        }
+      `}</style>
+      
+      <div style={{
+        padding: '24px',
+        maxWidth: 1250,
+        margin: '0 auto',
+        minHeight: '100vh'
+      }}>
+        {contextHolder}
 
-      <Row justify="space-between" align="middle" style={{ marginBottom: '32px' }} gutter={[16, 16]}>
-        <Col xs={24} md={12} lg={16}>
-          <Title level={1} style={{
-            margin: 0,
-            color: "#52c41a",
-            fontSize: 'clamp(24px, 4vw, 32px)',
-            lineHeight: 1.2
-          }}>
-            Analytics Dashboard
-          </Title>
-          <Text type="secondary" style={{
-            fontSize: 'clamp(14px, 2vw, 16px)',
-            display: 'block',
-            marginTop: '4px'
-          }}>
-            Monitor your business performance and growth
-          </Text>
-        </Col>
-        <Col xs={24} md={12} lg={8}>
-          <Row justify="end" gutter={[16, 16]}>
-            <Col>
-              <Button
-                type="primary"
-                icon={<ReloadOutlined />}
-                onClick={fetchOrders}
-                loading={loading}
-              >
-                Refresh Data
-              </Button>
-            </Col>
-            <Col>
-              <Row justify="end">
-                <Col span={24}>
-                  <Text type="secondary" style={{ display: 'block', fontSize: '12px', textAlign: 'right' }}>
-                    Content Management
-                  </Text>
-                </Col>
-                <Col>
-                  <Space>
-                    <UserOutlined style={{ color: '#1890ff' }} />
-                    <Text strong>Manager</Text>
-                  </Space>
-                </Col>
-              </Row>
-            </Col>
-          </Row>
-        </Col>
-      </Row>
+        <Row justify="space-between" align="middle" style={{ marginBottom: '32px' }} gutter={[16, 16]}>
+          <Col xs={24} md={12} lg={16}>
+            <Title level={1} style={{
+              margin: 0,
+              color: "#52c41a",
+              fontSize: 'clamp(24px, 4vw, 32px)',
+              lineHeight: 1.2
+            }}>
+              Analytics Dashboard
+            </Title>
+            <Text type="secondary" style={{
+              fontSize: 'clamp(14px, 2vw, 16px)',
+              display: 'block',
+              marginTop: '4px'
+            }}>
+              Monitor your business performance and growth
+            </Text>
+          </Col>
+          <Col xs={24} md={12} lg={8}>
+            <Row justify="end" gutter={[16, 16]}>
+              <Col>
+                <Button
+                  type="primary"
+                  icon={<ReloadOutlined />}
+                  onClick={fetchOrders}
+                  loading={loading}
+                >
+                  Refresh Data
+                </Button>
+              </Col>
+              <Col>
+                <Row justify="end">
+                  <Col span={24}>
+                    <Text type="secondary" style={{ display: 'block', fontSize: '12px', textAlign: 'right' }}>
+                      Content Management
+                    </Text>
+                  </Col>
+                  <Col>
+                    <Space>
+                      <UserOutlined style={{ color: '#1890ff' }} />
+                      <Text strong>Manager</Text>
+                    </Space>
+                  </Col>
+                </Row>
+              </Col>
+            </Row>
+          </Col>
+        </Row>
 
-      <Row style={{ marginBottom: '32px' }}>
-        <Col span={24}>
-          <MyCampaign orders={orders} />
-        </Col>
-      </Row>
+        <Row style={{ marginBottom: '32px' }}>
+          <Col span={24}>
+            <MyCampaign orders={orders} />
+          </Col>
+        </Row>
 
-      <Row gutter={[24, 24]}>
-        <Col xs={24} lg={16}>
-          <CampaignStatistic orders={orders} />
-        </Col>
-        <Col xs={24} lg={8}>
-          <WeeklyEarning orders={orders} />
-        </Col>
-      </Row>
+        <Row gutter={[24, 24]}>
+          <Col xs={24} lg={16}>
+            <CampaignStatistic orders={orders} />
+          </Col>
+          <Col xs={24} lg={8}>
+            <WeeklyEarning orders={orders} />
+          </Col>
+        </Row>
 
-      <Row gutter={[16, 24]} style={{ marginTop: '24px' }}>
-        <Col xs={24} md={12}>
-          <LatestCampaign orders={orders} />
-        </Col>
-        <Col xs={24} md={12}>
-          <Row gutter={[16, 16]}>
-            <Col span={24}>
-              <OrderStatistics orders={orders} />
-            </Col>
-            <Col span={24}>
-              <CustomerInsights orders={orders} />
-            </Col>
-          </Row>
-        </Col>
-      </Row>
-    </div>
+        <Row gutter={[16, 24]} style={{ marginTop: '24px' }}>
+          <Col xs={24} md={12}>
+            <LatestCampaign orders={orders} />
+          </Col>
+          <Col xs={24} md={12}>
+            <Row gutter={[16, 16]}>
+              <Col span={24}>
+                <OrderStatistics orders={orders} />
+              </Col>
+              <Col span={24}>
+                <CustomerInsights orders={orders} />
+              </Col>
+            </Row>
+          </Col>
+        </Row>
+      </div>
+    </>
   );
 };
 

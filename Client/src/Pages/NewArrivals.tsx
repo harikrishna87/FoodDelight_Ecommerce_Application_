@@ -333,7 +333,7 @@ const NewArrivals = () => {
                                                     title={
                                                         <Space direction="vertical" size="small" style={{ width: '100%' }}>
                                                             <Text strong style={{ fontSize: '16px' }}>{item.name}</Text>
-                                                            <Tag color="blue" style={{ width: 'fit-content' }}>
+                                                            <Tag color="cyan" style={{ width: 'fit-content', border:'1px dashed' }}>
                                                                 {item.category}
                                                             </Tag>
                                                         </Space>
