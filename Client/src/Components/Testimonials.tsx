@@ -15,38 +15,43 @@ interface Testimonial {
 const testimonials: Testimonial[] = [
     {
         id: 1,
-        name: "Hari Krishna",
+        name: "Haarini",
         role: "Regular Customer",
         text: "The quality of products is exceptional. I've been shopping here for years!",
+        avatar: "https://images.unsplash.com/photo-1663893364107-a6ecd06cf615?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         rating: 5
     },
-    {
+     {
         id: 2,
-        name: "Mahitha",
-        role: "Food Critic",
-        text: "Their selection never fails to impress. A must-visit for food enthusiasts.",
+        name: "Srikanth",
+        role: "Food Blogger",
+        text: "The flavors are authentic and the service is always exceptional!",
+        avatar: "https://images.unsplash.com/photo-1641288883869-c463bc6c2a58?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         rating: 4.5
     },
     {
         id: 3,
-        name: "Indu Priya",
-        role: "Chef",
-        text: "The freshness and variety of products have transformed my cooking experience.",
-        rating: 5
+        name: "Mahitha",
+        role: "Food Critic",
+        text: "Their selection never fails to impress. A must-visit for food enthusiasts.",
+        avatar: "https://plus.unsplash.com/premium_photo-1691784781482-9af9bce05096?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        rating: 4.5
     },
     {
         id: 4,
         name: "Revanth",
         role: "Nutritionist",
         text: "I recommend these products to all my clients. Premium quality and great value.",
+        avatar: "https://images.unsplash.com/photo-1654110455429-cf322b40a906?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         rating: 4
     },
     {
         id: 5,
-        name: "Srikanth",
-        role: "Food Blogger",
-        text: "The flavors are authentic and the service is always exceptional!",
-        rating: 4.5
+        name: "Indu Priya",
+        role: "Chef",
+        text: "The freshness and variety of products have transformed my cooking experience.",
+        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+        rating: 5
     }
 ];
 
@@ -69,46 +74,30 @@ const Testimonials: React.FC = () => {
                                 boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24)'
                             }}
                         >
-                            <div style={{ marginBottom: '12px' }}>
-                                <Rate 
-                                    disabled 
-                                    value={testimonial.rating} 
-                                    allowHalf
-                                    style={{ 
-                                        color: '#faad14',
-                                        fontSize: '16px'
-                                    }}
-                                />
-                            </div>
-                            <Text 
-                                style={{ 
-                                    fontStyle: 'italic',
-                                    display: 'block',
-                                    marginBottom: '12px'
-                                }}
-                            >
-                                "{testimonial.text}"
-                            </Text>
                             <div style={{ 
                                 display: 'flex', 
-                                alignItems: 'center', 
-                                marginTop: '12px' 
+                                alignItems: 'flex-start', 
+                                marginBottom: '12px' 
                             }}>
-                                <Avatar 
-                                    style={{ 
-                                        backgroundColor: '#52c41a',
-                                        marginRight: '12px',
-                                        width: '40px',
-                                        height: '40px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}
-                                >
-                                    {testimonial.name.charAt(0)}
-                                </Avatar>
-                                <div>
-                                    <Title level={5} style={{ marginBottom: '0' }}>
+                                <div style={{ width: '40%'}}>
+                                    <Avatar 
+                                        src={testimonial.avatar}
+                                        shape="square"
+                                        style={{ 
+                                            backgroundColor: '#52c41a',
+                                            width: '70px',
+                                            height: '70px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '20px'
+                                        }}
+                                    >
+                                        {testimonial.name.charAt(0)}
+                                    </Avatar>
+                                </div>
+                                <div style={{ width: '60%' }}>
+                                    <Title level={5} style={{ marginBottom: '4px', marginTop: '10px' }}>
                                         {testimonial.name}
                                     </Title>
                                     <Text type="secondary" style={{ fontSize: '12px' }}>
@@ -116,6 +105,34 @@ const Testimonials: React.FC = () => {
                                     </Text>
                                 </div>
                             </div>
+                            <div style={{ marginBottom: '12px' }}>
+                                <Rate 
+                                    disabled 
+                                    value={testimonial.rating} 
+                                    allowHalf
+                                    style={{ 
+                                        color: '#faad14',
+                                        fontSize: '16px',
+                                        marginRight: '8px'
+                                    }}
+                                />
+                                <Text style={{ fontSize: '14px', color: '#666' }}>
+                                    ({testimonial.rating})
+                                </Text>
+                            </div>
+                            <Text 
+                                style={{ 
+                                    fontStyle: 'italic',
+                                    display: '-webkit-box',
+                                    WebkitBoxOrient: 'vertical',
+                                    WebkitLineClamp: 3,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    lineHeight: '1.4'
+                                }}
+                            >
+                                "{testimonial.text}"
+                            </Text>
                         </Card>
                     ))}
                 </div>

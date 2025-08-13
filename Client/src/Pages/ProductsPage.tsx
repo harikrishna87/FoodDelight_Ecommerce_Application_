@@ -33,6 +33,7 @@ import {
     TagsOutlined,
     UnorderedListOutlined,
 } from '@ant-design/icons';
+
 import type { ColumnsType } from 'antd/es/table';
 
 const { Search } = Input;
@@ -497,6 +498,91 @@ const ProductsPage: React.FC = () => {
     const averagePrice = totalProducts > 0 ? totalValue / totalProducts : 0;
     const averageRating = totalProducts > 0 ? products.reduce((sum, product) => sum + (product.rating?.rate || 0), 0) / totalProducts : 0;
 
+    const categoryColors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'];
+    
+    const createResponsivePieChart = () => {
+        if (categories.length === 0) return null;
+        
+        const total = categories.reduce((sum, cat) => sum + cat.count, 0);
+        let currentAngle = 0;
+        
+        const radius = 100;
+        const centerX = 100;
+        const centerY = 100;
+        const svgSize = 200;
+        
+        return (
+            <svg 
+                width="100%" 
+                height="100%" 
+                viewBox={`0 0 ${svgSize} ${svgSize}`}
+                style={{ maxWidth: '200px', maxHeight: '200px' }}
+                preserveAspectRatio="xMidYMid meet"
+            >
+                <circle 
+                    cx={centerX} 
+                    cy={centerY} 
+                    r="40" 
+                    fill="white" 
+                    stroke="#f0f0f0" 
+                    strokeWidth="2" 
+                />
+                {categories.map((category, index) => {
+                    const percentage = (category.count / total) * 100;
+                    const angle = (category.count / total) * 360;
+                    const startAngle = currentAngle;
+                    const endAngle = currentAngle + angle;
+                    
+                    const x1 = centerX + radius * Math.cos((startAngle * Math.PI) / 180);
+                    const y1 = centerY + radius * Math.sin((startAngle * Math.PI) / 180);
+                    const x2 = centerX + radius * Math.cos((endAngle * Math.PI) / 180);
+                    const y2 = centerY + radius * Math.sin((endAngle * Math.PI) / 180);
+                    
+                    const largeArcFlag = angle > 180 ? 1 : 0;
+                    
+                    const pathData = [
+                        `M ${centerX} ${centerY}`,
+                        `L ${x1} ${y1}`,
+                        `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                        'Z'
+                    ].join(' ');
+                    
+                    const labelAngle = (startAngle + endAngle) / 2;
+                    const labelRadius = radius * 0.65;
+                    const labelX = centerX + labelRadius * Math.cos((labelAngle * Math.PI) / 180);
+                    const labelY = centerY + labelRadius * Math.sin((labelAngle * Math.PI) / 180);
+                    
+                    currentAngle += angle;
+                    
+                    return (
+                        <g key={category.name}>
+                            <path
+                                d={pathData}
+                                fill={categoryColors[index % categoryColors.length]}
+                                stroke="white"
+                                strokeWidth="2"
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => handleCategoryClick(category.name)}
+                            />
+                            {percentage > 5 && (
+                                <text
+                                    x={labelX}
+                                    y={labelY + 1}
+                                    textAnchor="middle"
+                                    fontSize="9"
+                                    fill="white"
+                                    fontWeight="bold"
+                                >
+                                    {percentage.toFixed(1)}%
+                                </text>
+                            )}
+                        </g>
+                    );
+                })}
+            </svg>
+        );
+    };
+
     const columns: ColumnsType<Product> = [
         {
             title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Image</span>,
@@ -540,7 +626,7 @@ const ProductsPage: React.FC = () => {
             dataIndex: 'category',
             key: 'category',
             render: (category: string) => (
-                <Tag color="cyan" style={{ borderRadius: '12px' }}>{category}</Tag>
+                <Tag color="cyan" style={{ border:'1px dashed' }}>{category}</Tag>
             ),
         },
         {
@@ -610,165 +696,315 @@ const ProductsPage: React.FC = () => {
             </Title>
 
             <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
-                <Col xs={24} sm={12} md={6}>
-                    <Card 
-                        style={{ 
-                            borderRadius: '12px',
-                            border: '2px dashed #b7eb8f',
-                            boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
-                            background: 'white',
-                            height: '140px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'center'
-                        }}
-                        bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
-                    >
-                        <Statistic
-                            title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Total Products</span>}
-                            value={totalProducts}
-                            valueStyle={{ 
-                                color: '#52c41a', 
-                                fontSize: '25px', 
-                                fontWeight: 700 
-                            }}
-                        />
-                        <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
-                            <ShoppingCartOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
-                            <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                                Available products
-                            </Text>
-                        </div>
-                    </Card>
+                <Col xs={24} xl={12}>
+                    <Row gutter={[16, 16]} style={{ marginBottom: '16px' }}>
+                        <Col xs={24} sm={12}>
+                            <Card 
+                                style={{ 
+                                    borderRadius: '12px',
+                                    border: '2px dashed #b7eb8f',
+                                    boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
+                                    background: 'white',
+                                    height: '140px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center'
+                                }}
+                                bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
+                            >
+                                <Statistic
+                                    title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Total Products</span>}
+                                    value={totalProducts}
+                                    valueStyle={{ 
+                                        color: '#52c41a', 
+                                        fontSize: '25px', 
+                                        fontWeight: 700 
+                                    }}
+                                />
+                                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
+                                    <ShoppingCartOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
+                                    <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                                        Available products
+                                    </Text>
+                                </div>
+                            </Card>
+                        </Col>
+                        
+                        <Col xs={24} sm={12}>
+                            <Card 
+                                style={{ 
+                                    borderRadius: '12px',
+                                    border: '2px dashed #b7eb8f',
+                                    boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
+                                    background: 'white',
+                                    height: '140px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center'
+                                }}
+                                bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
+                            >
+                                <Statistic
+                                    title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Total Value</span>}
+                                    value={totalValue}
+                                    precision={2}
+                                    prefix="₹"
+                                    valueStyle={{ 
+                                        color: '#52c41a', 
+                                        fontSize: '25px', 
+                                        fontWeight: 700 
+                                    }}
+                                />
+                                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
+                                    <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                                        <span style={{color:'#52c41a', fontSize: '16px'}}>₹ </span>Inventory value
+                                    </Text>
+                                </div>
+                            </Card>
+                        </Col>
+                    </Row>
+                    
+                    <Row gutter={[16, 16]}>
+                        <Col xs={24} sm={12}>
+                            <Card 
+                                style={{ 
+                                    borderRadius: '12px',
+                                    border: '2px dashed #b7eb8f',
+                                    boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
+                                    background: 'white',
+                                    height: '140px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center'
+                                }}
+                                bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
+                            >
+                                <Statistic
+                                    title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Average Price</span>}
+                                    value={averagePrice}
+                                    precision={2}
+                                    prefix="₹"
+                                    valueStyle={{ 
+                                        color: '#52c41a', 
+                                        fontSize: '25px', 
+                                        fontWeight: 700 
+                                    }}
+                                />
+                                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
+                                    <TagsOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
+                                    <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                                        Per product
+                                    </Text>
+                                </div>
+                            </Card>
+                        </Col>
+                        
+                        <Col xs={24} sm={12}>
+                            <Card 
+                                style={{ 
+                                    borderRadius: '12px',
+                                    border: '2px dashed #b7eb8f',
+                                    boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
+                                    background: 'white',
+                                    height: '140px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center'
+                                }}
+                                bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
+                            >
+                                <Statistic
+                                    title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Average Rating</span>}
+                                    value={averageRating}
+                                    precision={1}
+                                    valueStyle={{ 
+                                        color: '#52c41a', 
+                                        fontSize: '25px', 
+                                        fontWeight: 700 
+                                    }}
+                                />
+                                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
+                                    <StarOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
+                                    <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                                        Customer rating
+                                    </Text>
+                                </div>
+                            </Card>
+                        </Col>
+                    </Row>
                 </Col>
                 
-                <Col xs={24} sm={12} md={6}>
-                    <Card 
-                        style={{ 
-                            borderRadius: '12px',
-                            border: '2px dashed #b7eb8f',
-                            boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
-                            background: 'white',
-                            height: '140px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'center'
-                        }}
-                        bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
-                    >
-                        <Statistic
-                            title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Total Value</span>}
-                            value={totalValue}
-                            precision={2}
-                            prefix="₹"
-                            valueStyle={{ 
-                                color: '#52c41a', 
-                                fontSize: '25px', 
-                                fontWeight: 700 
-                            }}
-                        />
-                        <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
-                            <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                                <span style={{color:'#52c41a', fontSize: '16px'}}>₹ </span>Inventory value
-                            </Text>
-                        </div>
-                    </Card>
-                </Col>
-                
-                <Col xs={24} sm={12} md={6}>
-                    <Card 
-                        style={{ 
-                            borderRadius: '12px',
-                            border: '2px dashed #b7eb8f',
-                            boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
-                            background: 'white',
-                            height: '140px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'center'
-                        }}
-                        bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
-                    >
-                        <Statistic
-                            title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Average Price</span>}
-                            value={averagePrice}
-                            precision={2}
-                            prefix="₹"
-                            valueStyle={{ 
-                                color: '#52c41a', 
-                                fontSize: '25px', 
-                                fontWeight: 700 
-                            }}
-                        />
-                        <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
-                            <TagsOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
-                            <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                                Per product
-                            </Text>
-                        </div>
-                    </Card>
-                </Col>
-                
-                <Col xs={24} sm={12} md={6}>
-                    <Card 
-                        style={{ 
-                            borderRadius: '12px',
-                            border: '2px dashed #b7eb8f',
-                            boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
-                            background: 'white',
-                            height: '140px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'center'
-                        }}
-                        bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
-                    >
-                        <Statistic
-                            title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Average Rating</span>}
-                            value={averageRating}
-                            precision={1}
-                            valueStyle={{ 
-                                color: '#52c41a', 
-                                fontSize: '25px', 
-                                fontWeight: 700 
-                            }}
-                        />
-                        <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
-                            <StarOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
-                            <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                                Customer rating
-                            </Text>
-                        </div>
-                    </Card>
-                </Col>
-            </Row>
-
-            <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-                <Col span={24}>
+                <Col xs={24} xl={12}>
                     <Card
                         style={{ 
                             borderRadius: '12px',
                             border: '2px dashed #b7eb8f',
                             boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
-                            background: 'white'
+                            background: 'white',
+                            minHeight: '296px'
                         }}
                     >
-                        <Title level={4} style={{ marginBottom: '16px', color: '#52c41a' }}>
-                            <AppstoreOutlined /> Categories
+                        <Title level={4} style={{ marginBottom: '20px', color: '#52c41a'}}>
+                            <AppstoreOutlined /> Category Types
                         </Title>
-                        <Row gutter={[8, 8]}>
-                            {categories.map((category: Category) => (
-                                <Col key={`category-${category.name}`}>
-                                    <Button
-                                        type={selectedCategory === category.name ? 'primary' : 'default'}
-                                        onClick={() => handleCategoryClick(category.name)}
-                                        style={selectedCategory === category.name ? { backgroundColor: '#52c41a', borderColor: '#52c41a', borderRadius: '8px' } : { borderRadius: '8px', border: '1px dashed #b7eb8f' }}
-                                    >
-                                        {category.name} ({category.count})
-                                    </Button>
-                                </Col>
-                            ))}
-                        </Row>
+                        
+                        {categories.length > 0 ? (
+                            <>
+                                <div className="mobile-categories" style={{ display: 'block' }}>
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        justifyContent: 'center', 
+                                        alignItems: 'center',
+                                        marginBottom: '20px'
+                                    }}>
+                                        <div style={{ 
+                                            width: '100%', 
+                                            maxWidth: '280px',
+                                            aspectRatio: '1',
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center'
+                                        }}>
+                                            {createResponsivePieChart()}
+                                        </div>
+                                    </div>
+                                    
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        flexDirection: 'column', 
+                                        gap: '8px'
+                                    }}>
+                                        {categories.map((category, index) => (
+                                            <div 
+                                                key={`category-${category.name}`}
+                                                style={{ 
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    padding: '8px 12px',
+                                                    borderRadius: '6px',
+                                                    background: '#f9f9f9',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s ease',
+                                                    border: '1px solid #e6f7ff',
+                                                    minHeight: '40px'
+                                                }}
+                                                onClick={() => handleCategoryClick(category.name)}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.background = '#e6f7ff';
+                                                    e.currentTarget.style.transform = 'translateX(5px)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.background = '#f9f9f9';
+                                                    e.currentTarget.style.transform = 'translateX(0px)';
+                                                }}
+                                            >
+                                                <div 
+                                                    style={{ 
+                                                        width: '12px', 
+                                                        height: '12px', 
+                                                        backgroundColor: categoryColors[index % categoryColors.length],
+                                                        borderRadius: '50%',
+                                                        marginRight: '12px',
+                                                        border: '2px solid white',
+                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                        flexShrink: 0
+                                                    }} 
+                                                />
+                                                <Text strong style={{ color: '#262626', fontSize: '14px', flex: 1 }}>
+                                                    {category.name}
+                                                </Text>
+                                                <Text style={{ color: '#52c41a', fontSize: '14px', fontWeight: 'bold' }}>
+                                                    {category.count}
+                                                </Text>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="desktop-categories" style={{ display: 'none' }}>
+                                    <Row gutter={[24, 24]}>
+                                        <Col span={10}>
+                                            <div style={{ 
+                                                height: '200px', 
+                                                display: 'flex', 
+                                                justifyContent: 'center', 
+                                                alignItems: 'center' 
+                                            }}>
+                                                {createResponsivePieChart()}
+                                            </div>
+                                        </Col>
+                                        <Col span={14}>
+                                            <div style={{ 
+                                                padding: '10px 0', 
+                                                height: '200px', 
+                                                display: 'flex', 
+                                                flexDirection: 'column', 
+                                                justifyContent: 'center'
+                                            }}>
+                                                {categories.map((category, index) => (
+                                                    <div 
+                                                        key={`category-${category.name}`}
+                                                        style={{ 
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            padding: '6px 12px',
+                                                            marginBottom: '4px',
+                                                            borderRadius: '6px',
+                                                            background: '#f9f9f9',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.2s ease',
+                                                            border: '1px solid #e6f7ff'
+                                                        }}
+                                                        onClick={() => handleCategoryClick(category.name)}
+                                                        onMouseEnter={(e) => {
+                                                            e.currentTarget.style.background = '#e6f7ff';
+                                                            e.currentTarget.style.transform = 'translateX(5px)';
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.currentTarget.style.background = '#f9f9f9';
+                                                            e.currentTarget.style.transform = 'translateX(0px)';
+                                                        }}
+                                                    >
+                                                        <div 
+                                                            style={{ 
+                                                                width: '12px', 
+                                                                height: '12px', 
+                                                                backgroundColor: categoryColors[index % categoryColors.length],
+                                                                borderRadius: '50%',
+                                                                marginRight: '12px',
+                                                                border: '2px solid white',
+                                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                                flexShrink: 0
+                                                            }} 
+                                                        />
+                                                        <Text strong style={{ color: '#262626', fontSize: '14px', flex: 1 }}>
+                                                            {category.name}
+                                                        </Text>
+                                                        <Text style={{ color: '#52c41a', fontSize: '14px', fontWeight: 'bold' }}>
+                                                            {category.count}
+                                                        </Text>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </Col>
+                                    </Row>
+                                </div>
+                            </>
+                        ) : (
+                            <div style={{ 
+                                textAlign: 'center', 
+                                color: '#8c8c8c',
+                                padding: '40px 20px',
+                                minHeight: '200px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}>
+                                <AppstoreOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
+                                <Text>No categories available</Text>
+                            </div>
+                        )}
                     </Card>
                 </Col>
             </Row>
@@ -789,7 +1025,6 @@ const ProductsPage: React.FC = () => {
                     background: 'white'
                 }}
             >
-                {/* Search and Action Controls */}
                 <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: "10px", flexWrap: 'wrap' }}>
                     <Search
                         placeholder="Search products..."
@@ -856,7 +1091,6 @@ const ProductsPage: React.FC = () => {
                 )}
             </Card>
 
-            {/* Modal for Add/Edit Product */}
             <Modal
                 title={
                     <span style={{ color: '#52c41a' }}>
@@ -1019,6 +1253,24 @@ const ProductsPage: React.FC = () => {
                 .table-row-light:hover,
                 .table-row-dark:hover {
                     background-color: #f6ffed !important;
+                }
+                
+                @media (max-width: 991px) {
+                    .desktop-categories {
+                        display: none !important;
+                    }
+                    .mobile-categories {
+                        display: block !important;
+                    }
+                }
+                
+                @media (min-width: 992px) {
+                    .mobile-categories {
+                        display: none !important;
+                    }
+                    .desktop-categories {
+                        display: block !important;
+                    }
                 }
             `}</style>
         </div>

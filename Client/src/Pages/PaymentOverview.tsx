@@ -172,7 +172,7 @@ const PaymentOverview: React.FC = () => {
       title: <span style={{color: "#52c41a", fontWeight: 600}}>Status</span>,
       key: 'status',
       render: () => (
-        <Tag color="success" icon={<CheckCircleOutlined />}>
+        <Tag color="success" icon={<CheckCircleOutlined />} style={{border: '1px dashed'}}>
           Paid
         </Tag>
       ),

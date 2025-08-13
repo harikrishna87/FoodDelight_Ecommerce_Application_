@@ -50,11 +50,11 @@ const customStyles = `
     border-radius: 2px;
 }
 .marquee-content {
-    animation: scroll 40s linear infinite;
+    animation: scroll 15s linear infinite;
     display: flex;
 }
 .marquee-content-slow {
-    animation: scroll 60s linear infinite;
+    animation: scroll 15s linear infinite;
     display: flex;
 }
 

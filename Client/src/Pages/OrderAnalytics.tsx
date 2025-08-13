@@ -97,7 +97,7 @@ const OrderStatistics: React.FC<OrderStatsProps> = ({ orders }) => {
           <Row gutter={[8, 8]}>
             <Col span={12}>
               <Statistic
-                title="Total Orders"
+                title="Orders"
                 value={totalOrders}
                 valueStyle={{ color: '#1890ff', fontSize: '16px' }}
                 prefix={<ShoppingCartOutlined />}
@@ -363,7 +363,7 @@ const LatestCampaign: React.FC<{ orders: IOrder[] }> = ({ orders }) => {
         </Space>
       }
       style={{
-        height: '100%',
+        height: '637px',
         border: '2px dashed #b7eb8f',
         boxShadow: '0 4px 16px rgba(183, 235, 143, 0.2)',
         borderRadius: '16px'

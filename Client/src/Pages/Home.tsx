@@ -5,14 +5,14 @@ import {
   Alert, 
   Typography, 
   Space, 
-  Card, 
-  Badge,
+  // Card, 
+  // Badge,
   Spin,
   Carousel
 } from 'antd';
 import { Link } from 'react-router-dom';
 import { 
-  PercentageOutlined, 
+  // PercentageOutlined, 
   ShoppingCartOutlined,
   StarFilled,
   StarOutlined
@@ -25,7 +25,7 @@ import FeaturedProducts from '../Components/FeaturedProducts';
 import axios from "axios";
 
 const { Content } = Layout;
-const { Title, Paragraph } = Typography;
+const { Paragraph } = Typography;
 
 const LeafIconCustom = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -393,81 +393,6 @@ export default function Homepage() {
         padding: '0 24px',
         width: '90%'
       }}>
-        <Card 
-          style={{ 
-            marginBottom: '32px',
-            backgroundColor: 'rgba(82, 196, 26, 0.1)',
-            borderRadius: '12px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            position: 'relative',
-            overflow: 'hidden',
-            padding: '12px 24px'
-          }}
-          bodyStyle={{ padding: '0' }}
-        >
-          <div style={{ position: 'relative', zIndex: 2 }}>
-            <Title level={5} style={{ color: '#52c41a', fontWeight: 'bold', marginBottom: '12px', fontSize: '16px' }}>
-              <PercentageOutlined style={{ marginRight: '8px' }} />
-              Category Discounts
-            </Title>
-            <Space wrap size="small">
-              {Object.keys(categoryDiscounts).map((category, index) => (
-                <div
-                  key={index}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    backgroundColor: '#fff',
-                    border: '1px solid #52c41a',
-                    borderRadius: '5px',
-                    padding: '4px 12px',
-                    cursor: 'pointer',
-                    fontSize: '13px',
-                    fontWeight: 'bold',
-                    color: '#52c41a',
-                    transition: 'all 0.3s ease',
-                    position: 'relative'
-                  }}
-                  onClick={() => handleCategoryClick(category)}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(82, 196, 26, 0.3)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                  <Badge 
-                    count={`${categoryDiscounts[category]}% OFF`}
-                    style={{ 
-                      backgroundColor: '#ff4d4f',
-                      marginLeft: '6px',
-                      fontSize: '10px',
-                      height: '18px',
-                      lineHeight: '18px',
-                      minWidth: '45px',
-                      borderRadius: "5px"
-                    }}
-                  />
-                </div>
-              ))}
-            </Space>
-          </div>
-          <div style={{ 
-            position: 'absolute', 
-            right: '10px', 
-            top: '50%',
-            transform: 'translateY(-50%)',
-            opacity: 0.15,
-            fontSize: '60px',
-            color: '#52c41a',
-            zIndex: 1
-          }}>
-            <PercentageOutlined />
-          </div>
-        </Card>
 
         <div style={{ marginBottom: '32px' }}>
           <FeaturedProducts 

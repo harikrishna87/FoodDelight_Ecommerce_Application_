@@ -737,11 +737,13 @@ const Store: React.FC = () => {
                                         >
                                             <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                                                 <Tag
-                                                    color="green"
+                                                    color="cyan"
                                                     style={{
                                                         fontSize: '12px',
                                                         padding: '2px 8px',
-                                                        width: "fit-content"
+                                                        width: "fit-content",
+                                                        border: '1px dashed',
+                                                        marginBottom: '8px'
                                                     }}
                                                 >
                                                     {product.category}

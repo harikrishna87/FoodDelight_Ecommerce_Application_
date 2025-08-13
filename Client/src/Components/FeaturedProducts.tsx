@@ -200,10 +200,11 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
     >
       <Space direction="vertical" size="small" style={{ width: '100%' }}>
         <Tag
-          color="green"
+          color="cyan"
           style={{
             fontSize: '12px',
-            padding: '2px 8px'
+            padding: '2px 8px',
+            border: '1px dashed'
           }}
         >
           {product.category}
@@ -303,7 +304,7 @@ const FeaturedProducts: React.FC<FeaturedProductsProps> = ({
     <>
       {contextHolder}
       <div style={{ marginBottom: '2.5rem' }}>
-        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+        <div style={{ marginBottom: '1.5rem' }}>
           <Title level={2} className="section-title" style={{ margin: 0 }}>
             Featured Products
           </Title>

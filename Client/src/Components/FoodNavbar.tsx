@@ -812,19 +812,34 @@ const FoodNavbar: React.FC = () => {
           margin: '0 auto',
           padding: '8px 0'
         }}>
-          <Title
-            level={3}
-            style={{
-              margin: 0,
-              color: '#52c41a',
-              fontWeight: 'bold',
-              fontSize: screens.xs ? '20px' : '28px'
-            }}
-          >
-            <NavLink to="/" style={{ color: '#52c41a', textDecoration: 'none' }}>
-              FoodDelights
-            </NavLink>
-          </Title>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <img
+              src="/logo.png"
+              alt="Logo"
+              style={{
+                height: screens.xs ? '32px' : '40px',
+                width: 'auto',
+                objectFit: 'contain'
+              }}
+            />
+            <Title
+              level={3}
+              style={{
+                margin: 0,
+                color: '#52c41a',
+                fontWeight: 'bold',
+                fontSize: screens.xs ? '20px' : '28px'
+              }}
+            >
+              <NavLink to="/" style={{ color: '#52c41a', textDecoration: 'none' }}>
+                FoodDelights
+              </NavLink>
+            </Title>
+          </div>
 
           {isLargeScreen() && (
             <Menu

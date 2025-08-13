@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import {
   Card,
   Table,
@@ -171,8 +171,8 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ visible, onCl
               span={isMobile ? 24 : 12}
               key={startIndex + idx}
             >
-              <Card size="small" hoverable style={{ 
-                padding: '16px', 
+              <Card size="small" hoverable style={{
+                padding: '16px',
                 height: '100%',
                 border: '2px dashed #b7eb8f',
                 borderRadius: '8px'
@@ -274,11 +274,11 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ visible, onCl
 const getStatusTag = (status: OrderDeliveryStatus) => {
   switch (status) {
     case 'Pending':
-      return <Tag icon={<ClockCircleOutlined />} style={{border: '1px dashed'}} color="warning">Pending</Tag>;
+      return <Tag icon={<ClockCircleOutlined />} style={{ border: '1px dashed' }} color="warning">Pending</Tag>;
     case 'Shipped':
-      return <Tag icon={<TruckOutlined />}  style={{border: '1px dashed'}} color="processing">Shipped</Tag>;
+      return <Tag icon={<TruckOutlined />} style={{ border: '1px dashed' }} color="processing">Shipped</Tag>;
     case 'Delivered':
-      return <Tag icon={<CheckCircleOutlined />}  style={{border: '1px dashed'}} color="success">Delivered</Tag>;
+      return <Tag icon={<CheckCircleOutlined />} style={{ border: '1px dashed' }} color="success">Delivered</Tag>;
     default:
       return <Tag color="default">{status}</Tag>;
   }
@@ -336,21 +336,21 @@ const OrderManagement: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const minLoadingTime = new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const config = {
         headers: {
           Authorization: `Bearer ${auth.token}`,
         },
         withCredentials: true,
       };
-      
+
       const [response] = await Promise.all([
         axios.get(`${backendUrl}/api/orders`, config),
         minLoadingTime
       ]);
-      
+
       if (response.data.success) {
         setOrders(response.data.orders);
         setError(null);
@@ -385,7 +385,7 @@ const OrderManagement: React.FC = () => {
 
     try {
       setStatusUpdateLoading(orderId);
-      
+
       const config = {
         headers: {
           Authorization: `Bearer ${auth.token}`,
@@ -393,19 +393,19 @@ const OrderManagement: React.FC = () => {
         },
         withCredentials: true,
       };
-      
+
       const response = await axios.patch(
-        `${backendUrl}/api/orders/${orderId}/status`, 
-        { status: newStatus }, 
+        `${backendUrl}/api/orders/${orderId}/status`,
+        { status: newStatus },
         config
       );
-      
+
       if (response.data.success) {
         message.success(`Order status updated to ${newStatus}`);
         setOrders(prevOrders =>
-          prevOrders.map(order => 
-            order._id === orderId 
-              ? { ...order, deliveryStatus: newStatus } 
+          prevOrders.map(order =>
+            order._id === orderId
+              ? { ...order, deliveryStatus: newStatus }
               : order
           )
         );
@@ -427,7 +427,7 @@ const OrderManagement: React.FC = () => {
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
-    
+
     doc.setFont('times', 'bold');
     doc.setFontSize(22);
     doc.setTextColor('#52c41a');
@@ -437,52 +437,72 @@ const OrderManagement: React.FC = () => {
     const tableRows: (string | number)[][] = [];
 
     orders.forEach(order => {
-        const itemsList = order.items.map((item, index) => 
-            `${index + 1}. ${item.name} (Qty: ${item.quantity})`
-        ).join('\n');
+      const itemsList = order.items.map((item, index) =>
+        `${index + 1}. ${item.name} (Qty: ${item.quantity})`
+      ).join('\n');
 
-        const amountString = `${order.totalAmount.toFixed(2)}`;
+      const amountString = `${order.totalAmount.toFixed(2)}`;
 
-        const orderData = [
-            order._id,
-            `${order.user.name}\n${order.user.email}`,
-            amountString,
-            order.deliveryStatus,
-            new Date(order.createdAt).toLocaleDateString(),
-            itemsList
-        ];
-        tableRows.push(orderData);
+      const orderData = [
+        order._id,
+        `${order.user.name}\n${order.user.email}`,
+        amountString,
+        order.deliveryStatus,
+        new Date(order.createdAt).toLocaleDateString(),
+        itemsList
+      ];
+      tableRows.push(orderData);
     });
 
     autoTable(doc, {
-        head: [tableColumns],
-        body: tableRows,
-        startY: 30,
-        theme: 'grid',
-        headStyles: { 
-            fillColor: [82, 196, 26],
-            textColor: [255, 255, 255],
-            font: 'times',
-            fontStyle: 'bold'
-        },
-        styles: {
-            font: 'times',
-            fontSize: 8,
-            cellPadding: 2,
-            valign: 'middle',
-        },
-        columnStyles: {
-            0: { cellWidth: 35 },
-            1: { cellWidth: 40 },
-            2: { cellWidth: 20 },
-            3: { cellWidth: 18 },
-            4: { cellWidth: 20 },
-            5: { cellWidth: 'auto' },
-        }
+      head: [tableColumns],
+      body: tableRows,
+      startY: 30,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [82, 196, 26],
+        textColor: [255, 255, 255],
+        font: 'times',
+        fontStyle: 'bold'
+      },
+      styles: {
+        font: 'times',
+        fontSize: 8,
+        cellPadding: 2,
+        valign: 'middle',
+      },
+      columnStyles: {
+        0: { cellWidth: 35 },
+        1: { cellWidth: 40 },
+        2: { cellWidth: 20 },
+        3: { cellWidth: 18 },
+        4: { cellWidth: 20 },
+        5: { cellWidth: 'auto' },
+      }
     });
 
     doc.save('order-management-report.pdf');
   };
+
+  const mostOrderedCategory = useMemo(() => {
+    if (orders.length === 0) {
+      return { name: 'N/A', count: 0 };
+    }
+    const categoryCounts: { [key: string]: number } = {};
+    orders.flatMap(order => order.items).forEach(item => {
+      const category = (item as any).category || 'Uncategorized';
+      categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+    });
+
+    if (Object.keys(categoryCounts).length === 0) {
+      return { name: 'N/A', count: 0 };
+    }
+    const mostOrdered = Object.entries(categoryCounts).reduce(
+      (max, [name, count]) => (count > max.count ? { name, count } : max),
+      { name: 'N/A', count: 0 }
+    );
+    return mostOrdered;
+  }, [orders]);
 
   if (loading) {
     return (
@@ -503,8 +523,8 @@ const OrderManagement: React.FC = () => {
               <div>
                 <p>{error}</p>
                 <p>Please ensure you are logged in as an administrator.</p>
-                <Button 
-                  type="primary" 
+                <Button
+                  type="primary"
                   onClick={fetchOrders}
                   style={{ marginTop: 16, backgroundColor: '#52c41a', borderColor: '#52c41a' }}
                 >
@@ -530,16 +550,110 @@ const OrderManagement: React.FC = () => {
 
   const sortedOrders = [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
+  const orderStatusData = [
+    { type: 'Pending', value: pendingOrders },
+    { type: 'Shipped', value: shippedOrders },
+    { type: 'Delivered', value: deliveredOrders },
+  ].filter(item => item.value > 0);
+
+  const statusColors: { [key: string]: string } = {
+    Pending: '#faad14',
+    Shipped: '#1890ff',
+    Delivered: '#52c41a',
+  };
+
+  const createResponsivePieChart = () => {
+    if (orderStatusData.length === 0) return null;
+    
+    const total = orderStatusData.reduce((sum, item) => sum + item.value, 0);
+    let currentAngle = 0;
+    
+    const radius = 100;
+    const centerX = 100;
+    const centerY = 100;
+    const svgSize = 200;
+    
+    return (
+      <svg 
+        width="100%" 
+        height="100%" 
+        viewBox={`0 0 ${svgSize} ${svgSize}`}
+        style={{ maxWidth: '200px', maxHeight: '200px' }}
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <circle 
+          cx={centerX} 
+          cy={centerY} 
+          r="40" 
+          fill="white" 
+          stroke="#f0f0f0" 
+          strokeWidth="2" 
+        />
+        {orderStatusData.map((item) => {
+          const percentage = (item.value / total) * 100;
+          const angle = (item.value / total) * 360;
+          const startAngle = currentAngle;
+          const endAngle = currentAngle + angle;
+          
+          const x1 = centerX + radius * Math.cos((startAngle * Math.PI) / 180);
+          const y1 = centerY + radius * Math.sin((startAngle * Math.PI) / 180);
+          const x2 = centerX + radius * Math.cos((endAngle * Math.PI) / 180);
+          const y2 = centerY + radius * Math.sin((endAngle * Math.PI) / 180);
+          
+          const largeArcFlag = angle > 180 ? 1 : 0;
+          
+          const pathData = [
+            `M ${centerX} ${centerY}`,
+            `L ${x1} ${y1}`,
+            `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+            'Z'
+          ].join(' ');
+          
+          const labelAngle = (startAngle + endAngle) / 2;
+          const labelRadius = radius * 0.65;
+          const labelX = centerX + labelRadius * Math.cos((labelAngle * Math.PI) / 180);
+          const labelY = centerY + labelRadius * Math.sin((labelAngle * Math.PI) / 180);
+          
+          currentAngle += angle;
+          
+          return (
+            <g key={item.type}>
+              <path
+                d={pathData}
+                fill={statusColors[item.type]}
+                stroke="white"
+                strokeWidth="2"
+                style={{ cursor: 'pointer' }}
+              />
+              {percentage > 5 && (
+                <text
+                  x={labelX}
+                  y={labelY + 1}
+                  textAnchor="middle"
+                  fontSize="12px"
+                  fill="white"
+                  fontWeight="bold"
+                >
+                  {percentage.toFixed(1)}%
+                </text>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+    );
+  };
+
   const columns = [
     {
-      title: <span style={{color: "#52c41a", fontWeight: 600}}>Order ID</span>,
+      title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Order ID</span>,
       dataIndex: '_id',
       key: 'orderId',
       render: (id: string) => <Tag color="blue">{id}</Tag>,
       width: 150,
     },
     {
-      title: <span style={{color: "#52c41a", fontWeight: 600}}>Customer</span>,
+      title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Customer</span>,
       key: 'customer',
       render: (record: IOrder) => (
         <Space direction="vertical" size="small">
@@ -555,7 +669,7 @@ const OrderManagement: React.FC = () => {
       width: 200,
     },
     {
-      title: <span style={{color: "#52c41a", fontWeight: 600}}>Amount</span>,
+      title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Amount</span>,
       dataIndex: 'totalAmount',
       key: 'totalAmount',
       render: (amount: number) => (
@@ -566,14 +680,14 @@ const OrderManagement: React.FC = () => {
       width: 120,
     },
     {
-      title: <span style={{color: "#52c41a", fontWeight: 600}}>Status</span>,
+      title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Status</span>,
       dataIndex: 'deliveryStatus',
       key: 'status',
       render: (status: OrderDeliveryStatus) => getStatusTag(status),
       width: 120,
     },
     {
-      title: <span style={{color: "#52c41a", fontWeight: 600}}>Order Date</span>,
+      title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Order Date</span>,
       dataIndex: 'createdAt',
       key: 'orderDate',
       render: (date: string) => (
@@ -585,7 +699,7 @@ const OrderManagement: React.FC = () => {
       width: 140,
     },
     {
-      title: <span style={{color: "#52c41a", fontWeight: 600}}>Items</span>,
+      title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Items</span>,
       dataIndex: 'items',
       key: 'items',
       render: (items: any, record: IOrder) => (
@@ -601,12 +715,12 @@ const OrderManagement: React.FC = () => {
       width: 130,
     },
     {
-      title: <span style={{color: "#52c41a", fontWeight: 600}}>Actions</span>,
+      title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Actions</span>,
       key: 'action',
       render: (record: IOrder) => {
         const availableOptions = getAvailableStatusOptions(record.deliveryStatus);
         const isUpdating = statusUpdateLoading === record._id;
-        
+
         return (
           <Tooltip title={record.deliveryStatus === 'Delivered' ? 'Order is already delivered' : ''}>
             <Select
@@ -634,169 +748,341 @@ const OrderManagement: React.FC = () => {
   return (
     <div style={{ padding: '40px 24px', maxWidth: 1250, margin: '0 auto' }}>
       {contextHolder}
-      
+
       <Title level={2} style={{ textAlign: 'center', marginBottom: 40, color: "#52c41a" }}>
         Order Management Dashboard
       </Title>
 
-      <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
-        <Col xs={24} sm={12} md={6}>
-          <Card 
-            style={{ 
-              borderRadius: '12px',
-              border: '2px dashed #b7eb8f',
-              boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
-              background: 'white',
-              color: 'white',
-              height: '140px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center'
-            }}
-            bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
-          >
-            <Statistic
-              title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Total Orders</span>}
-              value={totalOrders}
-              valueStyle={{ 
-                color: '#52c41a', 
-                fontSize: '25px', 
-                fontWeight: 700 
-              }}
-            />
-            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
-              <ShoppingCartOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
-              <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                All time orders
-              </Text>
-            </div>
-          </Card>
+      <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
+        <Col xs={24} lg={12}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Card
+                style={{
+                  borderRadius: '12px',
+                  border: '2px dashed #b7eb8f',
+                  boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
+                  background: 'white',
+                  height: '140px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center'
+                }}
+                bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
+              >
+                <Statistic
+                  title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Total Orders</span>}
+                  value={totalOrders}
+                  valueStyle={{
+                    color: '#52c41a',
+                    fontSize: '25px',
+                    fontWeight: 700
+                  }}
+                />
+                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
+                  <ShoppingCartOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
+                  <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                    All time orders
+                  </Text>
+                </div>
+              </Card>
+            </Col>
+            <Col xs={24} md={12}>
+              <Card
+                style={{
+                  borderRadius: '12px',
+                  border: '2px dashed #b7eb8f',
+                  boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
+                  background: 'white',
+                  height: '140px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center'
+                }}
+                bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
+              >
+                <Statistic
+                  title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Total Revenue</span>}
+                  value={totalRevenue}
+                  precision={2}
+                  prefix="₹"
+                  valueStyle={{
+                    color: '#52c41a',
+                    fontSize: '25px',
+                    fontWeight: 700
+                  }}
+                />
+                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
+                  <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                    <span style={{ color: '#52c41a', fontSize: "16px" }}>₹ </span>Total earnings
+                  </Text>
+                </div>
+              </Card>
+            </Col>
+            <Col xs={24} md={12}>
+              <Card
+                style={{
+                  borderRadius: '12px',
+                  border: '2px dashed #b7eb8f',
+                  boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
+                  background: 'white',
+                  height: '140px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center'
+                }}
+                bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
+              >
+                <Statistic
+                  title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Average Order</span>}
+                  value={averageOrderValue}
+                  precision={2}
+                  prefix="₹"
+                  valueStyle={{
+                    color: '#52c41a',
+                    fontSize: '25px',
+                    fontWeight: 700
+                  }}
+                />
+                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
+                  <CreditCardOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
+                  <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                    Per order value
+                  </Text>
+                </div>
+              </Card>
+            </Col>
+            <Col xs={24} md={12}>
+              <Card
+                style={{
+                  borderRadius: '12px',
+                  border: '2px dashed #b7eb8f',
+                  boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
+                  background: 'white',
+                  height: '140px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center'
+                }}
+                bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
+              >
+                <Statistic
+                  title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Most Ordered Category</span>}
+                  value={mostOrderedCategory.name}
+                  valueStyle={{
+                    color: '#52c41a',
+                    fontSize: '20px',
+                    fontWeight: 700,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                />
+                <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
+                  <UnorderedListOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
+                  <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
+                    {mostOrderedCategory.count} items ordered
+                  </Text>
+                </div>
+              </Card>
+            </Col>
+          </Row>
         </Col>
-        
-        <Col xs={24} sm={12} md={6}>
-          <Card 
-            style={{ 
+        <Col xs={24} lg={12}>
+          <Card
+            style={{
               borderRadius: '12px',
               border: '2px dashed #b7eb8f',
               boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
               background: 'white',
-              height: '140px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center'
+              minHeight: '296px'
             }}
-            bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
           >
-            <Statistic
-              title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Total Revenue</span>}
-              value={totalRevenue}
-              precision={2}
-              prefix="₹"
-              valueStyle={{ 
-                color: '#52c41a', 
-                fontSize: '25px', 
-                fontWeight: 700 
-              }}
-            />
-            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
-              <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                <span style={{color:'#52c41a', fontSize: '16px'}}>₹ </span>Total earnings
-              </Text>
-            </div>
-          </Card>
-        </Col>
-        
-        <Col xs={24} sm={12} md={6}>
-          <Card 
-            style={{ 
-              borderRadius: '12px',
-              border: '2px dashed #b7eb8f',
-              boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
-              background: 'white',
-              height: '140px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center'
-            }}
-            bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
-          >
-            <Statistic
-              title={<span style={{ color: '#8c8c8c', fontSize: '14px' }}>Average Order</span>}
-              value={averageOrderValue}
-              precision={2}
-              prefix="₹"
-              valueStyle={{ 
-                color: '#52c41a', 
-                fontSize: '25px', 
-                fontWeight: 700 
-              }}
-            />
-            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center' }}>
-              <CreditCardOutlined style={{ marginRight: 4, fontSize: '16px', color: '#52c41a' }} />
-              <Text style={{ color: '#8c8c8c', fontSize: '12px' }}>
-                Per order value
-              </Text>
-            </div>
-          </Card>
-        </Col>
-        
-        <Col xs={24} sm={12} md={6}>
-          <Card 
-            style={{ 
-              borderRadius: '12px',
-              border: '2px dashed #b7eb8f',
-              boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
-              background: 'white',
-              height: '140px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center'
-            }}
-            bodyStyle={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}
-          >
-            <div style={{ marginBottom: 8 }}>
-              <Text style={{ color: '#8c8c8c', fontSize: '14px', display: 'block' }}>Order Status</Text>
-            </div>
-            <Space direction="vertical" size="small" style={{ width: '100%' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Text style={{ fontSize: '12px' }}>Pending:</Text>
-                <Text strong style={{ color: '#faad14', fontSize: '12px' }}>{pendingOrders}</Text>
+            <Title level={4} style={{ marginBottom: '20px', color: '#52c41a'}}>
+              <UnorderedListOutlined /> Order Status Summary
+            </Title>
+            
+            {orderStatusData.length > 0 ? (
+              <>
+                <div className="mobile-orders" style={{ display: 'block' }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    marginBottom: '20px'
+                  }}>
+                    <div style={{ 
+                      width: '100%', 
+                      maxWidth: '280px',
+                      aspectRatio: '1',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center'
+                    }}>
+                      {createResponsivePieChart()}
+                    </div>
+                  </div>
+                  
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '8px'
+                  }}>
+                    {orderStatusData.map((item) => (
+                      <div 
+                        key={`status-${item.type}`}
+                        style={{ 
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '8px 12px',
+                          borderRadius: '6px',
+                          background: '#f9f9f9',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          border: '1px solid #e6f7ff',
+                          minHeight: '40px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#e6f7ff';
+                          e.currentTarget.style.transform = 'translateX(5px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = '#f9f9f9';
+                          e.currentTarget.style.transform = 'translateX(0px)';
+                        }}
+                      >
+                        <div 
+                          style={{ 
+                            width: '12px', 
+                            height: '12px', 
+                            backgroundColor: statusColors[item.type],
+                            borderRadius: '50%',
+                            marginRight: '12px',
+                            border: '2px solid white',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                            flexShrink: 0
+                          }} 
+                        />
+                        <Text strong style={{ color: '#262626', fontSize: '14px', flex: 1 }}>
+                          {item.type}
+                        </Text>
+                        <Text style={{ color: '#52c41a', fontSize: '14px', fontWeight: 'bold' }}>
+                          {item.value}
+                        </Text>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="desktop-orders" style={{ display: 'none' }}>
+                  <Row gutter={[24, 24]}>
+                    <Col span={10}>
+                      <div style={{ 
+                        height: '200px', 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        alignItems: 'center' 
+                      }}>
+                        {createResponsivePieChart()}
+                      </div>
+                    </Col>
+                    <Col span={14}>
+                      <div style={{ 
+                        padding: '10px 0', 
+                        height: '200px', 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        justifyContent: 'center'
+                      }}>
+                        {orderStatusData.map((item) => (
+                          <div 
+                            key={`status-${item.type}`}
+                            style={{ 
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '6px 12px',
+                              marginBottom: '4px',
+                              borderRadius: '6px',
+                              background: '#f9f9f9',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease',
+                              border: '1px solid #e6f7ff'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#e6f7ff';
+                              e.currentTarget.style.transform = 'translateX(5px)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = '#f9f9f9';
+                              e.currentTarget.style.transform = 'translateX(0px)';
+                            }}
+                          >
+                            <div 
+                              style={{ 
+                                width: '12px', 
+                                height: '12px', 
+                                backgroundColor: statusColors[item.type],
+                                borderRadius: '50%',
+                                marginRight: '12px',
+                                border: '2px solid white',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                flexShrink: 0
+                              }} 
+                            />
+                            <Text strong style={{ color: '#262626', fontSize: '14px', flex: 1 }}>
+                              {item.type}
+                            </Text>
+                            <Text style={{ color: '#52c41a', fontSize: '14px', fontWeight: 'bold' }}>
+                              {item.value}
+                            </Text>
+                          </div>
+                        ))}
+                      </div>
+                    </Col>
+                  </Row>
+                </div>
+              </>
+            ) : (
+              <div style={{ 
+                textAlign: 'center', 
+                color: '#8c8c8c',
+                padding: '40px 20px',
+                minHeight: '200px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}>
+                <UnorderedListOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
+                <Text>No order status data available</Text>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Text style={{ fontSize: '12px' }}>Shipped:</Text>
-                <Text strong style={{ color: '#1890ff', fontSize: '12px' }}>{shippedOrders}</Text>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Text style={{ fontSize: '12px' }}>Delivered:</Text>
-                <Text strong style={{ color: '#52c41a', fontSize: '12px' }}>{deliveredOrders}</Text>
-              </div>
-            </Space>
+            )}
           </Card>
         </Col>
       </Row>
 
       <Card
         title={
-            <Flex justify='space-between' align='center' wrap gap={10}>
-                <Space>
-                    <UnorderedListOutlined style={{ color: '#52c41a' }} />
-                    <span style={{ color: '#52c41a', fontWeight: 'bold' }}>Order Management</span>
-                </Space>
-                <Tag 
-                    icon={<DownloadOutlined />} 
-                    onClick={handleDownloadPDF}
-                    color='green'
-                    style={{
-                      cursor: 'pointer',
-                      padding: "5px 10px",
-                      fontSize: "15px"
-                    }}
-                >
-                    Download Order Report
-                </Tag>
-            </Flex>
+          <Flex justify='space-between' align='center' wrap gap={10}>
+            <Space>
+              <UnorderedListOutlined style={{ color: '#52c41a' }} />
+              <span style={{ color: '#52c41a', fontWeight: 'bold' }}>Order Management</span>
+            </Space>
+            <Tag
+              icon={<DownloadOutlined />}
+              onClick={handleDownloadPDF}
+              color='green'
+              style={{
+                cursor: 'pointer',
+                padding: "5px 10px",
+                fontSize: "15px"
+              }}
+            >
+              Download Order Report
+            </Tag>
+          </Flex>
         }
-        style={{ 
+        style={{
           borderRadius: '12px',
           border: '2px dashed #b7eb8f',
           boxShadow: '0 4px 12px rgba(183, 235, 143, 0.2)',
@@ -804,8 +1090,8 @@ const OrderManagement: React.FC = () => {
         }}
       >
         {orders.length === 0 ? (
-          <div style={{ 
-            textAlign: 'center', 
+          <div style={{
+            textAlign: 'center',
             padding: '60px 20px',
             background: '#f6ffed',
             borderRadius: '12px',
@@ -826,7 +1112,7 @@ const OrderManagement: React.FC = () => {
               showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} orders`,
             }}
             loading={statusUpdateLoading !== null}
-            rowClassName={(_, index) => 
+            rowClassName={(_, index) =>
               index % 2 === 0 ? 'table-row-light' : 'table-row-dark'
             }
           />
@@ -838,7 +1124,7 @@ const OrderManagement: React.FC = () => {
         onClose={() => setModalVisible(false)}
         order={selectedOrder}
       />
-      
+
       <style>{`
         .table-row-light {
           background-color: #fafafa;
@@ -849,6 +1135,24 @@ const OrderManagement: React.FC = () => {
         .table-row-light:hover,
         .table-row-dark:hover {
           background-color: #f6ffed !important;
+        }
+        
+        @media (max-width: 991px) {
+          .desktop-orders {
+            display: none !important;
+          }
+          .mobile-orders {
+            display: block !important;
+          }
+        }
+        
+        @media (min-width: 992px) {
+          .mobile-orders {
+            display: none !important;
+          }
+          .desktop-orders {
+            display: block !important;
+          }
         }
       `}</style>
     </div>

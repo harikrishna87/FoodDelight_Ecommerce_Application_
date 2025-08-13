@@ -249,7 +249,7 @@ const ProductSelection: React.FC<ProductSelectionProps> = ({
                     </div>
                   }
                 >
-                  <Tag color="success" style={{ marginBottom: '8px' }}>
+                  <Tag color="cyan" style={{ marginBottom: '8px', border: '1px dashed' }}>
                     {product.category}
                   </Tag>
                   <Title
