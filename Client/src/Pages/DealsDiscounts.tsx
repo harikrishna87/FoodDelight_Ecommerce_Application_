@@ -23,8 +23,7 @@ import {
   TrophyOutlined,
   ThunderboltOutlined,
   CrownOutlined,
-  CopyOutlined,
-  CheckOutlined
+  CopyOutlined
 } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -33,7 +32,6 @@ const { Title, Paragraph, Text } = Typography;
 const DealsDiscounts = () => {
   const [loading, setLoading] = useState(true);
   const [messageApi, contextHolder] = message.useMessage();
-  const [copiedCoupon, setCopiedCoupon] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -58,44 +56,6 @@ const DealsDiscounts = () => {
   const handlenavigatestore = () => {
     navigate('/menu-items')
   }
-
-  const copyCoupon = async (couponCode: string) => {
-    try {
-      await navigator.clipboard.writeText(couponCode);
-      setCopiedCoupon(couponCode);
-      messageApi.success({
-        content: `Coupon code "${couponCode}" copied to clipboard!`,
-        duration: 2,
-        style: {
-          marginTop: '10vh',
-        },
-      });
-      
-      setTimeout(() => {
-        setCopiedCoupon(null);
-      }, 2000);
-    } catch (err) {
-      const textArea = document.createElement('textarea');
-      textArea.value = couponCode;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      
-      setCopiedCoupon(couponCode);
-      messageApi.success({
-        content: `Coupon code "${couponCode}" copied to clipboard!`,
-        duration: 2,
-        style: {
-          marginTop: '10vh',
-        },
-      });
-      
-      setTimeout(() => {
-        setCopiedCoupon(null);
-      }, 2000);
-    }
-  };
 
   const flashDeals = [
     {
@@ -424,13 +384,13 @@ const DealsDiscounts = () => {
                               type="primary"
                               size="small"
                               style={{
-                                backgroundColor: copiedCoupon === coupon.code ? '#52c41a' : '#52c41a',
-                                borderColor: copiedCoupon === coupon.code ? '#52c41a' : '#52c41a'
+                                backgroundColor: '#52c41a',
+                                borderColor: '#52c41a'
                               }}
-                              onClick={() => copyCoupon(coupon.code)}
-                              icon={copiedCoupon === coupon.code ? <CheckOutlined /> : <CopyOutlined />}
+                              onClick={shownotification}
+                              icon={<CopyOutlined />}
                             >
-                              {copiedCoupon === coupon.code ? 'Copied' : 'Copy'}
+                              Copy
                             </Button>
                           </Col>
                         </Row>

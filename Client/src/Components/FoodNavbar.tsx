@@ -10,8 +10,7 @@ import {
   Typography,
   Space,
   Grid,
-  message,
-  Input
+  message
 } from 'antd';
 import {
   ShoppingCartOutlined,
@@ -51,21 +50,7 @@ interface CartItem {
   description?: string;
 }
 
-interface Coupon {
-  code: string;
-  type: 'percentage' | 'flat';
-  value: number;
-  minOrder: number;
-  validTill: string;
-  description: string;
-}
 
-const availableCoupons: Coupon[] = [
-  { code: 'FIRST20', type: 'percentage', value: 20, minOrder: 500, validTill: '2025-12-31', description: '20% OFF' },
-  { code: 'SAVE100', type: 'flat', value: 100, minOrder: 750, validTill: '2025-11-30', description: '₹100 OFF' },
-  { code: 'WELCOME50', type: 'flat', value: 50, minOrder: 1000, validTill: '2026-01-31', description: '₹50 OFF' },
-  { code: 'FEAST25', type: 'percentage', value: 25, minOrder: 1500, validTill: '2025-12-15', description: '25% OFF' },
-];
 
 const FoodNavbar: React.FC = () => {
   const [showCart, setShowCart] = useState<boolean>(false);
@@ -76,9 +61,6 @@ const FoodNavbar: React.FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
-  const [couponCode, setCouponCode] = useState<string>('');
-  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
-  const [discountAmount, setDiscountAmount] = useState<number>(0);
 
   const auth = useContext(AuthContext);
   const navigate = useNavigate();
@@ -205,7 +187,6 @@ const FoodNavbar: React.FC = () => {
       if (response.ok) {
         setCartItems([]);
         setCartCount(0);
-        handleRemoveCoupon();
       } else {
         const errorData = await response.json();
         messageApi.error({
@@ -311,67 +292,6 @@ const FoodNavbar: React.FC = () => {
 
   const numericTotalPrice = cartItems.reduce((sum, item) => sum + item.discount_price * item.quantity, 0);
   const totalPrice = numericTotalPrice.toFixed(2);
-  const finalPrice = (numericTotalPrice - discountAmount).toFixed(2);
-
-  const handleRemoveCoupon = () => {
-    setAppliedCoupon(null);
-    setDiscountAmount(0);
-    setCouponCode('');
-  };
-
-  const handleApplyCoupon = () => {
-    if (appliedCoupon) {
-      messageApi.warning('A coupon is already applied. Remove it to apply a new one.');
-      return;
-    }
-
-    const coupon = availableCoupons.find(c => c.code.toUpperCase() === couponCode.toUpperCase());
-
-    if (!coupon) {
-      messageApi.error('Invalid coupon code.');
-      return;
-    }
-
-    const today = new Date();
-    const expiryDate = new Date(coupon.validTill);
-    expiryDate.setHours(23, 59, 59, 999);
-
-    if (today > expiryDate) {
-      messageApi.error(`Coupon "${coupon.code}" has expired.`);
-      return;
-    }
-
-    if (numericTotalPrice < coupon.minOrder) {
-      messageApi.error(`A minimum order of ₹${coupon.minOrder} is required for this coupon.`);
-      return;
-    }
-
-    let discount = 0;
-    if (coupon.type === 'percentage') {
-      discount = (numericTotalPrice * coupon.value) / 100;
-    } else {
-      discount = coupon.value;
-    }
-
-    setDiscountAmount(discount);
-    setAppliedCoupon(coupon);
-    messageApi.success({
-      content: `Coupon "${coupon.code}" applied successfully!`,
-      style: { marginTop: '10vh' }
-    });
-  };
-
-  useEffect(() => {
-    if (appliedCoupon) {
-      if (numericTotalPrice < appliedCoupon.minOrder) {
-        messageApi.warning(`Order total is now below the minimum of ₹${appliedCoupon.minOrder}. Coupon removed.`);
-        handleRemoveCoupon();
-      } else if (appliedCoupon.type === 'percentage') {
-        const newDiscount = (numericTotalPrice * appliedCoupon.value) / 100;
-        setDiscountAmount(newDiscount);
-      }
-    }
-  }, [numericTotalPrice, appliedCoupon]);
 
   const handleCartToggle = (): void => {
     if (!auth?.isAuthenticated) {
@@ -1057,47 +977,9 @@ const FoodNavbar: React.FC = () => {
                   background: '#fff'
                 }}>
                   <div style={{ marginBottom: '16px' }}>
-                    {!appliedCoupon ? (
-                      <Space.Compact style={{ width: '100%' }}>
-                        <Input
-                          placeholder="Enter coupon code"
-                          value={couponCode}
-                          onChange={(e) => setCouponCode(e.target.value)}
-                          onPressEnter={handleApplyCoupon}
-                        />
-                        <Button type="primary" onClick={handleApplyCoupon} style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}>Apply</Button>
-                      </Space.Compact>
-                    ) : (
-                      <div style={{
-                        padding: '8px 12px',
-                        background: '#f6ffed',
-                        border: '1px solid #b7eb8f',
-                        borderRadius: '4px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                      }}>
-                        <Text>
-                          Coupon <Tag color="green">{appliedCoupon.code}</Tag> applied!
-                        </Text>
-                        <Button type="text" danger size="small" onClick={() => { handleRemoveCoupon(); messageApi.info('Coupon removed.'); }}>Remove</Button>
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Text>Subtotal</Text>
-                      <Text>₹{totalPrice}</Text>
-                    </div>
-                    {appliedCoupon && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Text style={{ color: '#52c41a' }}>Discount ({appliedCoupon.description})</Text>
-                        <Text style={{ color: '#52c41a' }}>- ₹{discountAmount.toFixed(2)}</Text>
-                      </div>
-                    )}
                     <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #ccc', paddingTop: '8px' }}>
-                      <Title level={4} style={{ margin: 0 }}>Grand Total</Title>
-                      <Title level={4} style={{ margin: 0 }}>₹{finalPrice}</Title>
+                      <Title level={4} style={{ margin: 0 }}>Total</Title>
+                      <Title level={4} style={{ margin: 0 }}>₹{totalPrice}</Title>
                     </div>
                   </div>
                   <Button
@@ -1108,7 +990,7 @@ const FoodNavbar: React.FC = () => {
                     }}
                     size="large"
                     block
-                    onClick={() => checkoutHandler(finalPrice)}
+                    onClick={() => checkoutHandler(totalPrice)}
                   >
                     Proceed to Checkout
                   </Button>
