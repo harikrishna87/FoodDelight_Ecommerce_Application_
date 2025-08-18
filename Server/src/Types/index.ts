@@ -53,15 +53,19 @@ export interface IRating {
   count: number;
 }
 
-export interface IProduct extends Document {
+export interface IProduct {
+  _id?: string;
   title: string;
   description: string;
   price: number;
   category: string;
   image: string;
   rating: IRating;
-  createdAt: Date;
-  updatedAt: Date;
+  ingredients?: string[];
+  calories?: number;
+  ageRecommendation?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 declare global {

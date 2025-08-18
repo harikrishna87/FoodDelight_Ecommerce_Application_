@@ -45,6 +45,28 @@ const ProductSchema = new Schema<IProduct>(
       type: RatingSchema,
       default: () => ({ rate: 0, count: 0 }),
     },
+    ingredients: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: function(v: string[]) {
+          return v.length <= 20;
+        },
+        message: 'Maximum 20 ingredients allowed.'
+      }
+    },
+    calories: {
+      type: Number,
+      min: [0, 'Calories cannot be negative.'],
+      max: [10000, 'Calories seems too high.'],
+      default: null
+    },
+    ageRecommendation: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Age recommendation cannot exceed 100 characters.'],
+      default: null
+    }
   },
   {
     timestamps: true,

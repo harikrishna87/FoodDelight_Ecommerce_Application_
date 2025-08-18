@@ -68,6 +68,7 @@ const FoodNavbar: React.FC = () => {
   const screens = useBreakpoint();
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  const deliveryCharge = 30;
 
   const getActiveKey = (pathname: string): string => {
     if (pathname === '/') return 'home';
@@ -291,7 +292,11 @@ const FoodNavbar: React.FC = () => {
   }, [cartItems]);
 
   const numericTotalPrice = cartItems.reduce((sum, item) => sum + item.discount_price * item.quantity, 0);
-  const totalPrice = numericTotalPrice.toFixed(2);
+  const totalOriginalPrice = cartItems.reduce((sum, item) => sum + item.original_price * item.quantity, 0);
+  const totalSavings = totalOriginalPrice - numericTotalPrice;
+  const finalTotal = numericTotalPrice + deliveryCharge;
+  const totalPrice = finalTotal.toFixed(2);
+  const freeDeliveryApplied = numericTotalPrice >= 200;
 
   const handleCartToggle = (): void => {
     if (!auth?.isAuthenticated) {
@@ -845,7 +850,7 @@ const FoodNavbar: React.FC = () => {
                 flex: 1,
                 overflowY: 'auto',
                 padding: '16px',
-                maxHeight: 'calc(100vh - 250px)'
+                maxHeight: 'calc(100vh - 280px)'
               }}>
                 <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                   {cartItems.map(item => (
@@ -976,10 +981,36 @@ const FoodNavbar: React.FC = () => {
                   borderTop: '1px solid #f0f0f0',
                   background: '#fff'
                 }}>
-                  <div style={{ marginBottom: '16px' }}>
+                  <div style={{ marginBottom: '12px' }}>
+                    {totalSavings > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#52c41a' }}>
+                        <Text style={{ color: '#52c41a', fontSize: '15px' }}>Total Amount You Saved 🎉 Today</Text>
+                        <Text strong style={{ color: '#52c41a', fontSize: '15px' }}>₹{totalSavings.toFixed(2)}</Text>
+                      </div>
+                    )}
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <Text>Subtotal</Text>
+                      <Text>₹{numericTotalPrice.toFixed(2)}</Text>
+                    </div>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <Text style={{ fontSize: '15px' }}>Delivery Charges</Text>
+                      {freeDeliveryApplied ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Text delete style={{ color: '#999', fontSize: '14px' }}>₹{deliveryCharge}</Text>
+                          <Text style={{ color: '#52c41a', fontSize: '15px' }}>Free Delivery Applied 🚚</Text>
+                        </div>
+                      ) : (
+                        <Text style={{ fontSize: '15px' }}>₹{deliveryCharge}</Text>
+                      )}
+                    </div>
+                    
                     <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #ccc', paddingTop: '8px' }}>
-                      <Title level={4} style={{ margin: 0 }}>Total</Title>
-                      <Title level={4} style={{ margin: 0 }}>₹{totalPrice}</Title>
+                      <Title level={4} style={{ margin: 0 }}>Total Amount </Title>
+                      <Title level={4} style={{ margin: 0 }}>
+                        ₹{freeDeliveryApplied ? numericTotalPrice.toFixed(2) : totalPrice}
+                      </Title>
                     </div>
                   </div>
                   <Button
@@ -990,7 +1021,7 @@ const FoodNavbar: React.FC = () => {
                     }}
                     size="large"
                     block
-                    onClick={() => checkoutHandler(totalPrice)}
+                    onClick={() => checkoutHandler(freeDeliveryApplied ? numericTotalPrice.toFixed(2) : totalPrice)}
                   >
                     Proceed to Checkout
                   </Button>

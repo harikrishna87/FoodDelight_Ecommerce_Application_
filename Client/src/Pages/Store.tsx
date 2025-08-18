@@ -16,12 +16,16 @@ import {
     message,
     Spin,
     Layout,
-    Carousel
+    Carousel,
+    Modal,
+    Image
 } from 'antd';
 import {
     SearchOutlined,
     FilterOutlined,
     ShoppingCartOutlined,
+    InfoCircleOutlined,
+    CloseOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
 import 'antd/dist/reset.css';
@@ -43,6 +47,9 @@ interface Product {
         rate: number;
         count: number;
     };
+    ingredients?: string[];
+    calories?: number;
+    ageRecommendation?: string;
 }
 
 interface FilterOptions {
@@ -191,6 +198,60 @@ const customStyles = `
 .ant-pagination-item:hover a {
     color: #52c41a !important;
 }
+.know-more-btn {
+    border: none;
+    background: none;
+    color: #52c41a;
+    padding: 0;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-left: auto;
+    line-height: 1;
+}
+.know-more-btn:hover {
+    color: #389e0d;
+    text-decoration: none;
+}
+.know-more-btn .anticon {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+}
+.know-more-btn span {
+    display: flex;
+    align-items: center;
+}
+.product-details-modal .ant-modal-header {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 16px 24px;
+}
+.product-details-modal .ant-modal-body {
+    padding: 24px;
+}
+.product-details-modal .ant-descriptions-item-label {
+    font-weight: 600;
+    color: #52c41a;
+}
+.modal-loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    min-height: 200px;
+}
+.modal-loading-spinner {
+    margin-bottom: 16px;
+}
+.modal-loading-text {
+    color: #52c41a;
+    font-size: 16px;
+    text-align: center;
+}
 @media (max-width: 768px) {
     .store-container {
         padding: 20px 16px;
@@ -238,7 +299,10 @@ const Store: React.FC = () => {
     const [messageApi, contextHolder] = message.useMessage();
     const [categoryDiscounts, setCategoryDiscounts] = useState<CategoryDiscount>({});
     const [currentPage, setCurrentPage] = useState<number>(1);
-    const productsPerPage = 8;
+    const [showProductModal, setShowProductModal] = useState<boolean>(false);
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [modalLoading, setModalLoading] = useState<boolean>(false);
+    const productsPerPage = 12;
 
     const auth = useContext(AuthContext);
 
@@ -471,6 +535,34 @@ const Store: React.FC = () => {
         return originalPrice - (originalPrice * (discountPercentage / 100));
     };
 
+    const handleKnowMore = async (product: Product) => {
+        setModalLoading(true);
+        setShowProductModal(true);
+        
+        try {
+            await new Promise(resolve => setTimeout(resolve, 800));
+            setSelectedProduct(product);
+        } catch (error) {
+            console.error('Error fetching product details:', error);
+            messageApi.error({
+                content: "Failed to load product details",
+                duration: 3,
+                style: {
+                    marginTop: '10vh',
+                },
+            });
+            setShowProductModal(false);
+        } finally {
+            setModalLoading(false);
+        }
+    };
+
+    const handleModalClose = () => {
+        setShowProductModal(false);
+        setSelectedProduct(null);
+        setModalLoading(false);
+    };
+
     if (loading) {
         return (
             <Layout style={{ minHeight: '100vh', backgroundColor: '#f5f5f5', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -632,7 +724,6 @@ const Store: React.FC = () => {
                                                 {categories.map((category) => (
                                                     <Option key={category} value={category}>
                                                         {category.charAt(0).toUpperCase() + category.slice(1)}
-                                                        {/* {categoryDiscounts[category] ? ` (${categoryDiscounts[category]}% OFF)` : ''} */}
                                                     </Option>
                                                 ))}
                                             </Select>
@@ -736,18 +827,26 @@ const Store: React.FC = () => {
                                             }
                                         >
                                             <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                                                <Tag
-                                                    color="cyan"
-                                                    style={{
-                                                        fontSize: '12px',
-                                                        padding: '2px 8px',
-                                                        width: "fit-content",
-                                                        border: '1px dashed',
-                                                        marginBottom: '8px'
-                                                    }}
-                                                >
-                                                    {product.category}
-                                                </Tag>
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                                    <Tag
+                                                        color="cyan"
+                                                        style={{
+                                                            fontSize: '12px',
+                                                            padding: '2px 8px',
+                                                            border: '1px dashed'
+                                                        }}
+                                                    >
+                                                        {product.category}
+                                                    </Tag>
+                                                    <button 
+                                                        className="know-more-btn" 
+                                                        onClick={() => handleKnowMore(product)}
+                                                        style={{fontSize: '14px'}}
+                                                    >
+                                                        <InfoCircleOutlined />
+                                                        <span>Know More</span>
+                                                    </button>
+                                                </div>
                                                 <Title level={5} style={{ margin: '0 0 8px 0' }} ellipsis>
                                                     {product.title}
                                                 </Title>
@@ -755,6 +854,7 @@ const Store: React.FC = () => {
                                                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
                                                     <Rate
                                                         disabled
+                                                        allowHalf
                                                         value={product.rating.rate}
                                                         style={{ fontSize: '14px' }}
                                                     />
@@ -856,6 +956,216 @@ const Store: React.FC = () => {
                     </div>
                 </div>
                 {contextHolder}
+                
+                <Modal
+                    title={
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <InfoCircleOutlined style={{ color: '#52c41a' }} />
+                            <span style={{ color: '#52c41a', fontWeight: 'bold' }}>Product Details</span>
+                        </div>
+                    }
+                    open={showProductModal}
+                    onCancel={handleModalClose}
+                    footer={null}
+                    width={800}
+                    className="product-details-modal"
+                    closeIcon={<CloseOutlined style={{ color: '#52c41a' }} />}
+                    style={{ maxHeight: 'none', top: 50 }}
+                    bodyStyle={{ maxHeight: 'none', overflow: 'visible' }}
+                >
+                    {modalLoading ? (
+                        <div className="modal-loading-content">
+                            <Spin 
+                                size="large" 
+                                className="modal-loading-spinner"
+                                style={{ color: '#52c41a' }}
+                            />
+                            <div className="modal-loading-text">
+                                Loading product details...
+                            </div>
+                        </div>
+                    ) : selectedProduct ? (
+                        <div style={{ overflow: 'visible' }}>
+                            <Row gutter={[24, 24]}>
+                                <Col md={10} xs={24}>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <Image
+                                            src={selectedProduct.image}
+                                            alt={selectedProduct.title}
+                                            style={{
+                                                width: '100%',
+                                                maxWidth: '300px',
+                                                height: '290px',
+                                                borderRadius: '12px',
+                                                objectFit: 'cover'
+                                            }}
+                                            preview={false}
+                                        />
+                                    </div>
+                                </Col>
+                                <Col md={14} xs={24}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
+                                            <Title level={3} style={{ color: '#52c41a', margin: 0, flex: 1 }}>
+                                                {selectedProduct.title}
+                                            </Title>
+                                        </div>
+
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                            <div>
+                                                <Text strong style={{ color: '#52c41a', marginRight: '12px' }}>Product ID:</Text>
+                                                <Tag color='purple' style={{fontSize: '12px', border: '1px dashed'}} >{selectedProduct._id}</Tag>
+                                            </div>
+                                            
+                                            <div>
+                                                <Text strong style={{ color: '#52c41a', marginRight: '12px' }}>Category:</Text>
+                                                <Tag 
+                                                    color="cyan" 
+                                                    style={{ 
+                                                        fontSize: '12px',
+                                                        border: '1px dashed'
+                                                    }}
+                                                >
+                                                    {selectedProduct.category}
+                                                </Tag>
+                                            </div>
+
+                                            <div>
+                                                <Text strong style={{ color: '#52c41a', marginRight: '12px' }}>Rating:</Text>
+                                                <Rate disabled allowHalf value={selectedProduct.rating.rate} style={{ fontSize: '14px' }} />
+                                                <Text strong style={{ marginLeft: '8px', fontSize: '14px' }}>
+                                                    {selectedProduct.rating.rate}
+                                                </Text>
+                                                <Text type="secondary" style={{ marginLeft: '8px' }}>
+                                                    ({selectedProduct.rating.count} reviews)
+                                                </Text>
+                                            </div>
+
+                                            <div>
+                                                <Text strong style={{ color: '#52c41a', marginRight: '12px' }}>Price:</Text>
+                                                {categoryDiscounts[selectedProduct.category] ? (
+                                                    <Space>
+                                                        <Text strong style={{ color: '#52c41a', fontSize: '16px' }}>
+                                                            ₹ {calculateDiscountedPrice(selectedProduct.price, selectedProduct.category).toFixed(2)}
+                                                        </Text>
+                                                        <Text delete type="secondary" style={{ fontSize: '14px' }}>
+                                                            ₹ {selectedProduct.price.toFixed(2)}
+                                                        </Text>
+                                                    </Space>
+                                                ) : (
+                                                    <Text strong style={{ fontSize: '16px' }}>
+                                                        ₹ {selectedProduct.price.toFixed(2)}
+                                                    </Text>
+                                                )}
+                                            </div>
+
+                                            {selectedProduct.calories && (
+                                                <div>
+                                                    <Text strong style={{ color: '#52c41a', marginRight: '12px' }}>Calories:</Text>
+                                                    <Text style={{ fontSize: '14px' }}>
+                                                        {selectedProduct.calories} per serving
+                                                    </Text>
+                                                </div>
+                                            )}
+
+                                            <div style={{ marginTop: '20px' }}>
+                                                <Button
+                                                    type="primary"
+                                                    size="large"
+                                                    onClick={() => {
+                                                        addToCart(selectedProduct);
+                                                        setShowProductModal(false);
+                                                    }}
+                                                    disabled={addingToCart[selectedProduct._id]}
+                                                    style={{
+                                                        backgroundColor: '#52c41a',
+                                                        borderColor: '#52c41a',
+                                                        width: '100%',
+                                                        height: '45px',
+                                                        fontSize: '16px',
+                                                        fontWeight: 'bold'
+                                                    }}
+                                                >
+                                                    {addingToCart[selectedProduct._id] ? (
+                                                        <Spin size="small" />
+                                                    ) : (
+                                                        <>
+                                                            <ShoppingCartOutlined style={{ marginRight: '8px' }} />
+                                                            Add to Cart
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Col>
+                            </Row>
+
+                            <Row style={{ marginTop: '24px' }}>
+                                <Col span={24}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                        <div>
+                                            <Text strong style={{ color: '#52c41a', display: 'block', marginBottom: '8px' }}>Image URL:</Text>
+                                            <Text 
+                                                copyable 
+                                                style={{ 
+                                                    fontSize: '12px', 
+                                                    display: 'block',
+                                                    wordBreak: 'break-all',
+                                                    whiteSpace: 'normal',
+                                                    background: '#f5f5f5',
+                                                    padding: '8px',
+                                                    borderRadius: '4px',
+                                                    border: '1px solid #e8e8e8'
+                                                }}
+                                            >
+                                                {selectedProduct.image}
+                                            </Text>
+                                        </div>
+
+                                        <div>
+                                            <Text strong style={{ color: '#52c41a', display: 'block', marginBottom: '8px' }}>Description:</Text>
+                                            <Text style={{ fontSize: '14px', lineHeight: '1.6', display: 'block' }}>
+                                                {selectedProduct.description || 'No description available'}
+                                            </Text>
+                                        </div>
+
+                                        {selectedProduct.ingredients && selectedProduct.ingredients.length > 0 && (
+                                            <div>
+                                                <Text strong style={{ color: '#52c41a', display: 'block', marginBottom: '8px' }}>Ingredients:</Text>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                                    {selectedProduct.ingredients.map((ingredient, index) => (
+                                                        <Tag 
+                                                            key={index} 
+                                                            color="blue"
+                                                            style={{ 
+                                                                border: '1px dashed',
+                                                                fontSize: '12px',
+                                                                padding: '2px 8px'
+                                                            }}
+                                                        >
+                                                            {ingredient}
+                                                        </Tag>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {selectedProduct.ageRecommendation && (
+                                            <div>
+                                                <Text strong style={{ color: '#52c41a', display: 'block', marginBottom: '8px' }}>Age Recommendation:</Text>
+                                                <Text style={{ fontSize: '14px' }}>
+                                                    {selectedProduct.ageRecommendation}
+                                                </Text>
+                                            </div>
+                                        )}
+                                    </div>
+                                </Col>
+                            </Row>
+                        </div>
+                    ) : null}
+                </Modal>
+                
                 <AuthModal
                     show={showAuthModal}
                     onHide={() => setShowAuthModal(false)}

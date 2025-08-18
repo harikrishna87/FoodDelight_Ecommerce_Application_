@@ -32,6 +32,7 @@ import {
     StarOutlined,
     TagsOutlined,
     UnorderedListOutlined,
+    MinusCircleOutlined,
 } from '@ant-design/icons';
 
 import type { ColumnsType } from 'antd/es/table';
@@ -53,6 +54,9 @@ interface Product {
     category: string;
     image: string;
     rating: Rating;
+    ingredients?: string[];
+    calories?: number;
+    ageRecommendation?: string;
 }
 
 interface Category {
@@ -68,6 +72,9 @@ interface FormData {
     image?: string;
     rate?: number;
     count?: number;
+    ingredients?: string[];
+    calories?: number;
+    ageRecommendation?: string;
 }
 
 interface FormErrors {
@@ -78,6 +85,9 @@ interface FormErrors {
     image?: string;
     rate?: string;
     count?: string;
+    ingredients?: string;
+    calories?: string;
+    ageRecommendation?: string;
 }
 
 interface ApiResponse {
@@ -167,8 +177,8 @@ const ProductsPage: React.FC = () => {
 
         if (!formData.description?.trim()) {
             errors.description = 'Product description is required';
-        } else if (formData.description.length > 100) {
-            errors.description = 'Description must be 100 characters or less';
+        } else if (formData.description.length > 500) {
+            errors.description = 'Description must be 500 characters or less';
         }
 
         if (!formData.price || formData.price <= 0) {
@@ -189,6 +199,14 @@ const ProductsPage: React.FC = () => {
 
         if (!formData.count || formData.count < 0) {
             errors.count = 'Please enter a valid rating count';
+        }
+
+        if (formData.ingredients && formData.ingredients.length === 0) {
+            errors.ingredients = 'Please add at least one ingredient';
+        }
+
+        if (formData.calories !== undefined && formData.calories < 0) {
+            errors.calories = 'Calories must be a positive number';
         }
 
         setFormErrors(errors);
@@ -311,7 +329,7 @@ const ProductsPage: React.FC = () => {
 
     const handleAddProduct = (): void => {
         setEditingProduct(null);
-        setFormData({});
+        setFormData({ ingredients: [''] });
         setFormErrors({});
         setIsModalVisible(true);
     };
@@ -325,7 +343,10 @@ const ProductsPage: React.FC = () => {
             category: product.category,
             image: product.image,
             rate: product.rating.rate,
-            count: product.rating.count
+            count: product.rating.count,
+            ingredients: product.ingredients && product.ingredients.length > 0 ? product.ingredients : [''],
+            calories: product.calories,
+            ageRecommendation: product.ageRecommendation
         });
         setFormErrors({});
         setIsModalVisible(true);
@@ -395,7 +416,10 @@ const ProductsPage: React.FC = () => {
             rating: {
                 rate: formData.rate!,
                 count: formData.count!
-            }
+            },
+            ingredients: formData.ingredients?.filter(ingredient => ingredient.trim() !== '') || [],
+            calories: formData.calories,
+            ageRecommendation: formData.ageRecommendation?.trim() || undefined
         };
 
         const loadingKey = 'saving';
@@ -483,6 +507,26 @@ const ProductsPage: React.FC = () => {
         if (formErrors[field]) {
             setFormErrors({ ...formErrors, [field]: undefined });
         }
+    };
+
+    const addIngredientField = () => {
+        const currentIngredients = formData.ingredients || [''];
+        setFormData({ ...formData, ingredients: [...currentIngredients, ''] });
+    };
+
+    const removeIngredientField = (index: number) => {
+        const currentIngredients = formData.ingredients || [''];
+        if (currentIngredients.length > 1) {
+            const newIngredients = currentIngredients.filter((_, i) => i !== index);
+            setFormData({ ...formData, ingredients: newIngredients });
+        }
+    };
+
+    const updateIngredient = (index: number, value: string) => {
+        const currentIngredients = formData.ingredients || [''];
+        const newIngredients = [...currentIngredients];
+        newIngredients[index] = value;
+        setFormData({ ...formData, ingredients: newIngredients });
     };
 
     if (loading) {
@@ -641,13 +685,23 @@ const ProductsPage: React.FC = () => {
             ),
         },
         {
+            title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Calories</span>,
+            dataIndex: 'calories',
+            key: 'calories',
+            render: (calories: number) => (
+                <Text style={{ color: '#ff7875' }}>
+                    {calories ? `${calories} cal` : 'N/A'}
+                </Text>
+            ),
+        },
+        {
             title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Rating</span>,
             dataIndex: 'rating',
             key: 'rating',
             width: 200,
             render: (rating: Rating) => (
                 <Space direction="vertical" size={0}>
-                    <Rate disabled defaultValue={rating?.rate || 0} style={{ fontSize: 14 }} />
+                    <Rate disabled allowHalf defaultValue={rating?.rate || 0} style={{ fontSize: 14 }} />
                     <Text type="secondary" style={{ fontSize: 12 }}>({rating?.count || 0} reviews)</Text>
                 </Space>
             ),
@@ -1105,7 +1159,7 @@ const ProductsPage: React.FC = () => {
                     setFormErrors({});
                 }}
                 style={{ color: "#52c41a" }}
-                width={600}
+                width={800}
                 okText={editingProduct ? "Update" : "Add"}
                 okButtonProps={{
                     style: { backgroundColor: '#52c41a', borderColor: '#52c41a' }
@@ -1128,12 +1182,12 @@ const ProductsPage: React.FC = () => {
                     </div>
 
                     <div style={{ marginBottom: '16px' }}>
-                        <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Description (Max 100 characters) *</label>
+                        <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Description (Max 500 characters) *</label>
                         <Input.TextArea
-                            rows={3}
+                            rows={5}
                             placeholder="Enter product description"
                             showCount
-                            maxLength={100}
+                            maxLength={500}
                             value={formData.description || ''}
                             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleFormChange('description', e.target.value)}
                             status={formErrors.description ? 'error' : ''}
@@ -1207,15 +1261,15 @@ const ProductsPage: React.FC = () => {
                     </div>
 
                     <Row gutter={16}>
-                        <Col span={12}>
+                        <Col span={8}>
                             <div style={{ marginBottom: '16px' }}>
                                 <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Rating *</label>
                                 <InputNumber
                                     style={{ width: '100%' }}
                                     min={0}
                                     max={5}
-                                    step={0.1}
-                                    placeholder="4.1"
+                                    step={0.5}
+                                    placeholder="4.5"
                                     value={formData.rate}
                                     onChange={(value: number | null) => handleFormChange('rate', value)}
                                     status={formErrors.rate ? 'error' : ''}
@@ -1227,7 +1281,7 @@ const ProductsPage: React.FC = () => {
                                 )}
                             </div>
                         </Col>
-                        <Col span={12}>
+                        <Col span={8}>
                             <div style={{ marginBottom: '16px' }}>
                                 <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Rating Count *</label>
                                 <InputNumber
@@ -1239,7 +1293,104 @@ const ProductsPage: React.FC = () => {
                                 />
                             </div>
                         </Col>
+                        <Col span={8}>
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Calories</label>
+                                <InputNumber
+                                    style={{ width: '100%' }}
+                                    min={0}
+                                    placeholder="485"
+                                    value={formData.calories}
+                                    onChange={(value: number | null) => handleFormChange('calories', value)}
+                                    status={formErrors.calories ? 'error' : ''}
+                                />
+                                {formErrors.calories && (
+                                    <Text type="danger" style={{ fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                                        {formErrors.calories}
+                                    </Text>
+                                )}
+                            </div>
+                        </Col>
                     </Row>
+
+                    <div style={{ marginBottom: '16px' }}>
+                        <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Age Recommendation</label>
+                        <Input
+                            placeholder="e.g., Suitable for all ages, Kids love the mild spices, adults..."
+                            value={formData.ageRecommendation || ''}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFormChange('ageRecommendation', e.target.value)}
+                            status={formErrors.ageRecommendation ? 'error' : ''}
+                        />
+                        {formErrors.ageRecommendation && (
+                            <Text type="danger" style={{ fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                                {formErrors.ageRecommendation}
+                            </Text>
+                        )}
+                    </div>
+
+                    <div style={{ marginBottom: '16px' }}>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
+                            Ingredients
+                        </label>
+                        <div style={{ 
+                            border: '1px solid #d9d9d9', 
+                            borderRadius: '6px', 
+                            padding: '12px',
+                            background: '#fafafa'
+                        }}>
+                            <div style={{ 
+                                display: 'grid', 
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+                                gap: '8px',
+                                marginBottom: '12px'
+                            }}>
+                                {(formData.ingredients || ['']).map((ingredient, index) => (
+                                    <div key={index} style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                    }}>
+                                        <Input
+                                            placeholder={`Ingredient ${index + 1}`}
+                                            value={ingredient}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateIngredient(index, e.target.value)}
+                                            style={{ flex: 1 }}
+                                            size="small"
+                                        />
+                                        {(formData.ingredients || ['']).length > 1 && (
+                                            <Button
+                                                type="text"
+                                                danger
+                                                icon={<MinusCircleOutlined />}
+                                                onClick={() => removeIngredientField(index)}
+                                                size="small"
+                                                style={{ padding: '4px', minWidth: 'auto', flexShrink: 0 }}
+                                            />
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                            <Button
+                                type="dashed"
+                                icon={<PlusOutlined />}
+                                size="small"
+                                style={{ 
+                                    borderColor: '#52c41a', 
+                                    color: '#52c41a',
+                                    display: 'inline-flex',
+                                    alignItems: 'center'
+                                }}
+                                onClick={addIngredientField}
+                            >
+                                Add Ingredient
+                            </Button>
+                        </div>
+                        {formErrors.ingredients && (
+                            <Text type="danger" style={{ fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                                {formErrors.ingredients}
+                            </Text>
+                        )}
+                    </div>
                 </div>
             </Modal>
             
