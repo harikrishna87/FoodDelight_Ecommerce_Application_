@@ -61,9 +61,9 @@ export interface IProduct {
   category: string;
   image: string;
   rating: IRating;
-  ingredients?: string[];
-  calories?: number;
-  ageRecommendation?: string;
+  // ingredients?: string[];
+  // calories?: number;
+  // ageRecommendation?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
