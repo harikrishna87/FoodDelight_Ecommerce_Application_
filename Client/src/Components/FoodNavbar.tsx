@@ -50,8 +50,6 @@ interface CartItem {
   description?: string;
 }
 
-
-
 const FoodNavbar: React.FC = () => {
   const [showCart, setShowCart] = useState<boolean>(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -610,13 +608,6 @@ const FoodNavbar: React.FC = () => {
       if (error.response?.status === 401 && auth?.logout) {
         auth.logout();
       }
-      messageApi.error({
-        content: "Apply Coupon Before Proceeding to CheckOut",
-        duration: 3,
-        style: {
-          marginTop: '10vh',
-        },
-      });
     }
   };
 

@@ -54,9 +54,9 @@ interface Product {
     category: string;
     image: string;
     rating: Rating;
-    ingredients?: string[];
-    calories?: number;
-    ageRecommendation?: string;
+    ingredients: string[];
+    calories: number;
+    ageRecommendation: string;
 }
 
 interface Category {
@@ -65,16 +65,16 @@ interface Category {
 }
 
 interface FormData {
-    title?: string;
-    description?: string;
-    price?: number;
-    category?: string;
-    image?: string;
-    rate?: number;
-    count?: number;
-    ingredients?: string[];
-    calories?: number;
-    ageRecommendation?: string;
+    title: string;
+    description: string;
+    price: number;
+    category: string;
+    image: string;
+    rate: number;
+    count: number;
+    ingredients: string[];
+    calories: number;
+    ageRecommendation: string;
 }
 
 interface FormErrors {
@@ -158,7 +158,18 @@ const ProductsPage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-    const [formData, setFormData] = useState<FormData>({});
+    const [formData, setFormData] = useState<FormData>({
+        title: '',
+        description: '',
+        price: 0,
+        category: '',
+        image: '',
+        rate: 0,
+        count: 0,
+        ingredients: [''],
+        calories: 0,
+        ageRecommendation: ''
+    });
     const [formErrors, setFormErrors] = useState<FormErrors>({});
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [loading, setLoading] = useState<boolean>(false);
@@ -171,11 +182,11 @@ const ProductsPage: React.FC = () => {
     const validateForm = (): boolean => {
         const errors: FormErrors = {};
 
-        if (!formData.title?.trim()) {
+        if (!formData.title.trim()) {
             errors.title = 'Product title is required';
         }
 
-        if (!formData.description?.trim()) {
+        if (!formData.description.trim()) {
             errors.description = 'Product description is required';
         } else if (formData.description.length > 500) {
             errors.description = 'Description must be 500 characters or less';
@@ -189,7 +200,7 @@ const ProductsPage: React.FC = () => {
             errors.category = 'Please select a product category';
         }
 
-        if (!formData.image?.trim()) {
+        if (!formData.image.trim()) {
             errors.image = 'Product image URL is required';
         }
 
@@ -201,12 +212,16 @@ const ProductsPage: React.FC = () => {
             errors.count = 'Please enter a valid rating count';
         }
 
-        if (formData.ingredients && formData.ingredients.length === 0) {
+        if (!formData.ingredients || formData.ingredients.length === 0 || formData.ingredients.every(ingredient => ingredient.trim() === '')) {
             errors.ingredients = 'Please add at least one ingredient';
         }
 
-        if (formData.calories !== undefined && formData.calories < 0) {
-            errors.calories = 'Calories must be a positive number';
+        if (!formData.calories || formData.calories < 0) {
+            errors.calories = 'Please enter valid calories';
+        }
+
+        if (!formData.ageRecommendation.trim()) {
+            errors.ageRecommendation = 'Age recommendation is required';
         }
 
         setFormErrors(errors);
@@ -329,7 +344,18 @@ const ProductsPage: React.FC = () => {
 
     const handleAddProduct = (): void => {
         setEditingProduct(null);
-        setFormData({ ingredients: [''] });
+        setFormData({
+            title: '',
+            description: '',
+            price: 0,
+            category: '',
+            image: '',
+            rate: 0,
+            count: 0,
+            ingredients: [''],
+            calories: 0,
+            ageRecommendation: ''
+        });
         setFormErrors({});
         setIsModalVisible(true);
     };
@@ -408,18 +434,18 @@ const ProductsPage: React.FC = () => {
         }
 
         const productData = {
-            title: formData.title!.trim(),
-            description: formData.description!.trim(),
-            price: formData.price!,
-            category: formData.category!,
-            image: formData.image!.trim(),
+            title: formData.title.trim(),
+            description: formData.description.trim(),
+            price: formData.price,
+            category: formData.category,
+            image: formData.image.trim(),
             rating: {
-                rate: formData.rate!,
-                count: formData.count!
+                rate: formData.rate,
+                count: formData.count
             },
-            ingredients: formData.ingredients?.filter(ingredient => ingredient.trim() !== '') || [],
+            ingredients: formData.ingredients.filter(ingredient => ingredient.trim() !== ''),
             calories: formData.calories,
-            ageRecommendation: formData.ageRecommendation?.trim() || undefined
+            ageRecommendation: formData.ageRecommendation.trim()
         };
 
         const loadingKey = 'saving';
@@ -483,7 +509,18 @@ const ProductsPage: React.FC = () => {
             }
 
             setIsModalVisible(false);
-            setFormData({});
+            setFormData({
+                title: '',
+                description: '',
+                price: 0,
+                category: '',
+                image: '',
+                rate: 0,
+                count: 0,
+                ingredients: [''],
+                calories: 0,
+                ageRecommendation: ''
+            });
             setFormErrors({});
             setEditingProduct(null);
 
@@ -690,7 +727,7 @@ const ProductsPage: React.FC = () => {
             key: 'calories',
             render: (calories: number) => (
                 <Text style={{ color: '#ff7875' }}>
-                    {calories ? `${calories} cal` : 'N/A'}
+                    {calories} cal
                 </Text>
             ),
         },
@@ -1155,7 +1192,18 @@ const ProductsPage: React.FC = () => {
                 onOk={handleModalOk}
                 onCancel={() => {
                     setIsModalVisible(false);
-                    setFormData({});
+                    setFormData({
+                        title: '',
+                        description: '',
+                        price: 0,
+                        category: '',
+                        image: '',
+                        rate: 0,
+                        count: 0,
+                        ingredients: [''],
+                        calories: 0,
+                        ageRecommendation: ''
+                    });
                     setFormErrors({});
                 }}
                 style={{ color: "#52c41a" }}
@@ -1170,7 +1218,7 @@ const ProductsPage: React.FC = () => {
                         <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Product Title *</label>
                         <Input
                             placeholder="Enter product title"
-                            value={formData.title || ''}
+                            value={formData.title}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFormChange('title', e.target.value)}
                             status={formErrors.title ? 'error' : ''}
                         />
@@ -1188,7 +1236,7 @@ const ProductsPage: React.FC = () => {
                             placeholder="Enter product description"
                             showCount
                             maxLength={500}
-                            value={formData.description || ''}
+                            value={formData.description}
                             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleFormChange('description', e.target.value)}
                             status={formErrors.description ? 'error' : ''}
                         />
@@ -1209,7 +1257,7 @@ const ProductsPage: React.FC = () => {
                                     step={0.01}
                                     placeholder="295.00"
                                     value={formData.price}
-                                    onChange={(value: number | null) => handleFormChange('price', value)}
+                                    onChange={(value: number | null) => handleFormChange('price', value || 0)}
                                     status={formErrors.price ? 'error' : ''}
                                 />
                                 {formErrors.price && (
@@ -1249,7 +1297,7 @@ const ProductsPage: React.FC = () => {
                         <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Image URL *</label>
                         <Input
                             placeholder="https://example.com/image.jpg"
-                            value={formData.image || ''}
+                            value={formData.image}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFormChange('image', e.target.value)}
                             status={formErrors.image ? 'error' : ''}
                         />
@@ -1271,7 +1319,7 @@ const ProductsPage: React.FC = () => {
                                     step={0.5}
                                     placeholder="4.5"
                                     value={formData.rate}
-                                    onChange={(value: number | null) => handleFormChange('rate', value)}
+                                    onChange={(value: number | null) => handleFormChange('rate', value || 0)}
                                     status={formErrors.rate ? 'error' : ''}
                                 />
                                 {formErrors.rate && (
@@ -1289,19 +1337,25 @@ const ProductsPage: React.FC = () => {
                                     min={0}
                                     placeholder="400"
                                     value={formData.count}
-                                    onChange={(value: number | null) => setFormData({ ...formData, count: value || undefined })}
+                                    onChange={(value: number | null) => handleFormChange('count', value || 0)}
+                                    status={formErrors.count ? 'error' : ''}
                                 />
+                                {formErrors.count && (
+                                    <Text type="danger" style={{ fontSize: '12px', display: 'block', marginTop: '4px' }}>
+                                        {formErrors.count}
+                                    </Text>
+                                )}
                             </div>
                         </Col>
                         <Col span={8}>
                             <div style={{ marginBottom: '16px' }}>
-                                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Calories</label>
+                                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Calories *</label>
                                 <InputNumber
                                     style={{ width: '100%' }}
                                     min={0}
                                     placeholder="485"
                                     value={formData.calories}
-                                    onChange={(value: number | null) => handleFormChange('calories', value)}
+                                    onChange={(value: number | null) => handleFormChange('calories', value || 0)}
                                     status={formErrors.calories ? 'error' : ''}
                                 />
                                 {formErrors.calories && (
@@ -1314,10 +1368,10 @@ const ProductsPage: React.FC = () => {
                     </Row>
 
                     <div style={{ marginBottom: '16px' }}>
-                        <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Age Recommendation</label>
+                        <label style={{ display: 'block', marginBottom: '4px', fontWeight: 500 }}>Age Recommendation *</label>
                         <Input
                             placeholder="e.g., Suitable for all ages, Kids love the mild spices, adults..."
-                            value={formData.ageRecommendation || ''}
+                            value={formData.ageRecommendation}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFormChange('ageRecommendation', e.target.value)}
                             status={formErrors.ageRecommendation ? 'error' : ''}
                         />
@@ -1330,7 +1384,7 @@ const ProductsPage: React.FC = () => {
 
                     <div style={{ marginBottom: '16px' }}>
                         <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
-                            Ingredients
+                            Ingredients *
                         </label>
                         <div style={{ 
                             border: '1px solid #d9d9d9', 
@@ -1344,7 +1398,7 @@ const ProductsPage: React.FC = () => {
                                 gap: '8px',
                                 marginBottom: '12px'
                             }}>
-                                {(formData.ingredients || ['']).map((ingredient, index) => (
+                                {formData.ingredients.map((ingredient, index) => (
                                     <div key={index} style={{ 
                                         display: 'flex', 
                                         alignItems: 'center',
@@ -1357,7 +1411,7 @@ const ProductsPage: React.FC = () => {
                                             style={{ flex: 1 }}
                                             size="small"
                                         />
-                                        {(formData.ingredients || ['']).length > 1 && (
+                                        {formData.ingredients.length > 1 && (
                                             <Button
                                                 type="text"
                                                 danger

@@ -369,7 +369,7 @@ const Testimonials: React.FC = () => {
             </style>
 
             <h2 style={{
-                fontSize: '28px',
+                fontSize: '35px',
                 fontWeight: '600',
                 color: '#333',
             }}

@@ -1,4 +1,4 @@
-import mongoose, {Schema} from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import { IProduct, IRating } from "../Types";
 
 const RatingSchema = new Schema<IRating>({
@@ -44,6 +44,23 @@ const ProductSchema = new Schema<IProduct>(
     rating: {
       type: RatingSchema,
       default: () => ({ rate: 0, count: 0 }),
+    },
+    ingredients: {
+      type: [String],
+      required: [true, 'Product ingredients are required.'],
+      default: [],
+    },
+    calories: {
+      type: Number,
+      required: [true, 'Product calories are required.'],
+      min: [0, 'Calories cannot be negative.'],
+      default: 0,
+    },
+    ageRecommendation: {
+      type: String,
+      required: [true, 'Age recommendation is required.'],
+      trim: true,
+      default: '',
     }
   },
   {
