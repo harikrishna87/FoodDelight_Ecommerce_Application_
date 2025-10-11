@@ -295,13 +295,13 @@ const ProfilePage: React.FC = () => {
         messageApi.success('Account deleted successfully');
         setShowDeleteModal(false);
         deleteForm.resetFields();
-        
+
         if (authContext?.logout) {
           authContext.logout();
         }
-        
+
         localStorage.removeItem('token');
-        
+
         setTimeout(() => {
           navigate('/');
         }, 1500);
@@ -921,40 +921,35 @@ const ProfilePage: React.FC = () => {
             }}
           />
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <Row gutter={32}>
-              <Col xs={24} md={16}>
-                <Title level={5} style={{ marginBottom: '8px', color: '#ff4d4f' }}>
-                  <DeleteOutlined style={{ marginRight: '8px' }} />
-                  Delete Account
-                </Title>
-                <Paragraph type="secondary" style={{ marginBottom: '16px' }}>
-                  Once you delete your account, there is no going back. This action cannot be undone. 
-                  All your data including profile information, shipping addresses, and order history will be permanently removed.
-                </Paragraph>
-                <Paragraph type="secondary" style={{ marginBottom: '0' }}>
-                  <Text strong style={{ color: '#ff4d4f' }}>
-                    Warning:
-                  </Text>{' '}
-                  This will permanently delete your account and all associated data.
-                </Paragraph>
-              </Col>
-              <Col xs={24} md={8} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Button
-                  type="primary"
-                  danger
-                  size="large"
-                  icon={<DeleteOutlined />}
-                  onClick={() => setShowDeleteModal(true)}
-                  style={{
-                    height: '48px',
-                    fontSize: '16px',
-                    fontWeight: '500',
-                  }}
-                >
-                  Delete My Account
-                </Button>
-              </Col>
-            </Row>
+            <Title level={5} style={{ marginBottom: '8px', color: '#ff4d4f' }}>
+              <DeleteOutlined style={{ marginRight: '8px' }} />
+              Delete Account
+            </Title>
+            <Paragraph type="secondary" style={{ marginBottom: '16px' }}>
+              Once you delete your account, there is no going back. This action cannot be undone.
+              All your data including profile information, shipping addresses, and order history will be permanently removed.
+            </Paragraph>
+            <Paragraph type="secondary" style={{ marginBottom: '0' }}>
+              <Text strong style={{ color: '#ff4d4f' }}>
+                Warning:
+              </Text>{' '}
+              This will permanently delete your account and all associated data.
+            </Paragraph>
+            <Button
+              type="primary"
+              danger
+              size="large"
+              icon={<DeleteOutlined />}
+              onClick={() => setShowDeleteModal(true)}
+              style={{
+                padding: '8px 16px',
+                marginTop: '20px',
+                fontSize: '14px',
+                fontWeight: '500',
+              }}
+            >
+              Delete My Account
+            </Button>
           </div>
         </Card>
 
@@ -1231,7 +1226,7 @@ const ProfilePage: React.FC = () => {
         >
           <div style={{ marginBottom: '24px' }}>
             <Paragraph style={{ marginBottom: '16px' }}>
-              This action is <Text strong style={{ color: '#ff4d4f' }}>permanent and cannot be undone</Text>. 
+              This action is <Text strong style={{ color: '#ff4d4f' }}>permanent and cannot be undone</Text>.
               All your data will be deleted immediately.
             </Paragraph>
             <Paragraph style={{ marginBottom: '0' }}>
