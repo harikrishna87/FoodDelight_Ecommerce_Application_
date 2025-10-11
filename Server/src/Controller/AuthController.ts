@@ -228,4 +228,60 @@ const updatePassword = async (req: Request, res: Response, next: NextFunction): 
   }
 };
 
-export { register, login, logout, getMe, updateProfile, uploadImage, updatePassword };
+const DeleteAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const user = req.user;
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+
+    const { password } = req.body;
+    if (!password) {
+      res.status(400).json({ success: false, message: 'Please enter your password to confirm account deletion' });
+      return;
+    }
+
+    const userWithPassword = await User.findById(user._id).select('+password');
+    if (!userWithPassword) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+
+    const isMatch = await userWithPassword.comparePassword(password);
+    if (!isMatch) {
+      res.status(401).json({ success: false, message: 'Invalid password' });
+      return;
+    }
+
+    if (user.image) {
+      try {
+        const imageUrl = user.image;
+        const publicIdMatch = imageUrl.match(/user_profiles\/user_[^.]+/);
+        if (publicIdMatch) {
+          await cloudinary.v2.uploader.destroy(publicIdMatch[0]);
+        }
+      } catch (cloudinaryError) {
+        console.error('Failed to delete image from Cloudinary:', cloudinaryError);
+      }
+    }
+
+    await User.findByIdAndDelete(user._id);
+
+    res.cookie('token', 'none', {
+      expires: new Date(Date.now() + 10 * 1000),
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Account deleted successfully'
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export { register, login, logout, getMe, updateProfile, uploadImage, updatePassword, DeleteAccount };

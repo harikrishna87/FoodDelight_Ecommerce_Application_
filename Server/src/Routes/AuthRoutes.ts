@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import { register, login, logout, getMe, updateProfile, uploadImage, updatePassword } from '../Controller/AuthController';
+import { register, login, logout, getMe, updateProfile, uploadImage, updatePassword, DeleteAccount } from '../Controller/AuthController';
 import { protect } from '../Middleware/AuthMiddleWare';
 import multer from 'multer'
 
@@ -13,5 +13,6 @@ router.get('/getme', protect as express.RequestHandler, getMe as express.Request
 router.put('/updateprofile', protect as express.RequestHandler, updateProfile as express.RequestHandler);
 router.post('/upload-image', protect as express.RequestHandler, upload.single('image'), uploadImage as express.RequestHandler);
 router.put('/update-password', protect as express.RequestHandler, updatePassword as express.RequestHandler);
+router.delete('/delete-account', protect as express.RequestHandler, DeleteAccount as express.RequestHandler);
 
 export default router;
