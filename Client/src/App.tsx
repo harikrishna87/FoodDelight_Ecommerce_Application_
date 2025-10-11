@@ -24,6 +24,7 @@ import ReturnsExchanges from './Pages/ReturnsExchanges'
 import PaymentOverview from './Pages/PaymentOverview'
 import OrderManagement from './Pages/OrderManagement'
 import OrderAnalytics from './Pages/OrderAnalytics'
+import ProfilePage from './Pages/ProfilePage'
 
 const AppContent: React.FC = () => {
   const auth = useContext(AuthContext)
@@ -54,6 +55,7 @@ const AppContent: React.FC = () => {
           <Route path="/" element={<Home/>} />
           <Route path="/menu-items" element={<Store/>} />
           <Route path="/contact" element={<Contact/>}/>
+          <Route path='/profilepage' element={<ProfilePage/>} />
           <Route path="/privacy" element={<PrivacyPolicy/>} />
           <Route path='/faq' element={<FAQ/>}/>
           <Route path='/newarrivals' element={<NewArrivals/>}/>

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import Order from '../Models/Orders';
 import Cart from '../Models/Model_Cart_Items';
+import User from '../Models/Users';
 import { OrderDeliveryStatus } from '../Types';
 
 const createOrder = async (req: Request, res: Response, next: NextFunction) => {
@@ -16,6 +17,20 @@ const createOrder = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(400).json({ success: false, message: 'Cart is empty. Cannot create order.' });
     }
 
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const shippingAddress = req.body.shippingAddress || user.shippingAddress;
+
+    if (!shippingAddress || !shippingAddress.fullName || !shippingAddress.phone || !shippingAddress.addressLine1) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Shipping address is required to create an order' 
+      });
+    }
+
     const totalAmount = cart.items.reduce((sum, item) => sum + item.discount_price * item.quantity, 0);
 
     const order = await Order.create({
@@ -23,6 +38,7 @@ const createOrder = async (req: Request, res: Response, next: NextFunction) => {
       items: cart.items,
       totalAmount,
       deliveryStatus: 'Pending',
+      shippingAddress: shippingAddress,
     });
 
     cart.items = [];
@@ -41,7 +57,7 @@ const createOrder = async (req: Request, res: Response, next: NextFunction) => {
 
 const getAllOrders = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const orders = await Order.find().populate('user', 'name email');
+    const orders = await Order.find().populate('user', 'name email').sort({ createdAt: -1 });
     res.status(200).json({
       success: true,
       orders,
@@ -60,7 +76,7 @@ const getUserOrders = async (req: Request, res: Response, next: NextFunction) =>
       return res.status(401).json({ success: false, message: 'User not authenticated' });
     }
 
-    const orders = await Order.find({ user: userId }).populate('user', 'name email');
+    const orders = await Order.find({ user: userId }).populate('user', 'name email').sort({ createdAt: -1 });
     res.status(200).json({
       success: true,
       orders,

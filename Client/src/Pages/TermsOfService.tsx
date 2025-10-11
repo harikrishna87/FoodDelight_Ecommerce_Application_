@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  Breadcrumb, 
-  Collapse, 
-  Typography, 
-  Space, 
-  Divider, 
+import {
+  Card,
+  Breadcrumb,
+  Collapse,
+  Typography,
+  Space,
+  Divider,
   Alert,
   List,
   Row,
   Col,
   Spin
 } from 'antd';
-import { 
-  HomeOutlined, 
-  FileTextOutlined, 
-  ShopOutlined, 
-  CreditCardOutlined, 
-  InboxOutlined, 
-  TruckOutlined, 
+import {
+  HomeOutlined,
+  FileTextOutlined,
+  ShopOutlined,
+  CreditCardOutlined,
+  InboxOutlined,
+  TruckOutlined,
   UndoOutlined,
   SafetyCertificateOutlined,
   InfoCircleOutlined,
@@ -134,7 +134,7 @@ const TermsOfService: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ 
+      <div style={{
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -144,7 +144,7 @@ const TermsOfService: React.FC = () => {
         backgroundColor: '#f5f5f5'
       }}>
         <Spin size="large" style={{ color: '#52c41a' }} />
-        <Paragraph style={{ marginTop: '16px', color: '#52c41a'}}>
+        <Paragraph style={{ marginTop: '16px', color: '#52c41a' }}>
           Loading Terms of Service...
         </Paragraph>
       </div>
@@ -155,8 +155,8 @@ const TermsOfService: React.FC = () => {
     <div style={{ padding: '24px', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
       <Row justify="center">
         <Col xs={24} sm={24} md={22} lg={20} xl={18}>
-          <Card 
-            style={{ 
+          <div
+            style={{
               marginBottom: '24px',
               borderRadius: '12px'
             }}
@@ -183,33 +183,40 @@ const TermsOfService: React.FC = () => {
                 },
               ]}
             />
-          </Card>
-          
-          <Card 
-            style={{ 
+          </div>
+
+          <div
+            style={{
               borderRadius: '12px',
               border: 'none',
               overflow: 'hidden'
             }}
           >
-            <div 
-              style={{ 
-                background: 'linear-gradient(135deg, #52c41a 0%, #73d13d 100%)', 
-                color: 'white', 
-                padding: '40px 32px',
-                margin: '-24px -24px 32px -24px',
-                textAlign: 'center'
+            <div
+              style={{
+                color: '#52c41a',
+                padding: '20px 0 30px 0',
+                textAlign: 'left'
               }}
             >
-              <FileTextOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
-              <Title level={1} style={{ color: 'white', margin: 0, fontSize: '32px' }}>
-                Terms of Service
-              </Title>
-              <Paragraph style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', marginBottom: 0, marginTop: '8px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}
+              >
+                <FileTextOutlined style={{ fontSize: '40px' }} />
+                <Title level={1} style={{ margin: 0, fontSize: '36px' }}>
+                  Terms of Service
+                </Title>
+              </div>
+
+              <Paragraph style={{ fontSize: '16px', marginBottom: 0, marginTop: '16px', color: '#8c8c8c', marginLeft: '52px' }}>
                 These Terms govern your use of the FoodDelights website and services.
               </Paragraph>
             </div>
-            
+
             <div style={{ padding: '0 8px' }}>
               <Alert
                 message="Agreement to Terms"
@@ -217,15 +224,15 @@ const TermsOfService: React.FC = () => {
                 type="info"
                 icon={<InfoCircleOutlined />}
                 showIcon
-                style={{ 
+                style={{
                   marginBottom: '32px',
                   borderRadius: '8px',
                   backgroundColor: '#f6ffed',
                   border: '1px solid #b7eb8f'
                 }}
               />
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <FileTextOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -234,7 +241,7 @@ const TermsOfService: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Collapse
@@ -259,7 +266,7 @@ const TermsOfService: React.FC = () => {
                         marginBottom: '16px',
                         backgroundColor: '#fafafa',
                         border: '1px solid #f0f0f0',
-                        borderRadius: '8px'
+                        borderRadius: '16px'
                       }}
                     >
                       <Paragraph style={{ fontSize: '16px', marginBottom: '16px' }}>
@@ -270,9 +277,9 @@ const TermsOfService: React.FC = () => {
                         renderItem={(item) => (
                           <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
                             <Space align="start" size="middle">
-                              <div style={{ 
-                                backgroundColor: '#f6ffed', 
-                                padding: '8px', 
+                              <div style={{
+                                backgroundColor: '#f6ffed',
+                                padding: '8px',
                                 borderRadius: '50%',
                                 color: '#52c41a',
                                 fontSize: '16px'
@@ -288,8 +295,8 @@ const TermsOfService: React.FC = () => {
                   ))}
                 </Collapse>
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <SafetyCertificateOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -298,7 +305,7 @@ const TermsOfService: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
@@ -312,9 +319,9 @@ const TermsOfService: React.FC = () => {
                       renderItem={(item) => (
                         <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
                           <Space align="start" size="middle">
-                            <div style={{ 
-                              backgroundColor: '#fff2e8', 
-                              padding: '8px', 
+                            <div style={{
+                              backgroundColor: '#fff2e8',
+                              padding: '8px 12px',
                               borderRadius: '50%',
                               color: '#fa8c16',
                               fontSize: '16px'
@@ -330,11 +337,11 @@ const TermsOfService: React.FC = () => {
                   type="warning"
                   showIcon
                   icon={<InfoCircleOutlined />}
-                  style={{ borderRadius: '8px' }}
+                  style={{ borderRadius: '16px' }}
                 />
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <InfoCircleOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -343,7 +350,7 @@ const TermsOfService: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
@@ -354,9 +361,9 @@ const TermsOfService: React.FC = () => {
                   renderItem={(item) => (
                     <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
                       <Space align="start" size="middle">
-                        <div style={{ 
-                          backgroundColor: '#e6f7ff', 
-                          padding: '8px', 
+                        <div style={{
+                          backgroundColor: '#e6f7ff',
+                          padding: '8px 12px',
                           borderRadius: '50%',
                           color: '#1890ff',
                           fontSize: '16px'
@@ -369,8 +376,8 @@ const TermsOfService: React.FC = () => {
                   )}
                 />
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <LockOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -379,15 +386,15 @@ const TermsOfService: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Paragraph style={{ fontSize: '16px' }}>
                   We may terminate or suspend your account and bar access to the website immediately, without prior notice or liability, under our sole discretion, for any reason whatsoever and without limitation, including but not limited to a breach of the Terms.
                 </Paragraph>
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <PhoneOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -396,18 +403,19 @@ const TermsOfService: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '32px', borderRadius: '8px' }}
+                style={{ marginBottom: '32px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
                   If you have any questions about these Terms, please contact our legal team:
                 </Paragraph>
-                
-                <Card 
-                  style={{ 
-                    backgroundColor: '#fafafa', 
+
+                <div
+                  style={{
+                    backgroundColor: '#fafafa',
                     border: '1px solid #d9d9d9',
-                    borderRadius: '8px'
+                    padding: '16px',
+                    borderRadius: '16px'
                   }}
                 >
                   <Space direction="vertical" size="middle" style={{ width: '100%' }}>
@@ -417,9 +425,9 @@ const TermsOfService: React.FC = () => {
                         <Text strong style={{ fontSize: '16px' }}>FoodDelights Legal Team</Text>
                       </Space>
                     </div>
-                    
+
                     <Divider style={{ margin: '12px 0' }} />
-                    
+
                     <Row gutter={[24, 16]}>
                       <Col xs={24} sm={12}>
                         <Space>
@@ -453,20 +461,21 @@ const TermsOfService: React.FC = () => {
                       </Col>
                     </Row>
                   </Space>
-                </Card>
+                </div>
               </Card>
-              
+
               <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                <Divider />
-                <Space>
-                  <SyncOutlined style={{ color: '#8c8c8c' }} />
-                  <Text type="secondary" style={{ fontSize: '14px' }}>
-                    Last Updated: April 15, 2025
-                  </Text>
-                </Space>
+                <Divider style={{borderColor:'#52c41a'}}>
+                  <Space>
+                    <SyncOutlined style={{ color: '#8c8c8c' }} />
+                    <Text type="secondary" style={{ fontSize: '14px' }}>
+                      Last Updated: {new Date().toDateString()}
+                    </Text>
+                  </Space>
+                </Divider>
               </div>
             </div>
-          </Card>
+          </div>
         </Col>
       </Row>
     </div>

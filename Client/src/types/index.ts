@@ -44,6 +44,17 @@ export interface ICartItem {
 
 export type OrderDeliveryStatus = 'Pending' | 'Shipped' | 'Delivered';
 
+export interface ShippingAddress {
+  fullName?: string;
+  phone?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+}
+
 export interface IOrder {
   _id: string;
   user: {
@@ -51,11 +62,20 @@ export interface IOrder {
     name: string;
     email: string;
   };
-  items: ICartItem[];
+  items: Array<{
+    _id?: string;
+    name: string;
+    image: string;
+    quantity: number;
+    original_price?: number;
+    discount_price?: number;
+    category?: string;
+  }>;
   totalAmount: number;
   deliveryStatus: OrderDeliveryStatus;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
+  shippingAddress?: ShippingAddress;
 }
 
 declare global {

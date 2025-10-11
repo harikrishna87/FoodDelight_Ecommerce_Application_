@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  Breadcrumb, 
-  Typography, 
-  Row, 
-  Col, 
-  Space, 
-  Divider, 
+import {
+  Card,
+  Breadcrumb,
+  Typography,
+  Row,
+  Col,
+  Space,
+  Divider,
   Alert,
   Collapse,
   Spin,
 } from 'antd';
-import { 
+import {
   HomeOutlined,
   QuestionCircleOutlined,
   InfoCircleOutlined,
@@ -43,6 +43,9 @@ const FAQ: React.FC = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  const Today = new Date();
+  const FormattedDate = Today.toDateString();
 
   const faqCategories = [
     {
@@ -161,7 +164,7 @@ const FAQ: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ 
+      <div style={{
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -179,8 +182,8 @@ const FAQ: React.FC = () => {
     <div style={{ padding: '24px', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
       <Row justify="center">
         <Col xs={24} sm={24} md={22} lg={20} xl={18}>
-          <Card 
-            style={{ 
+          <div
+            style={{
               marginBottom: '24px',
               borderRadius: '12px'
             }}
@@ -207,33 +210,40 @@ const FAQ: React.FC = () => {
                 },
               ]}
             />
-          </Card>
-          
-          <Card 
-            style={{ 
+          </div>
+
+          <div
+            style={{
               borderRadius: '12px',
               border: 'none',
               overflow: 'hidden'
             }}
           >
-            <div 
-              style={{ 
-                background: 'linear-gradient(135deg, #52c41a 0%, #73d13d 100%)', 
-                color: 'white', 
-                padding: '40px 32px',
-                margin: '-24px -24px 32px -24px',
-                textAlign: 'center'
+            <div
+              style={{
+                color: '#52c41a',
+                padding: '20px 0 30px 0',
+                textAlign: 'left'
               }}
             >
-              <QuestionCircleOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
-              <Title level={1} style={{ color: 'white', margin: 0, fontSize: '32px' }}>
-                Frequently Asked Questions
-              </Title>
-              <Paragraph style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', marginBottom: 0, marginTop: '8px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}
+              >
+                <QuestionCircleOutlined style={{ fontSize: '40px' }} />
+                <Title level={1} style={{ margin: 0, fontSize: '36px' }}>
+                  Frequently Asked Questions
+                </Title>
+              </div>
+
+              <Paragraph style={{ fontSize: '16px', marginBottom: 0, marginTop: '8px', color: '#8c8c8c', marginLeft: '52px' }}>
                 Find quick answers to common questions about our services
               </Paragraph>
             </div>
-            
+
             <div style={{ padding: '0 8px' }}>
               <Alert
                 message="Quick Help Available"
@@ -241,21 +251,21 @@ const FAQ: React.FC = () => {
                 type="info"
                 icon={<InfoCircleOutlined />}
                 showIcon
-                style={{ 
+                style={{
                   marginBottom: '32px',
-                  borderRadius: '8px',
+                  borderRadius: '16px',
                   backgroundColor: '#f6ffed',
                   border: '1px solid #b7eb8f'
                 }}
               />
 
               {faqCategories.map((category, categoryIndex) => (
-                <Card 
+                <Card
                   key={categoryIndex}
                   title={
                     <Space size="middle">
-                      <div style={{ 
-                        color: category.color, 
+                      <div style={{
+                        color: category.color,
                         fontSize: '20px',
                         backgroundColor: category.bgColor,
                         padding: '8px',
@@ -268,34 +278,34 @@ const FAQ: React.FC = () => {
                       </Title>
                     </Space>
                   }
-                  style={{ marginBottom: '24px', borderRadius: '8px' }}
+                  style={{ marginBottom: '24px', borderRadius: '16px' }}
                   headStyle={{ backgroundColor: category.bgColor, borderBottom: `1px solid ${category.color}33` }}
                 >
                   <Collapse
-                    expandIcon={({ isActive }) => 
+                    expandIcon={({ isActive }) =>
                       isActive ? <MinusOutlined style={{ color: category.color }} /> : <PlusOutlined style={{ color: category.color }} />
                     }
                     ghost
                     style={{ backgroundColor: 'transparent' }}
                   >
                     {category.questions.map((faq) => (
-                      <Panel 
+                      <Panel
                         header={
                           <Text style={{ fontSize: '16px', fontWeight: '500', color: '#262626' }}>
                             {faq.question}
                           </Text>
-                        } 
+                        }
                         key={faq.key}
-                        style={{ 
+                        style={{
                           marginBottom: '8px',
                           borderRadius: '6px',
                           border: '1px solid #f0f0f0'
                         }}
                       >
-                        <div style={{ 
-                          backgroundColor: '#fafafa', 
-                          padding: '16px', 
-                          borderRadius: '6px',
+                        <div style={{
+                          backgroundColor: '#fafafa',
+                          padding: '16px',
+                          borderRadius: '10px',
                           marginTop: '8px'
                         }}>
                           <Text style={{ fontSize: '15px', lineHeight: '1.6', color: '#595959' }}>
@@ -308,7 +318,7 @@ const FAQ: React.FC = () => {
                 </Card>
               ))}
 
-              <Card 
+              <Card
                 title={
                   <Space size="middle">
                     <StarOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -317,27 +327,19 @@ const FAQ: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Row gutter={[16, 16]}>
                   <Col xs={24} sm={12}>
-                    <Card 
-                      size="small" 
-                      style={{ 
+                    <div
+                      style={{
                         height: '100%',
-                        borderRadius: '8px',
+                        borderRadius: '16px',
+                        border:'1px solid #8c8c8c',
+                        padding:'16px',
                         borderLeft: '4px solid #52c41a',
                         cursor: 'pointer',
-                        transition: 'all 0.3s ease'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(82, 196, 26, 0.15)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '';
                       }}
                     >
                       <Space direction="vertical" size="small">
@@ -349,25 +351,17 @@ const FAQ: React.FC = () => {
                           Get your food delivered in 15-25 minutes with our express service
                         </Text>
                       </Space>
-                    </Card>
+                    </div>
                   </Col>
                   <Col xs={24} sm={12}>
-                    <Card 
-                      size="small" 
-                      style={{ 
+                    <div
+                      style={{
                         height: '100%',
-                        borderRadius: '8px',
+                        borderRadius: '16px',
+                        border:'1px solid #8c8c8c',
+                        padding:'16px',
                         borderLeft: '4px solid #1890ff',
                         cursor: 'pointer',
-                        transition: 'all 0.3s ease'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(24, 144, 255, 0.15)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '';
                       }}
                     >
                       <Space direction="vertical" size="small">
@@ -379,25 +373,17 @@ const FAQ: React.FC = () => {
                           Earn points with every order and redeem for exclusive discounts
                         </Text>
                       </Space>
-                    </Card>
+                    </div>
                   </Col>
                   <Col xs={24} sm={12}>
-                    <Card 
-                      size="small" 
-                      style={{ 
+                    <div
+                      style={{
                         height: '100%',
-                        borderRadius: '8px',
+                        borderRadius: '16px',
+                        border:'1px solid #8c8c8c',
+                        padding:'16px',
                         borderLeft: '4px solid #fa8c16',
                         cursor: 'pointer',
-                        transition: 'all 0.3s ease'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(250, 140, 22, 0.15)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '';
                       }}
                     >
                       <Space direction="vertical" size="small">
@@ -409,25 +395,17 @@ const FAQ: React.FC = () => {
                           All our food is prepared following strict hygiene protocols
                         </Text>
                       </Space>
-                    </Card>
+                    </div>
                   </Col>
                   <Col xs={24} sm={12}>
-                    <Card 
-                      size="small" 
-                      style={{ 
+                    <div
+                      style={{
                         height: '100%',
-                        borderRadius: '8px',
+                        borderRadius: '16px',
+                        border:'1px solid #8c8c8c',
+                        padding:'16px',
                         borderLeft: '4px solid #eb2f96',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(235, 47, 150, 0.15)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '';
+                        cursor: 'pointer'
                       }}
                     >
                       <Space direction="vertical" size="small">
@@ -439,24 +417,30 @@ const FAQ: React.FC = () => {
                           Competitive pricing with regular offers and discounts
                         </Text>
                       </Space>
-                    </Card>
+                    </div>
                   </Col>
                 </Row>
               </Card>
 
 
-              
+
               <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                <Divider />
-                <Space>
-                  <CheckCircleOutlined style={{ color: '#8c8c8c' }} />
-                  <Text type="secondary" style={{ fontSize: '14px' }}>
-                    Last Updated: May 31, 2025
-                  </Text>
-                </Space>
+                <Divider
+                  style={{
+                    borderColor:'#52c41a',
+                    fontSize: '20px',
+                  }}
+                >
+                  <Space>
+                    <CheckCircleOutlined style={{ color: '#8c8c8c' }} />
+                    <Text type="secondary" style={{ fontSize: '14px' }}>
+                      Last Updated: {FormattedDate}
+                    </Text>
+                  </Space>
+                </Divider>
               </div>
             </div>
-          </Card>
+          </div>
         </Col>
       </Row>
     </div>

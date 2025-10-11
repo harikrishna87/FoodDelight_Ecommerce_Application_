@@ -6,7 +6,7 @@ import { IUser } from '../Types';
 const UserSchema: Schema = new Schema<IUser>({
   name: {
     type: String,
-    required: function(this: IUser) {
+    required: function (this: IUser) {
       return !this.googleId;
     },
     trim: true,
@@ -22,7 +22,7 @@ const UserSchema: Schema = new Schema<IUser>({
   },
   password: {
     type: String,
-    required: function(this: IUser) {
+    required: function (this: IUser) {
       return !this.googleId;
     },
     minlength: [6, 'Password must be at least 6 characters'],
@@ -38,7 +38,21 @@ const UserSchema: Schema = new Schema<IUser>({
     unique: true,
     sparse: true,
   },
-}, { timestamps: true });
+  image: {
+    type: String
+  },
+  shippingAddress: {
+    fullName: { type: String, default: '' },
+    phone: { type: String, default: '' },
+    addressLine1: { type: String, default: '' },
+    addressLine2: { type: String, default: '' },
+    city: { type: String, default: '' },
+    state: { type: String, default: '' },
+    postalCode: { type: String, default: '' },
+    country: { type: String, default: '' },
+  },
+},
+  { timestamps: true });
 
 UserSchema.pre<IUser>('save', async function (next) {
   if (!this.isModified('password') || !this.password) {
@@ -59,7 +73,7 @@ UserSchema.methods.getJwtToken = function (): string {
   if (!process.env.JWT_SECRET || !process.env.JWT_EXPIRE) {
     throw new Error('JWT_SECRET or JWT_EXPIRE is not defined in environment variables');
   }
-  
+
   return (jwt.sign as any)(
     { id: this._id.toString(), role: this.role },
     process.env.JWT_SECRET,

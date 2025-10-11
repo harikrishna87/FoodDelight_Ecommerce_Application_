@@ -1,11 +1,24 @@
 import { Document } from 'mongoose';
 
+export interface IShippingAddress {
+  fullName?: string;
+  phone?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+}
+
 export interface IUser extends Document {
   name?: string;
   email: string;
   password?: string;
   role: 'user' | 'admin';
+  image?: string;
   googleId?: string;
+  shippingAddress?: IShippingAddress;
   createdAt: Date;
   updatedAt: Date;
   comparePassword: (password: string) => Promise<boolean>;
@@ -44,6 +57,7 @@ export interface IOrder extends Document {
   items: IOrderItem[];
   totalAmount: number;
   deliveryStatus: OrderDeliveryStatus;
+  shippingAddress?: IShippingAddress;
   createdAt: Date;
   updatedAt: Date;
 }

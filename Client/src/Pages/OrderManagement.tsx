@@ -31,7 +31,10 @@ import {
   InfoCircleOutlined,
   LoadingOutlined,
   DownloadOutlined,
-  CreditCardOutlined
+  CreditCardOutlined,
+  HomeOutlined,
+  PhoneOutlined,
+  EnvironmentOutlined
 } from '@ant-design/icons';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
@@ -271,6 +274,170 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ visible, onCl
   );
 };
 
+interface ShippingAddressModalProps {
+  visible: boolean;
+  onClose: () => void;
+  order: IOrder | null;
+}
+
+const ShippingAddressModal: React.FC<ShippingAddressModalProps> = ({ visible, onClose, order }) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  if (!order || !order._id) {
+    return (
+      <Modal
+        title="Shipping Address"
+        open={visible}
+        onCancel={onClose}
+        footer={null}
+        width={isMobile ? '95%' : 600}
+        style={isMobile ? { top: 15 } : { top: 15 }}
+      >
+        <Alert message="No order data available" type="warning" showIcon />
+      </Modal>
+    );
+  }
+
+  const shippingAddress = order.shippingAddress;
+  const hasAddress = shippingAddress && Object.values(shippingAddress).some((val) => val);
+
+  return (
+    <Modal
+      title={
+        <Space>
+          <HomeOutlined style={{ color: '#52c41a' }} />
+          <span style={{ color: '#52c41a', fontWeight: 'bold', marginBottom: 20 }}>
+            Shipping Address
+          </span>
+        </Space>
+      }
+      open={visible}
+      onCancel={onClose}
+      footer={null}
+      width={isMobile ? '95%' : 600}
+      style={isMobile ? { top: 15 } : { top: 15 }}
+    >
+      {hasAddress ? (
+        <div
+          style={{
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            borderRadius: '16px'
+          }}
+        >
+          <Descriptions
+            bordered
+            column={1}
+            size={isMobile ? 'small' : 'default'}
+          >
+            {shippingAddress.fullName && (
+              <Descriptions.Item label={
+                <Space>
+                  <UserOutlined style={{ color: '#52c41a' }} />
+                  Full Name
+                </Space>
+              }>
+                <Text strong>{shippingAddress.fullName}</Text>
+              </Descriptions.Item>
+            )}
+            {shippingAddress.phone && (
+              <Descriptions.Item label={
+                <Space>
+                  <PhoneOutlined style={{ color: '#52c41a' }} />
+                  Phone Number
+                </Space>
+              }>
+                <Text>{shippingAddress.phone}</Text>
+              </Descriptions.Item>
+            )}
+            {shippingAddress.addressLine1 && (
+              <Descriptions.Item label={
+                <Space>
+                  <HomeOutlined style={{ color: '#52c41a' }} />
+                  Address Line 1
+                </Space>
+              }>
+                <Text>{shippingAddress.addressLine1}</Text>
+              </Descriptions.Item>
+            )}
+            {shippingAddress.addressLine2 && (
+              <Descriptions.Item label={
+                <Space>
+                  <HomeOutlined style={{ color: '#52c41a' }} />
+                  Address Line 2
+                </Space>
+              }>
+                <Text>{shippingAddress.addressLine2}</Text>
+              </Descriptions.Item>
+            )}
+            {shippingAddress.city && (
+              <Descriptions.Item label={
+                <Space>
+                  <EnvironmentOutlined style={{ color: '#52c41a' }} />
+                  City
+                </Space>
+              }>
+                <Text>{shippingAddress.city}</Text>
+              </Descriptions.Item>
+            )}
+            {shippingAddress.state && (
+              <Descriptions.Item label={
+                <Space>
+                  <EnvironmentOutlined style={{ color: '#52c41a' }} />
+                  State
+                </Space>
+              }>
+                <Text>{shippingAddress.state}</Text>
+              </Descriptions.Item>
+            )}
+            {shippingAddress.postalCode && (
+              <Descriptions.Item label={
+                <Space>
+                  <EnvironmentOutlined style={{ color: '#52c41a' }} />
+                  Postal Code
+                </Space>
+              }>
+                <Text>{shippingAddress.postalCode}</Text>
+              </Descriptions.Item>
+            )}
+            {shippingAddress.country && (
+              <Descriptions.Item label={
+                <Space>
+                  <EnvironmentOutlined style={{ color: '#52c41a' }} />
+                  Country
+                </Space>
+              }>
+                <Text>{shippingAddress.country}</Text>
+              </Descriptions.Item>
+            )}
+          </Descriptions>
+        </div>
+      ) : (
+        <div style={{
+          textAlign: 'center',
+          padding: '40px 20px',
+          background: '#f6ffed',
+          borderRadius: '12px',
+          border: '1px dashed #d9f7be'
+        }}>
+          <EnvironmentOutlined style={{ fontSize: '48px', color: '#52c41a', marginBottom: '16px' }} />
+          <Title level={4} style={{ color: '#52c41a', margin: 0 }}>No shipping address available</Title>
+          <Text style={{ color: '#8c8c8c' }}>This order does not have a shipping address</Text>
+        </div>
+      )}
+    </Modal>
+  );
+};
+
 const getStatusTag = (status: OrderDeliveryStatus) => {
   switch (status) {
     case 'Pending':
@@ -321,6 +488,7 @@ const OrderManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [addressModalVisible, setAddressModalVisible] = useState<boolean>(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [statusUpdateLoading, setStatusUpdateLoading] = useState<string | null>(null);
 
@@ -423,6 +591,11 @@ const OrderManagement: React.FC = () => {
   const handleViewOrder = (order: IOrder) => {
     setSelectedOrder(order);
     setModalVisible(true);
+  };
+
+  const handleViewAddress = (order: IOrder) => {
+    setSelectedOrder(order);
+    setAddressModalVisible(true);
   };
 
   const handleDownloadPDF = () => {
@@ -564,58 +737,58 @@ const OrderManagement: React.FC = () => {
 
   const createResponsivePieChart = () => {
     if (orderStatusData.length === 0) return null;
-    
+
     const total = orderStatusData.reduce((sum, item) => sum + item.value, 0);
     let currentAngle = 0;
-    
+
     const radius = 100;
     const centerX = 100;
     const centerY = 100;
     const svgSize = 200;
-    
+
     return (
-      <svg 
-        width="100%" 
-        height="100%" 
+      <svg
+        width="100%"
+        height="100%"
         viewBox={`0 0 ${svgSize} ${svgSize}`}
         style={{ maxWidth: '200px', maxHeight: '200px' }}
         preserveAspectRatio="xMidYMid meet"
       >
-        <circle 
-          cx={centerX} 
-          cy={centerY} 
-          r="40" 
-          fill="white" 
-          stroke="#f0f0f0" 
-          strokeWidth="2" 
+        <circle
+          cx={centerX}
+          cy={centerY}
+          r="40"
+          fill="white"
+          stroke="#f0f0f0"
+          strokeWidth="2"
         />
         {orderStatusData.map((item) => {
           const percentage = (item.value / total) * 100;
           const angle = (item.value / total) * 360;
           const startAngle = currentAngle;
           const endAngle = currentAngle + angle;
-          
+
           const x1 = centerX + radius * Math.cos((startAngle * Math.PI) / 180);
           const y1 = centerY + radius * Math.sin((startAngle * Math.PI) / 180);
           const x2 = centerX + radius * Math.cos((endAngle * Math.PI) / 180);
           const y2 = centerY + radius * Math.sin((endAngle * Math.PI) / 180);
-          
+
           const largeArcFlag = angle > 180 ? 1 : 0;
-          
+
           const pathData = [
             `M ${centerX} ${centerY}`,
             `L ${x1} ${y1}`,
             `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
             'Z'
           ].join(' ');
-          
+
           const labelAngle = (startAngle + endAngle) / 2;
           const labelRadius = radius * 0.65;
           const labelX = centerX + labelRadius * Math.cos((labelAngle * Math.PI) / 180);
           const labelY = centerY + labelRadius * Math.sin((labelAngle * Math.PI) / 180);
-          
+
           currentAngle += angle;
-          
+
           return (
             <g key={item.type}>
               <path
@@ -649,7 +822,11 @@ const OrderManagement: React.FC = () => {
       title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Order ID</span>,
       dataIndex: '_id',
       key: 'orderId',
-      render: (id: string) => <Tag color="blue">{id}</Tag>,
+      render: (id: string) => (
+        <Tooltip title={id}>
+          <Tag color="blue">{id.substring(0, 14)}...</Tag>
+        </Tooltip>
+      ),
       width: 150,
     },
     {
@@ -710,6 +887,21 @@ const OrderManagement: React.FC = () => {
           onClick={() => handleViewOrder(record)}
         >
           View Items ({items?.length || 0})
+        </Button>
+      ),
+      width: 130,
+    },
+    {
+      title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Address</span>,
+      key: 'address',
+      render: (record: IOrder) => (
+        <Button
+          type="link"
+          size="small"
+          icon={<HomeOutlined />}
+          onClick={() => handleViewAddress(record)}
+        >
+          View Address
         </Button>
       ),
       width: 130,
@@ -898,21 +1090,21 @@ const OrderManagement: React.FC = () => {
               minHeight: '296px'
             }}
           >
-            <Title level={4} style={{ marginBottom: '20px', color: '#52c41a'}}>
+            <Title level={4} style={{ marginBottom: '20px', color: '#52c41a' }}>
               <UnorderedListOutlined /> Order Status Summary
             </Title>
-            
+
             {orderStatusData.length > 0 ? (
               <>
                 <div className="mobile-orders" style={{ display: 'block' }}>
-                  <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'center', 
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
                     alignItems: 'center',
                     marginBottom: '20px'
                   }}>
-                    <div style={{ 
-                      width: '100%', 
+                    <div style={{
+                      width: '100%',
                       maxWidth: '280px',
                       aspectRatio: '1',
                       display: 'flex',
@@ -922,16 +1114,16 @@ const OrderManagement: React.FC = () => {
                       {createResponsivePieChart()}
                     </div>
                   </div>
-                  
-                  <div style={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
+
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
                     gap: '8px'
                   }}>
                     {orderStatusData.map((item) => (
-                      <div 
+                      <div
                         key={`status-${item.type}`}
-                        style={{ 
+                        style={{
                           display: 'flex',
                           alignItems: 'center',
                           padding: '8px 12px',
@@ -951,17 +1143,17 @@ const OrderManagement: React.FC = () => {
                           e.currentTarget.style.transform = 'translateX(0px)';
                         }}
                       >
-                        <div 
-                          style={{ 
-                            width: '12px', 
-                            height: '12px', 
+                        <div
+                          style={{
+                            width: '12px',
+                            height: '12px',
                             backgroundColor: statusColors[item.type],
                             borderRadius: '50%',
                             marginRight: '12px',
                             border: '2px solid white',
                             boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                             flexShrink: 0
-                          }} 
+                          }}
                         />
                         <Text strong style={{ color: '#262626', fontSize: '14px', flex: 1 }}>
                           {item.type}
@@ -977,27 +1169,27 @@ const OrderManagement: React.FC = () => {
                 <div className="desktop-orders" style={{ display: 'none' }}>
                   <Row gutter={[24, 24]}>
                     <Col span={10}>
-                      <div style={{ 
-                        height: '200px', 
-                        display: 'flex', 
-                        justifyContent: 'center', 
-                        alignItems: 'center' 
+                      <div style={{
+                        height: '200px',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center'
                       }}>
                         {createResponsivePieChart()}
                       </div>
                     </Col>
                     <Col span={14}>
-                      <div style={{ 
-                        padding: '10px 0', 
-                        height: '200px', 
-                        display: 'flex', 
-                        flexDirection: 'column', 
+                      <div style={{
+                        padding: '10px 0',
+                        height: '200px',
+                        display: 'flex',
+                        flexDirection: 'column',
                         justifyContent: 'center'
                       }}>
                         {orderStatusData.map((item) => (
-                          <div 
+                          <div
                             key={`status-${item.type}`}
-                            style={{ 
+                            style={{
                               display: 'flex',
                               alignItems: 'center',
                               padding: '6px 12px',
@@ -1017,17 +1209,17 @@ const OrderManagement: React.FC = () => {
                               e.currentTarget.style.transform = 'translateX(0px)';
                             }}
                           >
-                            <div 
-                              style={{ 
-                                width: '12px', 
-                                height: '12px', 
+                            <div
+                              style={{
+                                width: '12px',
+                                height: '12px',
                                 backgroundColor: statusColors[item.type],
                                 borderRadius: '50%',
                                 marginRight: '12px',
                                 border: '2px solid white',
                                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                                 flexShrink: 0
-                              }} 
+                              }}
                             />
                             <Text strong style={{ color: '#262626', fontSize: '14px', flex: 1 }}>
                               {item.type}
@@ -1043,8 +1235,8 @@ const OrderManagement: React.FC = () => {
                 </div>
               </>
             ) : (
-              <div style={{ 
-                textAlign: 'center', 
+              <div style={{
+                textAlign: 'center',
                 color: '#8c8c8c',
                 padding: '40px 20px',
                 minHeight: '200px',
@@ -1106,7 +1298,7 @@ const OrderManagement: React.FC = () => {
             columns={columns}
             dataSource={sortedOrders}
             rowKey="_id"
-            scroll={{ x: 'max-content' }}
+            scroll={{ x: '1000' }}
             pagination={{
               pageSize: 10,
               showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} orders`,
@@ -1122,6 +1314,12 @@ const OrderManagement: React.FC = () => {
       <ProductDetailsModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
+        order={selectedOrder}
+      />
+
+      <ShippingAddressModal
+        visible={addressModalVisible}
+        onClose={() => setAddressModalVisible(false)}
         order={selectedOrder}
       />
 

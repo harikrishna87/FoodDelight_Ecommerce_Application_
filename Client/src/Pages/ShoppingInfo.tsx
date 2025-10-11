@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  Breadcrumb, 
-  Typography, 
-  List, 
-  Row, 
-  Col, 
-  Space, 
-  Divider, 
+import {
+  Card,
+  Breadcrumb,
+  Typography,
+  List,
+  Row,
+  Col,
+  Space,
+  Divider,
   Alert,
   Tag,
   Timeline,
   Spin
 } from 'antd';
-import { 
+import {
   HomeOutlined,
   ShoppingCartOutlined,
   InfoCircleOutlined,
@@ -51,20 +51,20 @@ const ShoppingInfo: React.FC = () => {
   }, []);
 
   const orderingMethods = [
-    { 
-      icon: <GlobalOutlined />, 
+    {
+      icon: <GlobalOutlined />,
       title: 'Online Ordering',
       description: 'Order from our website 24/7',
       features: ['Full menu access', 'Real-time tracking', 'Saved preferences']
     },
-    { 
-      icon: <PhoneOutlined />, 
+    {
+      icon: <PhoneOutlined />,
       title: 'Phone Orders',
       description: 'Call us to place your order',
       features: ['Personal assistance', 'Custom requests', 'Quick reorders']
     },
-    { 
-      icon: <ShopOutlined />, 
+    {
+      icon: <ShopOutlined />,
       title: 'In-Store Pickup',
       description: 'Order ahead and pickup',
       features: ['Skip the line', 'Fresh preparation', 'Direct interaction']
@@ -101,7 +101,7 @@ const ShoppingInfo: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ 
+      <div style={{
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -119,8 +119,8 @@ const ShoppingInfo: React.FC = () => {
     <div style={{ padding: '24px', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
       <Row justify="center">
         <Col xs={24} sm={24} md={22} lg={20} xl={18}>
-          <Card 
-            style={{ 
+          <div
+            style={{
               marginBottom: '24px',
               borderRadius: '12px'
             }}
@@ -147,33 +147,40 @@ const ShoppingInfo: React.FC = () => {
                 },
               ]}
             />
-          </Card>
-          
-          <Card 
-            style={{ 
+          </div>
+
+          <div
+            style={{
               borderRadius: '12px',
               border: 'none',
               overflow: 'hidden'
             }}
           >
-            <div 
-              style={{ 
-                background: 'linear-gradient(135deg, #52c41a 0%, #73d13d 100%)', 
-                color: 'white', 
-                padding: '40px 32px',
-                margin: '-24px -24px 32px -24px',
-                textAlign: 'center'
+            <div
+              style={{
+                color: '#52c41a',
+                padding: '20px 0 30px 0',
+                textAlign: 'left'
               }}
             >
-              <ShoppingCartOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
-              <Title level={1} style={{ color: 'white', margin: 0, fontSize: '32px' }}>
-                Shopping Information
-              </Title>
-              <Paragraph style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', marginBottom: 0, marginTop: '8px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}
+              >
+                <ShoppingCartOutlined style={{ fontSize: '40px' }} />
+                <Title level={1} style={{ margin: 0, fontSize: '36px' }}>
+                  Shopping Information
+                </Title>
+              </div>
+
+              <Paragraph style={{ fontSize: '16px', marginBottom: 0, marginTop: '8px', color: '#8c8c8c', marginLeft: '52px' }}>
                 Everything you need to know about ordering from FoodDelights
               </Paragraph>
             </div>
-            
+
             <div style={{ padding: '0 8px' }}>
               <Alert
                 message="Easy Ordering, Fresh Food"
@@ -181,15 +188,15 @@ const ShoppingInfo: React.FC = () => {
                 type="info"
                 icon={<InfoCircleOutlined />}
                 showIcon
-                style={{ 
+                style={{
                   marginBottom: '32px',
                   borderRadius: '8px',
                   backgroundColor: '#f6ffed',
                   border: '1px solid #b7eb8f'
                 }}
               />
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <ShoppingCartOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -198,52 +205,75 @@ const ShoppingInfo: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Row gutter={[16, 16]}>
                   {orderingMethods.map((method, index) => (
                     <Col xs={24} sm={8} key={index}>
-                      <Card 
-                        size="small" 
-                        style={{ 
-                          borderRadius: '8px',
-                          textAlign: 'center'
+                      <div
+                        style={{
+                          borderRadius: '16px',
+                          border: '2px dashed #52c41a',
+                          padding: '16px',
+                          height: '100%',
+                          textAlign: 'center',
+                          background: 'linear-gradient(135deg, #f6ffed 0%, #ffffff 100%)'
                         }}
-                        bodyStyle={{ padding: '20px 16px' }}
                       >
                         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                          <div style={{ 
-                            backgroundColor: '#f6ffed', 
-                            padding: '12px', 
-                            borderRadius: '50%',
-                            color: '#52c41a',
-                            fontSize: '24px',
-                            display: 'inline-block'
-                          }}>
+                          <div
+                            style={{
+                              backgroundColor: '#f6ffed',
+                              padding: '12px 16px',
+                              borderRadius: '50%',
+                              color: '#52c41a',
+                              fontSize: '24px',
+                              display: 'inline-block',
+                            }}
+                          >
                             {method.icon}
                           </div>
+
                           <Title level={5} style={{ margin: 0, color: '#52c41a' }}>
                             {method.title}
                           </Title>
+
                           <Text style={{ fontSize: '14px', color: '#595959' }}>
                             {method.description}
                           </Text>
-                          <Space direction="vertical" size="small">
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              flexWrap: 'wrap',
+                              gap: '8px',
+                              width: '100%',
+                            }}
+                          >
                             {method.features.map((feature, idx) => (
-                              <Tag key={idx} color="green" style={{ fontSize: '12px' }}>
+                              <Tag
+                                key={idx}
+                                color="green"
+                                style={{
+                                  fontSize: '12px',
+                                  border: '1px dashed',
+                                  textAlign: 'center',
+                                }}
+                              >
                                 {feature}
                               </Tag>
                             ))}
-                          </Space>
+                          </div>
                         </Space>
-                      </Card>
+
+                      </div>
                     </Col>
                   ))}
                 </Row>
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <TruckOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -252,20 +282,19 @@ const ShoppingInfo: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Row gutter={[16, 16]}>
                   {deliveryZones.map((zone, index) => (
                     <Col xs={24} sm={8} key={index}>
-                      <Card 
-                        size="small" 
-                        style={{ 
-                          height: '160px',
-                          borderRadius: '8px',
+                      <Card
+                        style={{
+                          borderRadius: '16px',
+                          border: '1px solid #8c8c8c',
+                          padding: '8px',
                           borderTop: `4px solid ${zone.color}`
                         }}
-                        bodyStyle={{ padding: '16px' }}
                       >
                         <Space direction="vertical" size="small" style={{ width: '100%' }}>
                           <Tag color={zone.color} style={{ margin: 0 }}>
@@ -293,8 +322,8 @@ const ShoppingInfo: React.FC = () => {
                   style={{ marginTop: '16px' }}
                 />
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <CreditCardOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -311,9 +340,9 @@ const ShoppingInfo: React.FC = () => {
                   renderItem={(item) => (
                     <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
                       <Space align="start" size="middle">
-                        <div style={{ 
-                          backgroundColor: '#e6f7ff', 
-                          padding: '8px', 
+                        <div style={{
+                          backgroundColor: '#e6f7ff',
+                          padding: '8px',
                           borderRadius: '50%',
                           color: '#1890ff',
                           fontSize: '16px'
@@ -330,8 +359,8 @@ const ShoppingInfo: React.FC = () => {
                   )}
                 />
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <SyncOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -356,7 +385,7 @@ const ShoppingInfo: React.FC = () => {
                     color: index < 3 ? 'green' : index === 3 ? 'blue' : 'orange',
                   }))}
                 />
-                
+
                 <Alert
                   message="Order Tracking"
                   description="Track your order in real-time from preparation to delivery with SMS and email notifications."
@@ -365,8 +394,8 @@ const ShoppingInfo: React.FC = () => {
                   style={{ marginTop: '16px' }}
                 />
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <StarOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -375,24 +404,25 @@ const ShoppingInfo: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Row gutter={[16, 16]}>
                   {qualityFeatures.map((feature, index) => (
                     <Col xs={24} sm={12} key={index}>
-                      <Card 
-                        size="small" 
-                        style={{ 
+                      <div
+                        style={{
                           height: '100%',
-                          borderRadius: '8px',
+                          borderRadius: '16px',
+                          border: '1px solid #8c8c8c',
+                          padding: '16px',
                           borderLeft: `4px solid ${feature.color}`
                         }}
                       >
                         <Space align="start" size="middle">
-                          <div style={{ 
-                            backgroundColor: `${feature.color}15`, 
-                            padding: '8px', 
+                          <div style={{
+                            backgroundColor: `${feature.color}15`,
+                            padding: '8px 12px',
                             borderRadius: '50%',
                             color: feature.color,
                             fontSize: '16px'
@@ -401,13 +431,13 @@ const ShoppingInfo: React.FC = () => {
                           </div>
                           <Text style={{ fontSize: '15px' }}>{feature.text}</Text>
                         </Space>
-                      </Card>
+                      </div>
                     </Col>
                   ))}
                 </Row>
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <ClockCircleOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -416,16 +446,17 @@ const ShoppingInfo: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Row gutter={[16, 16]}>
                   <Col xs={24} sm={12}>
-                    <Card 
-                      size="small" 
+                    <Card
+                      size="small"
                       title="Restaurant Hours"
                       style={{ borderRadius: '8px', height: '160px' }}
                       headStyle={{ backgroundColor: '#f0f2f5', fontSize: '14px' }}
+                      hoverable={false}
                     >
                       <Space direction="vertical" size="small" style={{ width: '100%' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -444,8 +475,8 @@ const ShoppingInfo: React.FC = () => {
                     </Card>
                   </Col>
                   <Col xs={24} sm={12}>
-                    <Card 
-                      size="small" 
+                    <Card
+                      size="small"
                       title="Delivery Hours"
                       style={{ borderRadius: '8px', height: '160px' }}
                       headStyle={{ backgroundColor: '#f0f2f5', fontSize: '14px' }}
@@ -468,8 +499,8 @@ const ShoppingInfo: React.FC = () => {
                   </Col>
                 </Row>
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <PhoneOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -478,18 +509,19 @@ const ShoppingInfo: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '32px', borderRadius: '8px' }}
+                style={{ marginBottom: '32px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
                   Have questions about ordering? Our team is here to help:
                 </Paragraph>
-                
-                <Card 
-                  style={{ 
-                    backgroundColor: '#fafafa', 
+
+                <div
+                  style={{
+                    backgroundColor: '#fafafa',
                     border: '1px solid #d9d9d9',
-                    borderRadius: '8px'
+                    padding: '16px',
+                    borderRadius: '16px'
                   }}
                 >
                   <Space direction="vertical" size="middle" style={{ width: '100%' }}>
@@ -499,9 +531,9 @@ const ShoppingInfo: React.FC = () => {
                         <Text strong style={{ fontSize: '16px' }}>FoodDelights Customer Service</Text>
                       </Space>
                     </div>
-                    
+
                     <Divider style={{ margin: '12px 0' }} />
-                    
+
                     <Row gutter={[24, 16]}>
                       <Col xs={24} sm={12}>
                         <Space>
@@ -545,20 +577,21 @@ const ShoppingInfo: React.FC = () => {
                       </Col>
                     </Row>
                   </Space>
-                </Card>
+                </div>
               </Card>
-              
+
               <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                <Divider />
-                <Space>
-                  <ShoppingCartOutlined style={{ color: '#8c8c8c' }} />
-                  <Text type="secondary" style={{ fontSize: '14px' }}>
-                    Start your delicious journey today!
-                  </Text>
-                </Space>
+                <Divider style={{borderColor:'#52c41a'}}>
+                  <Space>
+                    <ShoppingCartOutlined style={{ color: '#8c8c8c' }} />
+                    <Text type="secondary" style={{ fontSize: '14px' }}>
+                      Start your delicious journey today!
+                    </Text>
+                  </Space>
+                </Divider>
               </div>
             </div>
-          </Card>
+          </div>
         </Col>
       </Row>
     </div>

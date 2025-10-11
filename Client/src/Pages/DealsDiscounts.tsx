@@ -164,7 +164,7 @@ const DealsDiscounts = () => {
       {contextHolder}
       <Row justify="center">
         <Col xs={24} sm={24} md={22} lg={20} xl={18}>
-          <Card
+          <div
             style={{
               marginBottom: '24px',
               borderRadius: '12px'
@@ -192,29 +192,36 @@ const DealsDiscounts = () => {
                 },
               ]}
             />
-          </Card>
+          </div>
 
-          <Card
+          <div
             style={{
               borderRadius: '12px',
               border: 'none',
               overflow: 'hidden'
             }}
           >
-            <div
+             <div
               style={{
-                background: 'linear-gradient(135deg, #52c41a 0%, #73d13d 100%)',
-                color: 'white',
-                padding: '40px 32px',
-                margin: '-24px -24px 32px -24px',
-                textAlign: 'center'
+                color: '#52c41a',
+                padding: '20px 0 30px 0',
+                textAlign: 'left'
               }}
             >
-              <PercentageOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
-              <Title level={1} style={{ color: 'white', margin: 0, fontSize: '32px' }}>
-                Deals & Discounts
-              </Title>
-              <Paragraph style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', marginBottom: 0, marginTop: '8px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}
+              >
+                <PercentageOutlined style={{ fontSize: '40px' }} />
+                <Title level={1} style={{ margin: 0, fontSize: '36px' }}>
+                  Deals & Discounts
+                </Title>
+              </div>
+
+              <Paragraph style={{ fontSize: '16px', marginBottom: 0, marginTop: '8px', color: '#8c8c8c', marginLeft: '52px' }}>
                 Save big on your favorite meals with our amazing offers
               </Paragraph>
             </div>
@@ -228,7 +235,7 @@ const DealsDiscounts = () => {
                 showIcon
                 style={{
                   marginBottom: '32px',
-                  borderRadius: '8px',
+                  borderRadius: '16px',
                   backgroundColor: '#fff7e6',
                   border: '1px solid #ffd591'
                 }}
@@ -243,7 +250,7 @@ const DealsDiscounts = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Row gutter={[24, 24]}>
@@ -348,7 +355,7 @@ const DealsDiscounts = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Row gutter={[16, 16]}>
@@ -409,12 +416,12 @@ const DealsDiscounts = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Row gutter={[24, 24]}>
                   <Col xs={24} sm={8}>
-                    <Card style={{ textAlign: 'center', borderRadius: '8px' }}>
+                    <Card style={{ textAlign: 'center', borderRadius: '16px', border: '2px dashed #52c41a', background: 'linear-gradient(135deg, #f6ffed 0%, #ffffff 100%)'  }}>
                       <Space direction="vertical" size="middle">
                         <TrophyOutlined style={{ fontSize: '32px', color: '#fa8c16' }} />
                         <Title level={4} style={{ color: '#fa8c16', margin: 0 }}>
@@ -426,7 +433,7 @@ const DealsDiscounts = () => {
                     </Card>
                   </Col>
                   <Col xs={24} sm={8}>
-                    <Card style={{ textAlign: 'center', borderRadius: '8px' }}>
+                    <Card style={{ textAlign: 'center', borderRadius: '16px', border: '2px dashed #52c41a', background: 'linear-gradient(135deg, #f6ffed 0%, #ffffff 100%)'  }}>
                       <Space direction="vertical" size="middle">
                         <CrownOutlined style={{ fontSize: '32px', color: '#1890ff' }} />
                         <Title level={4} style={{ color: '#1890ff', margin: 0 }}>
@@ -438,7 +445,7 @@ const DealsDiscounts = () => {
                     </Card>
                   </Col>
                   <Col xs={24} sm={8}>
-                    <Card style={{ textAlign: 'center', borderRadius: '8px' }}>
+                    <Card style={{ textAlign: 'center', borderRadius: '16px', border: '2px dashed #52c41a', background: 'linear-gradient(135deg, #f6ffed 0%, #ffffff 100%)' }}>
                       <Space direction="vertical" size="middle">
                         <CrownOutlined style={{ fontSize: '32px', color: '#722ed1' }} />
                         <Title level={4} style={{ color: '#722ed1', margin: 0 }}>
@@ -452,7 +459,7 @@ const DealsDiscounts = () => {
                 </Row>
               </Card>
 
-              <div style={{ textAlign: 'center', padding: '24px 0' }}>
+              <div style={{ textAlign: 'right', padding: '24px 0' }}>
                 <Space direction="vertical" size="large">
                   <Button
                     type="primary"
@@ -478,7 +485,7 @@ const DealsDiscounts = () => {
                 </Space>
               </div>
             </div>
-          </Card>
+          </div>
         </Col>
       </Row>
     </div>

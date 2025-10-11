@@ -118,7 +118,7 @@ const OrderStatistics: React.FC<OrderStatsProps> = ({ orders }) => {
               <Statistic
                 title="Shipped"
                 value={shippedOrders}
-                valueStyle={{ color: '#1890ff', fontSize: '16px' }}
+                valueStyle={{ color: 'darkblue', fontSize: '16px' }}
                 prefix={<TruckOutlined />}
               />
             </Col>

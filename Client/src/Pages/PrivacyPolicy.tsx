@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  Breadcrumb, 
-  Typography, 
-  List, 
-  Row, 
-  Col, 
-  Space, 
-  Divider, 
+import {
+  Card,
+  Breadcrumb,
+  Typography,
+  List,
+  Row,
+  Col,
+  Space,
+  Divider,
   Alert,
   Tag,
   Timeline,
   Spin
 } from 'antd';
-import { 
+import {
   HomeOutlined,
   SafetyOutlined,
   InfoCircleOutlined,
@@ -68,23 +68,23 @@ const PrivacyPolicy: React.FC = () => {
   ];
 
   const cookieTypes = [
-    { 
-      type: 'Essential cookies', 
+    {
+      type: 'Essential cookies',
       description: 'Required for the website to function properly',
       color: '#52c41a'
     },
-    { 
-      type: 'Functional cookies', 
+    {
+      type: 'Functional cookies',
       description: 'Remember your preferences and settings',
       color: '#1890ff'
     },
-    { 
-      type: 'Analytical cookies', 
+    {
+      type: 'Analytical cookies',
       description: 'Help us understand how visitors interact with our website',
       color: '#fa8c16'
     },
-    { 
-      type: 'Marketing cookies', 
+    {
+      type: 'Marketing cookies',
       description: 'Used to deliver relevant advertisements and track campaign performance',
       color: '#eb2f96'
     }
@@ -101,7 +101,7 @@ const PrivacyPolicy: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ 
+      <div style={{
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -119,8 +119,8 @@ const PrivacyPolicy: React.FC = () => {
     <div style={{ padding: '24px', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
       <Row justify="center">
         <Col xs={24} sm={24} md={22} lg={20} xl={18}>
-          <Card 
-            style={{ 
+          <div
+            style={{
               marginBottom: '24px',
               borderRadius: '12px'
             }}
@@ -147,33 +147,40 @@ const PrivacyPolicy: React.FC = () => {
                 },
               ]}
             />
-          </Card>
-          
-          <Card 
-            style={{ 
+          </div>
+
+          <div
+            style={{
               borderRadius: '12px',
               border: 'none',
               overflow: 'hidden'
             }}
           >
-            <div 
-              style={{ 
-                background: 'linear-gradient(135deg, #52c41a 0%, #73d13d 100%)', 
-                color: 'white', 
-                padding: '40px 32px',
-                margin: '-24px -24px 32px -24px',
-                textAlign: 'center'
+            <div
+              style={{
+                color: '#52c41a',
+                padding: '20px 0 30px 0',
+                textAlign: 'left'
               }}
             >
-              <SafetyOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
-              <Title level={1} style={{ color: 'white', margin: 0, fontSize: '32px' }}>
-                Privacy Policy
-              </Title>
-              <Paragraph style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', marginBottom: 0, marginTop: '8px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}
+              >
+                <SafetyOutlined style={{ fontSize: '40px' }} />
+                <Title level={1} style={{ margin: 0, fontSize: '36px' }}>
+                  Privacy Policy
+                </Title>
+              </div>
+
+              <Paragraph style={{ fontSize: '16px', marginBottom: 0, marginTop: '8px', color: '#8c8c8c', marginLeft: '52px' }}>
                 Your privacy matters to us. Learn how we protect your data.
               </Paragraph>
             </div>
-            
+
             <div style={{ padding: '0 8px' }}>
               <Alert
                 message="Our Commitment to Privacy"
@@ -181,15 +188,15 @@ const PrivacyPolicy: React.FC = () => {
                 type="info"
                 icon={<InfoCircleOutlined />}
                 showIcon
-                style={{ 
+                style={{
                   marginBottom: '32px',
-                  borderRadius: '8px',
+                  borderRadius: '16px',
                   backgroundColor: '#f6ffed',
                   border: '1px solid #b7eb8f'
                 }}
               />
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <DatabaseOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -198,7 +205,7 @@ const PrivacyPolicy: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
@@ -209,9 +216,9 @@ const PrivacyPolicy: React.FC = () => {
                   renderItem={(item) => (
                     <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
                       <Space align="start" size="middle">
-                        <div style={{ 
-                          backgroundColor: '#f6ffed', 
-                          padding: '8px', 
+                        <div style={{
+                          backgroundColor: '#f6ffed',
+                          padding: '8px',
                           borderRadius: '50%',
                           color: '#52c41a',
                           fontSize: '16px'
@@ -224,8 +231,8 @@ const PrivacyPolicy: React.FC = () => {
                   )}
                 />
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <SettingOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -234,7 +241,7 @@ const PrivacyPolicy: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
@@ -245,9 +252,9 @@ const PrivacyPolicy: React.FC = () => {
                   renderItem={(item) => (
                     <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
                       <Space align="start" size="middle">
-                        <div style={{ 
-                          backgroundColor: '#e6f7ff', 
-                          padding: '8px', 
+                        <div style={{
+                          backgroundColor: '#e6f7ff',
+                          padding: '8px',
                           borderRadius: '50%',
                           color: '#1890ff',
                           fontSize: '16px'
@@ -260,8 +267,8 @@ const PrivacyPolicy: React.FC = () => {
                   )}
                 />
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <PieChartOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -270,25 +277,26 @@ const PrivacyPolicy: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Paragraph style={{ fontSize: '16px', marginBottom: '24px' }}>
                   We use cookies and similar technologies to enhance your browsing experience, analyze site traffic, and personalize content. You can control cookies through your browser settings.
                 </Paragraph>
-                
+
                 <Title level={5} style={{ marginBottom: '16px', color: '#595959' }}>
                   Types of Cookies We Use:
                 </Title>
-                
+
                 <Row gutter={[16, 16]}>
                   {cookieTypes.map((cookie, index) => (
                     <Col xs={24} sm={12} key={index}>
-                      <Card 
-                        size="small" 
-                        style={{ 
+                      <div
+                        style={{
                           height: '100%',
-                          borderRadius: '8px',
+                          borderRadius: '16px',
+                          padding: '16px',
+                          border: '1px solid #d9d9d9',
                           borderLeft: `4px solid ${cookie.color}`
                         }}
                       >
@@ -300,13 +308,13 @@ const PrivacyPolicy: React.FC = () => {
                             {cookie.description}
                           </Text>
                         </Space>
-                      </Card>
+                      </div>
                     </Col>
                   ))}
                 </Row>
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <SafetyCertificateOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -315,7 +323,7 @@ const PrivacyPolicy: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Alert
@@ -329,8 +337,8 @@ const PrivacyPolicy: React.FC = () => {
                   We implement appropriate security measures to protect your personal information from unauthorized access, alteration, disclosure, or destruction. These measures include internal reviews of our data collection, storage, and processing practices and security measures, encryption of data, and physical security measures to guard against unauthorized access to systems where we store personal data.
                 </Paragraph>
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <UserOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -339,7 +347,7 @@ const PrivacyPolicy: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
@@ -350,9 +358,9 @@ const PrivacyPolicy: React.FC = () => {
                   renderItem={(item) => (
                     <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
                       <Space align="start" size="middle">
-                        <div style={{ 
-                          backgroundColor: '#fff2e8', 
-                          padding: '8px', 
+                        <div style={{
+                          backgroundColor: '#fff2e8',
+                          padding: '8px',
                           borderRadius: '50%',
                           color: '#fa8c16',
                           fontSize: '16px'
@@ -365,8 +373,8 @@ const PrivacyPolicy: React.FC = () => {
                   )}
                 />
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <SyncOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -375,7 +383,7 @@ const PrivacyPolicy: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
@@ -401,8 +409,8 @@ const PrivacyPolicy: React.FC = () => {
                   ]}
                 />
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <PhoneOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -411,18 +419,19 @@ const PrivacyPolicy: React.FC = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '32px', borderRadius: '8px' }}
+                style={{ marginBottom: '32px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
                   If you have any questions about this Privacy Policy, please don't hesitate to contact our privacy team:
                 </Paragraph>
-                
-                <Card 
-                  style={{ 
-                    backgroundColor: '#fafafa', 
+
+                <div
+                  style={{
+                    backgroundColor: '#fafafa',
                     border: '1px solid #d9d9d9',
-                    borderRadius: '8px'
+                    borderRadius: '16px',
+                    padding: '16px'
                   }}
                 >
                   <Space direction="vertical" size="middle" style={{ width: '100%' }}>
@@ -432,9 +441,9 @@ const PrivacyPolicy: React.FC = () => {
                         <Text strong style={{ fontSize: '16px' }}>FoodDelights Privacy Team</Text>
                       </Space>
                     </div>
-                    
+
                     <Divider style={{ margin: '12px 0' }} />
-                    
+
                     <Row gutter={[24, 16]}>
                       <Col xs={24} sm={12}>
                         <Space>
@@ -468,20 +477,21 @@ const PrivacyPolicy: React.FC = () => {
                       </Col>
                     </Row>
                   </Space>
-                </Card>
+                </div>
               </Card>
-              
+
               <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                <Divider />
-                <Space>
-                  <SyncOutlined style={{ color: '#8c8c8c' }} />
-                  <Text type="secondary" style={{ fontSize: '14px' }}>
-                    Last Updated: May 31, 2025
-                  </Text>
-                </Space>
+                <Divider style={{borderColor:'#52c41a'}}>
+                  <Space>
+                    <SyncOutlined style={{ color: '#8c8c8c' }} />
+                    <Text type="secondary" style={{ fontSize: '14px' }}>
+                      Last Updated: {new Date().toDateString()}
+                    </Text>
+                  </Space>
+                </Divider>
               </div>
             </div>
-          </Card>
+          </div>
         </Col>
       </Row>
     </div>

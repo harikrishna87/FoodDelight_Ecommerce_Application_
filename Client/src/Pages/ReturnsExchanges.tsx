@@ -1,21 +1,22 @@
 import { useState, useEffect } from 'react';
-import { 
-  Card, 
-  Breadcrumb, 
-  Typography, 
-  List, 
-  Row, 
-  Col, 
-  Space, 
-  Divider, 
+import {
+  Card,
+  Breadcrumb,
+  Typography,
+  List,
+  Row,
+  Col,
+  Space,
+  Divider,
   Alert,
   Tag,
   Timeline,
   Spin,
   Steps,
-  Button
+  Button,
+  message
 } from 'antd';
-import { 
+import {
   HomeOutlined,
   SyncOutlined,
   ClockCircleOutlined,
@@ -42,6 +43,7 @@ const { Title, Paragraph, Text } = Typography;
 
 const ReturnsExchanges = () => {
   const [loading, setLoading] = useState(true);
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -51,6 +53,15 @@ const ReturnsExchanges = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const shownotification = () => {
+    messageApi.info({
+      content: "This Feature will be added in UpComing Update",
+      duration: 3,
+      style: {
+        marginTop: '10vh',
+      },
+    });
+  }
   const policyTypes = [
     {
       icon: <UndoOutlined />,
@@ -164,7 +175,7 @@ const ReturnsExchanges = () => {
 
   if (loading) {
     return (
-      <div style={{ 
+      <div style={{
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -182,8 +193,8 @@ const ReturnsExchanges = () => {
     <div style={{ padding: '24px', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
       <Row justify="center">
         <Col xs={24} sm={24} md={22} lg={20} xl={18}>
-          <Card 
-            style={{ 
+          <div
+            style={{
               marginBottom: '24px',
               borderRadius: '12px'
             }}
@@ -208,33 +219,40 @@ const ReturnsExchanges = () => {
                 },
               ]}
             />
-          </Card>
-          
-          <Card 
-            style={{ 
+          </div>
+
+          <div
+            style={{
               borderRadius: '12px',
               border: 'none',
               overflow: 'hidden'
             }}
           >
-            <div 
-              style={{ 
-                background: 'linear-gradient(135deg, #52c41a 0%, #73d13d 100%)', 
-                color: 'white', 
-                padding: '40px 32px',
-                margin: '-24px -24px 32px -24px',
-                textAlign: 'center'
+            <div
+              style={{
+                color: '#52c41a',
+                padding: '20px 0 30px 0',
+                textAlign: 'left'
               }}
             >
-              <SyncOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
-              <Title level={1} style={{ color: 'white', margin: 0, fontSize: '32px' }}>
-                Returns & Exchanges
-              </Title>
-              <Paragraph style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', marginBottom: 0, marginTop: '8px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}
+              >
+                <SyncOutlined style={{ fontSize: '40px' }} />
+                <Title level={1} style={{ margin: 0, fontSize: '36px' }}>
+                  Returns & Exchanges
+                </Title>
+              </div>
+
+              <Paragraph style={{ fontSize: '16px', marginBottom: 0, marginTop: '8px', color: '#8c8c8c', marginLeft: '52px' }}>
                 Your satisfaction is our priority. Learn about our return and exchange policies.
               </Paragraph>
             </div>
-            
+
             <div style={{ padding: '0 8px' }}>
               <Alert
                 message="100% Satisfaction Guarantee"
@@ -242,15 +260,15 @@ const ReturnsExchanges = () => {
                 type="success"
                 icon={<SafetyCertificateOutlined />}
                 showIcon
-                style={{ 
+                style={{
                   marginBottom: '32px',
-                  borderRadius: '8px',
+                  borderRadius: '16px',
                   backgroundColor: '#f6ffed',
                   border: '1px solid #b7eb8f'
                 }}
               />
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <FileProtectOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -259,25 +277,25 @@ const ReturnsExchanges = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Row gutter={[16, 16]}>
                   {policyTypes.map((policy, index) => (
                     <Col xs={24} sm={12} key={index}>
-                      <Card 
-                        size="small" 
-                        style={{ 
+                      <div
+                        style={{
                           height: '180px',
-                          borderRadius: '8px',
+                          borderRadius: '16px',
+                          border: '1px solid #d9d9d9',
+                          padding: '16px',
                           borderLeft: `4px solid ${policy.color}`
                         }}
-                        bodyStyle={{ padding: '16px' }}
                       >
                         <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                          <div style={{ 
-                            backgroundColor: `${policy.color}15`, 
-                            padding: '8px', 
+                          <div style={{
+                            backgroundColor: `${policy.color}15`,
+                            padding: '8px',
                             borderRadius: '50%',
                             color: policy.color,
                             fontSize: '20px',
@@ -295,13 +313,13 @@ const ReturnsExchanges = () => {
                             {policy.timeframe}
                           </Tag>
                         </Space>
-                      </Card>
+                      </div>
                     </Col>
                   ))}
                 </Row>
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <CheckCircleOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -310,7 +328,7 @@ const ReturnsExchanges = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
@@ -321,9 +339,9 @@ const ReturnsExchanges = () => {
                   renderItem={(item) => (
                     <List.Item style={{ padding: '12px 0', borderBottom: 'none' }}>
                       <Space align="start" size="middle">
-                        <div style={{ 
-                          backgroundColor: item.severity === 'high' ? '#fff2f0' : '#fff7e6', 
-                          padding: '8px', 
+                        <div style={{
+                          backgroundColor: item.severity === 'high' ? '#fff2f0' : '#fff7e6',
+                          padding: '8px 12px',
                           borderRadius: '50%',
                           color: item.severity === 'high' ? '#f5222d' : '#fa8c16',
                           fontSize: '16px'
@@ -342,8 +360,8 @@ const ReturnsExchanges = () => {
                   )}
                 />
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <CustomerServiceOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -352,7 +370,7 @@ const ReturnsExchanges = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Steps
@@ -360,7 +378,7 @@ const ReturnsExchanges = () => {
                   items={refundProcess}
                   style={{ marginBottom: '20px' }}
                 />
-                
+
                 <Alert
                   message="Quick Resolution"
                   description="Most returns are processed within 2 hours during business hours. Emergency food safety issues are handled immediately."
@@ -368,8 +386,8 @@ const ReturnsExchanges = () => {
                   showIcon
                 />
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <DollarOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -378,24 +396,25 @@ const ReturnsExchanges = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Row gutter={[16, 16]}>
                   {refundMethods.map((method, index) => (
                     <Col xs={24} sm={8} key={index}>
-                      <Card 
-                        size="small" 
-                        style={{ 
-                          borderRadius: '8px',
-                          textAlign: 'center'
+                      <div
+                        style={{
+                          borderRadius: '16px',
+                          border: '2px dashed #52c41a',
+                          padding: '16px',
+                          textAlign: 'center',
+                          background: 'linear-gradient(135deg, #f6ffed 0%, #ffffff 100%)'
                         }}
-                        bodyStyle={{ padding: '16px' }}
                       >
                         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                          <div style={{ 
-                            backgroundColor: '#f6ffed', 
-                            padding: '12px', 
+                          <div style={{
+                            backgroundColor: '#f6ffed',
+                            padding: '12px 16px',
                             borderRadius: '50%',
                             color: '#52c41a',
                             fontSize: '20px',
@@ -409,17 +428,17 @@ const ReturnsExchanges = () => {
                           <Text style={{ fontSize: '14px', color: '#595959', textAlign: 'center' }}>
                             {method.description}
                           </Text>
-                          <Tag color="blue" style={{ fontSize: '12px' }}>
+                          <Tag color="blue" style={{ fontSize: '12px', border: '1px dashed' }}>
                             {method.timeframe}
                           </Tag>
                         </Space>
-                      </Card>
+                      </div>
                     </Col>
                   ))}
                 </Row>
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <HeartOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -428,7 +447,7 @@ const ReturnsExchanges = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
@@ -436,8 +455,8 @@ const ReturnsExchanges = () => {
                 </Paragraph>
                 <Timeline items={satisfactionSteps} />
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <BellOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -446,23 +465,32 @@ const ReturnsExchanges = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '24px', borderRadius: '8px' }}
+                style={{ marginBottom: '24px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                   <Alert
+                    style={{
+                      borderRadius: '16px'
+                    }}
                     message="Time Sensitive"
                     description="For food safety and quality reasons, returns must be reported within 2 hours of delivery."
                     type="warning"
                     showIcon
                   />
                   <Alert
+                    style={{
+                      borderRadius: '16px'
+                    }}
                     message="Photo Documentation"
                     description="For quality issues, photos help us improve our service and process your return faster."
                     type="info"
                     showIcon
                   />
                   <Alert
+                    style={{
+                      borderRadius: '16px'
+                    }}
                     message="No Questions Asked"
                     description="We believe in making things right. If you're not satisfied, we'll find a solution that works for you."
                     type="success"
@@ -470,8 +498,8 @@ const ReturnsExchanges = () => {
                   />
                 </Space>
               </Card>
-              
-              <Card 
+
+              <Card
                 title={
                   <Space size="middle">
                     <PhoneOutlined style={{ color: '#52c41a', fontSize: '20px' }} />
@@ -480,18 +508,19 @@ const ReturnsExchanges = () => {
                     </Title>
                   </Space>
                 }
-                style={{ marginBottom: '32px', borderRadius: '8px' }}
+                style={{ marginBottom: '32px', borderRadius: '16px' }}
                 headStyle={{ backgroundColor: '#f6ffed', borderBottom: '1px solid #d9f7be' }}
               >
                 <Paragraph style={{ fontSize: '16px', marginBottom: '20px' }}>
                   Need to return or exchange an order? Contact our customer service team:
                 </Paragraph>
-                
-                <Card 
-                  style={{ 
-                    backgroundColor: '#fafafa', 
+
+                <div
+                  style={{
+                    backgroundColor: '#fafafa',
                     border: '1px solid #d9d9d9',
-                    borderRadius: '8px'
+                    padding:'16px',
+                    borderRadius: '16px'
                   }}
                 >
                   <Space direction="vertical" size="middle" style={{ width: '100%' }}>
@@ -501,9 +530,9 @@ const ReturnsExchanges = () => {
                         <Text strong style={{ fontSize: '16px' }}>FoodDelights Returns Department</Text>
                       </Space>
                     </div>
-                    
+
                     <Divider style={{ margin: '12px 0' }} />
-                    
+
                     <Row gutter={[24, 16]}>
                       <Col xs={24} sm={12}>
                         <Space>
@@ -546,27 +575,28 @@ const ReturnsExchanges = () => {
                         </Space>
                       </Col>
                     </Row>
-                    
+
                     <Divider style={{ margin: '12px 0' }} />
-                    
+
                     <Space wrap>
-                      <Button type="primary" icon={<PhoneOutlined />} size="large">
+                      <Button type="primary" icon={<PhoneOutlined />} size="large" onClick={shownotification}>
                         Call Now
                       </Button>
-                      <Button icon={<MailOutlined />} size="large">
+                      <Button icon={<MailOutlined />} size="large" onClick={shownotification}>
                         Send Email
                       </Button>
-                      <Button icon={<CustomerServiceOutlined />} size="large">
+                      <Button icon={<CustomerServiceOutlined />} size="large" onClick={shownotification}>
                         Live Chat
                       </Button>
                     </Space>
                   </Space>
-                </Card>
+                </div>
               </Card>
             </div>
-          </Card>
+          </div>
         </Col>
       </Row>
+      {contextHolder}
     </div>
   );
 };

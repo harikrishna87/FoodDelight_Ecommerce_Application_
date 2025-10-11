@@ -10,7 +10,13 @@ import {
   Typography,
   Space,
   Grid,
-  message
+  message,
+  Form,
+  Input,
+  Row,
+  Col,
+  Modal,
+  Divider
 } from 'antd';
 import {
   ShoppingCartOutlined,
@@ -26,6 +32,10 @@ import {
   HomeOutlined,
   ContactsOutlined,
   ProductOutlined,
+  UserOutlined,
+  PhoneOutlined,
+  EnvironmentOutlined,
+  EditOutlined
 } from '@ant-design/icons';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import axios from "axios";
@@ -50,6 +60,17 @@ interface CartItem {
   description?: string;
 }
 
+interface ShippingAddress {
+  fullName?: string;
+  phone?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+}
+
 const FoodNavbar: React.FC = () => {
   const [showCart, setShowCart] = useState<boolean>(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -59,6 +80,10 @@ const FoodNavbar: React.FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({});
+  const [showAddressModal, setShowAddressModal] = useState<boolean>(false);
+  const [addressLoading, setAddressLoading] = useState<boolean>(false);
+  const [form] = Form.useForm();
 
   const auth = useContext(AuthContext);
   const navigate = useNavigate();
@@ -73,6 +98,7 @@ const FoodNavbar: React.FC = () => {
     if (pathname === '/menu-items') return 'menu';
     if (pathname === '/contact') return 'contact';
     if (pathname === '/my-orders') return 'orders';
+    if (pathname === '/profilepage') return 'profile';
     if (pathname === '/admin/orderanalytics') return 'orderanalytics';
     if (pathname === '/admin/productspage') return 'products';
     if (pathname === '/admin/ordermanagement') return 'ordermanagement';
@@ -111,6 +137,44 @@ const FoodNavbar: React.FC = () => {
       }
     };
   }, []);
+
+  const fetchUserProfile = async () => {
+    if (!auth?.isAuthenticated || !auth?.token) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${backendUrl}/api/auth/getme`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`,
+        },
+      });
+
+      if (!response.ok) {
+        return;
+      }
+
+      const data = await response.json();
+      if (data.success && data.user.shippingAddress) {
+        setShippingAddress(data.user.shippingAddress);
+        form.setFieldsValue({
+          fullName: data.user.shippingAddress.fullName || '',
+          phone: data.user.shippingAddress.phone || '',
+          addressLine1: data.user.shippingAddress.addressLine1 || '',
+          addressLine2: data.user.shippingAddress.addressLine2 || '',
+          city: data.user.shippingAddress.city || '',
+          state: data.user.shippingAddress.state || '',
+          postalCode: data.user.shippingAddress.postalCode || '',
+          country: data.user.shippingAddress.country || '',
+        });
+      }
+    } catch (error) {
+      console.error('Fetch profile error:', error);
+    }
+  };
 
   const fetchCartItems = async () => {
     if (!auth?.isAuthenticated || !auth?.token) {
@@ -209,6 +273,7 @@ const FoodNavbar: React.FC = () => {
 
     if (auth?.isAuthenticated && auth?.token) {
       fetchCartItems();
+      fetchUserProfile();
 
       pollingInterval = setInterval(() => {
         fetchCartItems();
@@ -305,6 +370,7 @@ const FoodNavbar: React.FC = () => {
     setShowCart(!showCart);
     if (!showCart) {
       fetchCartItems();
+      fetchUserProfile();
     }
   };
 
@@ -480,7 +546,9 @@ const FoodNavbar: React.FC = () => {
 
   const handleOrderSuccess = async () => {
     try {
-      const createOrderResponse = await axios.post(`${backendUrl}/api/orders`, {}, {
+      const createOrderResponse = await axios.post(`${backendUrl}/api/orders`, {
+        shippingAddress: shippingAddress
+      }, {
         headers: {
           Authorization: `Bearer ${auth?.token}`
         },
@@ -522,6 +590,53 @@ const FoodNavbar: React.FC = () => {
     }
   };
 
+  const handleAddressSubmit = async (values: any) => {
+    try {
+      setAddressLoading(true);
+      const token = auth?.token;
+
+      const response = await fetch(`${backendUrl}/api/auth/updateprofile`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          shippingAddress: {
+            fullName: values.fullName,
+            phone: values.phone,
+            addressLine1: values.addressLine1,
+            addressLine2: values.addressLine2,
+            city: values.city,
+            state: values.state,
+            postalCode: values.postalCode,
+            country: values.country,
+          },
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setShippingAddress(data.user.shippingAddress);
+        setShowAddressModal(false);
+        messageApi.success('Address updated successfully');
+
+        if (auth?.user && auth.token) {
+          auth.login(data.user, auth.token);
+        }
+      } else {
+        messageApi.error(data.message || 'Failed to update address');
+      }
+    } catch (error) {
+      messageApi.error('Failed to update address');
+      console.error('Update address error:', error);
+    } finally {
+      setAddressLoading(false);
+    }
+  };
+
   const checkoutHandler = async (amount: number | string) => {
     if (!auth?.isAuthenticated || !auth?.token) {
       setShowAuthModal(true);
@@ -537,6 +652,19 @@ const FoodNavbar: React.FC = () => {
           marginTop: '10vh',
         },
       });
+      return;
+    }
+
+    const hasAddress = shippingAddress && Object.values(shippingAddress).some((val) => val);
+    if (!hasAddress) {
+      messageApi.warning({
+        content: "Please add a shipping address before proceeding to checkout.",
+        duration: 3,
+        style: {
+          marginTop: '10vh',
+        },
+      });
+      setShowAddressModal(true);
       return;
     }
 
@@ -671,6 +799,11 @@ const FoodNavbar: React.FC = () => {
             label: <span onClick={() => { setMobileMenuVisible(false); navigate('/my-orders'); }} style={{ color: activeKey === 'orders' ? '#52c41a' : 'inherit' }}>My Orders</span>,
           },
           {
+            key: 'profile',
+            icon: <UserOutlined style={{ color: activeKey === 'profile' ? '#52c41a' : 'inherit' }} />,
+            label: <span onClick={() => { setMobileMenuVisible(false); navigate('/profilepage'); }} style={{ color: activeKey === 'profile' ? '#52c41a' : 'inherit' }}>Profile</span>,
+          },
+          {
             key: 'logout',
             icon: <LogoutOutlined />,
             label: <span onClick={handleLogoutClick}>Logout</span>,
@@ -704,6 +837,8 @@ const FoodNavbar: React.FC = () => {
       ];
     }
   };
+
+  const hasAddress = shippingAddress && Object.values(shippingAddress).some((val) => val);
 
   return (
     <>
@@ -797,7 +932,7 @@ const FoodNavbar: React.FC = () => {
 
       <Drawer
         title="Menu"
-        placement="left"
+        placement="right"
         onClose={() => setMobileMenuVisible(false)}
         open={mobileMenuVisible}
         width={screens.xs ? '80%' : 300}
@@ -965,7 +1100,79 @@ const FoodNavbar: React.FC = () => {
                     </Card>
                   ))}
                 </Space>
+
+                <Divider style={{ margin: '16px 0', border: '1px dashed #d9d9d9' }}/>
+
+                <Card
+                  size="small"
+                  title={
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>
+                        <HomeOutlined style={{ marginRight: '8px' }} />
+                        Shipping Address
+                      </span>
+                      {hasAddress && (
+                        <Button
+                          type="link"
+                          size="small"
+                          icon={<EditOutlined />}
+                          onClick={() => setShowAddressModal(true)}
+                          style={{ padding: 0 }}
+                        >
+                          Edit
+                        </Button>
+                      )}
+                    </div>
+                  }
+                  style={{
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    border: '1px solid #e8e8e8'
+                  }}
+                >
+                  {hasAddress ? (
+                    <div style={{ fontSize: '13px' }}>
+                      <div style={{ marginBottom: '8px' }}>
+                        <Text strong style={{ display: 'block', color: '#666', fontSize: '12px' }}>
+                          {shippingAddress.fullName}
+                        </Text>
+                        <Text style={{ fontSize: '12px' }}>{shippingAddress.phone}</Text>
+                      </div>
+                      <div style={{ marginBottom: '4px' }}>
+                        <Text style={{ fontSize: '12px' }}>{shippingAddress.addressLine1}</Text>
+                      </div>
+                      {shippingAddress.addressLine2 && (
+                        <div style={{ marginBottom: '4px' }}>
+                          <Text style={{ fontSize: '12px' }}>{shippingAddress.addressLine2}</Text>
+                        </div>
+                      )}
+                      <div>
+                        <Text style={{ fontSize: '12px' }}>
+                          {shippingAddress.city}, {shippingAddress.state} {shippingAddress.postalCode}
+                        </Text>
+                      </div>
+                      <div>
+                        <Text style={{ fontSize: '12px' }}>{shippingAddress.country}</Text>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '12px 0' }}>
+                      <EnvironmentOutlined style={{ fontSize: '24px', color: '#d9d9d9', marginBottom: '8px' }} />
+                      <div style={{ marginBottom: '8px' }}>
+                        <Text type="secondary" style={{ fontSize: '12px' }}>No shipping address added</Text>
+                      </div>
+                      <Button
+                        type="primary"
+                        size="small"
+                        icon={<PlusOutlined />}
+                        onClick={() => setShowAddressModal(true)}
+                      >
+                        Add Address
+                      </Button>
+                    </div>
+                  )}
+                </Card>
               </div>
+
               {cartItems.length > 0 && (
                 <div style={{
                   padding: '16px',
@@ -979,12 +1186,12 @@ const FoodNavbar: React.FC = () => {
                         <Text strong style={{ color: '#52c41a', fontSize: '15px' }}>₹{totalSavings.toFixed(2)}</Text>
                       </div>
                     )}
-                    
+
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                       <Text>Subtotal</Text>
                       <Text>₹{numericTotalPrice.toFixed(2)}</Text>
                     </div>
-                    
+
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                       <Text style={{ fontSize: '15px' }}>Delivery Charges</Text>
                       {freeDeliveryApplied ? (
@@ -996,7 +1203,7 @@ const FoodNavbar: React.FC = () => {
                         <Text style={{ fontSize: '15px' }}>₹{deliveryCharge}</Text>
                       )}
                     </div>
-                    
+
                     <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #ccc', paddingTop: '8px' }}>
                       <Title level={4} style={{ margin: 0 }}>Total Amount </Title>
                       <Title level={4} style={{ margin: 0 }}>
@@ -1022,6 +1229,164 @@ const FoodNavbar: React.FC = () => {
           )}
         </Drawer>
       )}
+
+      <Modal
+        title="Shipping Address"
+        open={showAddressModal}
+        onOk={() => form.submit()}
+        onCancel={() => setShowAddressModal(false)}
+        confirmLoading={addressLoading}
+        width={600}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleAddressSubmit}
+        >
+          <Row gutter={16}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label="Full Name"
+                name="fullName"
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please enter full name',
+                  },
+                ]}
+              >
+                <Input
+                  prefix={
+                    <UserOutlined style={{ color: '#52c41a' }} />
+                  }
+                  placeholder="Full name"
+                  size="large"
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label="Phone Number"
+                name="phone"
+                rules={[
+                  {
+                    required: true,
+                    message: 'Please enter phone number',
+                  },
+                  {
+                    pattern: /^[0-9+\-\s()]+$/,
+                    message: 'Please enter valid phone number',
+                  },
+                ]}
+              >
+                <Input
+                  prefix={
+                    <PhoneOutlined style={{ color: '#52c41a' }} />
+                  }
+                  placeholder="+1 (555) 000-0000"
+                  size="large"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            label="Address Line 1"
+            name="addressLine1"
+            rules={[
+              { required: true, message: 'Please enter address' },
+            ]}
+          >
+            <Input
+              prefix={<HomeOutlined style={{ color: '#52c41a' }} />}
+              placeholder="Street address"
+              size="large"
+            />
+          </Form.Item>
+
+          <Form.Item label="Address Line 2" name="addressLine2">
+            <Input
+              prefix={<HomeOutlined style={{ color: '#52c41a' }} />}
+              placeholder="Apartment, suite (optional)"
+              size="large"
+            />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label="City"
+                name="city"
+                rules={[
+                  { required: true, message: 'Please enter city' },
+                ]}
+              >
+                <Input
+                  prefix={
+                    <EnvironmentOutlined style={{ color: '#52c41a' }} />
+                  }
+                  placeholder="City"
+                  size="large"
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label="State"
+                name="state"
+                rules={[
+                  { required: true, message: 'Please enter state' },
+                ]}
+              >
+                <Input
+                  prefix={
+                    <EnvironmentOutlined style={{ color: '#52c41a' }} />
+                  }
+                  placeholder="State"
+                  size="large"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label="Postal Code"
+                name="postalCode"
+                rules={[
+                  { required: true, message: 'Please enter postal code' },
+                ]}
+              >
+                <Input
+                  prefix={
+                    <EnvironmentOutlined style={{ color: '#52c41a' }} />
+                  }
+                  placeholder="Postal Code"
+                  size="large"
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                label="Country"
+                name="country"
+                rules={[
+                  { required: true, message: 'Please enter country' },
+                ]}
+              >
+                <Input
+                  prefix={
+                    <EnvironmentOutlined style={{ color: '#52c41a' }} />
+                  }
+                  placeholder="Country"
+                  size="large"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Modal>
 
       {contextHolder}
       <AuthModal

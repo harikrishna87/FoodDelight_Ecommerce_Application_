@@ -10,6 +10,17 @@ const OrderItemSchema: Schema = new Schema<IOrderItem>({
   category: { type: String, required: true },
 }, { _id: false });
 
+const ShippingAddressSchema: Schema = new Schema({
+  fullName: { type: String },
+  phone: { type: String },
+  addressLine1: { type: String },
+  addressLine2: { type: String },
+  city: { type: String },
+  state: { type: String },
+  postalCode: { type: String },
+  country: { type: String },
+}, { _id: false });
+
 const OrderSchema: Schema = new Schema<IOrder>({
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -28,6 +39,10 @@ const OrderSchema: Schema = new Schema<IOrder>({
     type: String,
     enum: ['Pending', 'Shipped', 'Delivered'],
     default: 'Pending',
+  },
+  shippingAddress: {
+    type: ShippingAddressSchema,
+    required: false,
   },
 }, { timestamps: true });
 
