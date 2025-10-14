@@ -833,15 +833,40 @@ const OrderManagement: React.FC = () => {
       title: <span style={{ color: "#52c41a", fontWeight: 600 }}>Customer</span>,
       key: 'customer',
       render: (record: IOrder) => (
-        <Space direction="vertical" size="small">
-          <Space>
-            <UserOutlined style={{ color: '#52c41a' }} />
-            <Text strong>{record.user?.name || 'N/A'}</Text>
+        <div style={{ minWidth: 0 }}>
+          <Space size={4} style={{ marginBottom: 4 }}>
+            <UserOutlined style={{ color: '#52c41a', flexShrink: 0 }} />
+            <Tooltip title={record.user?.name || 'N/A'}>
+              <Text
+                strong
+                style={{
+                  display: 'block',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  maxWidth: '150px'
+                }}
+              >
+                {record.user?.name || 'N/A'}
+              </Text>
+            </Tooltip>
           </Space>
-          <Text type="secondary" style={{ fontSize: '12px' }}>
-            {record.user?.email || 'N/A'}
-          </Text>
-        </Space>
+          <Tooltip title={record.user?.email || 'N/A'}>
+            <Text
+              type="secondary"
+              style={{
+                fontSize: '12px',
+                display: 'block',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                maxWidth: '170px'
+              }}
+            >
+              {record.user?.email || 'N/A'}
+            </Text>
+          </Tooltip>
+        </div>
       ),
       width: 200,
     },
@@ -850,7 +875,7 @@ const OrderManagement: React.FC = () => {
       dataIndex: 'totalAmount',
       key: 'totalAmount',
       render: (amount: number) => (
-        <Text strong style={{ color: '#52c41a', fontSize: '14px' }}>
+        <Text strong style={{ color: '#52c41a', fontSize: '14px', whiteSpace: 'nowrap' }}>
           ₹ {amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
         </Text>
       ),
@@ -868,7 +893,7 @@ const OrderManagement: React.FC = () => {
       dataIndex: 'createdAt',
       key: 'orderDate',
       render: (date: string) => (
-        <Space>
+        <Space style={{ whiteSpace: 'nowrap' }}>
           <CalendarOutlined style={{ color: '#52c41a' }} />
           {new Date(date).toLocaleDateString()}
         </Space>
