@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
-import { register, login, logout, getMe, updateProfile, uploadImage, updatePassword, DeleteAccount } from '../Controller/AuthController';
+import { register, login, logout, getMe, updateProfile, uploadImage, updatePassword, DeleteAccount, verifyEmail, resetPassword } from '../Controller/AuthController';
 import { protect } from '../Middleware/AuthMiddleWare';
-import multer from 'multer'
+import multer from 'multer';
 
 const router: Router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -14,5 +14,7 @@ router.put('/updateprofile', protect as express.RequestHandler, updateProfile as
 router.post('/upload-image', protect as express.RequestHandler, upload.single('image'), uploadImage as express.RequestHandler);
 router.put('/update-password', protect as express.RequestHandler, updatePassword as express.RequestHandler);
 router.delete('/delete-account', protect as express.RequestHandler, DeleteAccount as express.RequestHandler);
+router.post('/verify-email', verifyEmail as express.RequestHandler);
+router.put('/reset-password', resetPassword as express.RequestHandler);
 
 export default router;
