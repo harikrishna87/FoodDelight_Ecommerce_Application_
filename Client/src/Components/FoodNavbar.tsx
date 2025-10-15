@@ -103,6 +103,7 @@ const FoodNavbar: React.FC = () => {
     if (pathname === '/admin/productspage') return 'products';
     if (pathname === '/admin/ordermanagement') return 'ordermanagement';
     if (pathname === '/admin/paymentoverview') return 'paymentoverview';
+    if (pathname === '/admin/profilepage') return 'profile';
     return '';
   };
 
@@ -768,6 +769,11 @@ const FoodNavbar: React.FC = () => {
           {
             key: 'paymentoverview',
             label: <span onClick={() => { setMobileMenuVisible(false); navigate('/admin/paymentoverview'); }} style={{ color: activeKey === 'paymentoverview' ? '#52c41a' : 'inherit' }}> ₹ Payment Overview</span>,
+          },
+           {
+            key: 'profile',
+            icon: <UserOutlined style={{ color: activeKey === 'profile' ? '#52c41a' : 'inherit' }} />,
+            label: <span onClick={() => { setMobileMenuVisible(false); navigate('/admin/profilepage'); }} style={{ color: activeKey === 'profile' ? '#52c41a' : 'inherit' }}>Profile</span>,
           },
           {
             key: 'logout',

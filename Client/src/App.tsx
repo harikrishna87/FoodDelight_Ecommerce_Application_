@@ -39,6 +39,7 @@ const AppContent: React.FC = () => {
             <Route path='/admin/productspage' element={<ProductsPage/>}/>
             <Route path='/admin/paymentoverview' element={<PaymentOverview/>}/>
             <Route path='/admin/ordermanagement' element={<OrderManagement/>}/>
+            <Route path='/admin/profilepage' element={<ProfilePage/>} />
             <Route path="*" element={<Navigate to="/admin/orderanalytics" replace />} />
           </Routes>
         </Container>

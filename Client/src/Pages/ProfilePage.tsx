@@ -401,21 +401,6 @@ const ProfilePage: React.FC = () => {
           <div style={{ position: 'relative', zIndex: 1 }}>
             <Row gutter={32} align="middle">
               <Col xs={24} md={8} style={{ textAlign: 'center' }}>
-                <div style={{ position: 'relative', display: 'inline-block' }}>
-                  {displayUser?.role === 'admin' && (
-                    <CrownOutlined
-                      style={{
-                        position: 'absolute',
-                        top: -15,
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        color: '#ffd700',
-                        fontSize: '32px',
-                        zIndex: 10,
-                        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
-                      }}
-                    />
-                  )}
                   <div style={{ position: 'relative', display: 'inline-block' }}>
                     <Avatar
                       size={180}
@@ -455,7 +440,6 @@ const ProfilePage: React.FC = () => {
                       />
                     </Upload>
                   </div>
-                </div>
               </Col>
               <Col xs={24} md={16} style={{ paddingLeft: '32px' }}>
                 <Row gutter={[16, 24]}>
@@ -613,186 +597,188 @@ const ProfilePage: React.FC = () => {
           </div>
         </Card>
 
-        <Card
-          title={
-            <span>
-              <HomeOutlined /> Shipping Address
-            </span>
-          }
-          style={{
-            borderRadius: '16px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            border: '1px solid #a8dadc',
-            marginBottom: '24px',
-            background: 'linear-gradient(135deg, #e0f2f7 0%, #ffffff 100%)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-          extra={
-            hasAddress && (
-              <Button
-                type="link"
-                icon={<EditOutlined />}
-                onClick={() => setShowAddressModal(true)}
-              >
-                Edit
-              </Button>
-            )
-          }
-        >
-          <div
+        {displayUser?.role !== 'admin' && (
+          <Card
+            title={
+              <span>
+                <HomeOutlined /> Shipping Address
+              </span>
+            }
             style={{
-              position: 'absolute',
-              top: -60,
-              right: -60,
-              width: '220px',
-              height: '220px',
-              borderRadius: '50%',
-              background: 'rgba(24, 144, 255, 0.08)',
-              zIndex: 0,
+              borderRadius: '16px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              border: '1px solid #a8dadc',
+              marginBottom: '24px',
+              background: 'linear-gradient(135deg, #e0f2f7 0%, #ffffff 100%)',
+              position: 'relative',
+              overflow: 'hidden',
             }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              bottom: -40,
-              left: -40,
-              width: '180px',
-              height: '180px',
-              borderRadius: '50%',
-              background: 'rgba(168, 218, 220, 0.15)',
-              zIndex: 0,
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              top: '60%',
-              right: '15%',
-              width: '120px',
-              height: '120px',
-              borderRadius: '50%',
-              background: 'rgba(135, 208, 241, 0.1)',
-              zIndex: 0,
-            }}
-          />
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            {hasAddress ? (
-              <div>
-                <Row gutter={16} style={{ marginBottom: '16px' }}>
-                  <Col xs={24} sm={12}>
-                    <div style={{ marginBottom: '12px' }}>
-                      <Text strong style={{ color: '#666' }}>
-                        Full Name
-                      </Text>
-                      <div>
-                        <Text>
-                          {profileData?.shippingAddress?.fullName}
-                        </Text>
-                      </div>
-                    </div>
-                  </Col>
-                  <Col xs={24} sm={12}>
-                    <div style={{ marginBottom: '12px' }}>
-                      <Text strong style={{ color: '#666' }}>
-                        Phone
-                      </Text>
-                      <div>
-                        <Text>{profileData?.shippingAddress?.phone}</Text>
-                      </div>
-                    </div>
-                  </Col>
-                </Row>
-
-                <div style={{ marginBottom: '12px' }}>
-                  <Text strong style={{ color: '#666' }}>
-                    Address Line 1
-                  </Text>
-                  <div>
-                    <Text>{profileData?.shippingAddress?.addressLine1}</Text>
-                  </div>
-                </div>
-
-                {profileData?.shippingAddress?.addressLine2 && (
-                  <div style={{ marginBottom: '12px' }}>
-                    <Text strong style={{ color: '#666' }}>
-                      Address Line 2
-                    </Text>
-                    <div>
-                      <Text>{profileData?.shippingAddress?.addressLine2}</Text>
-                    </div>
-                  </div>
-                )}
-
-                <Row gutter={16} style={{ marginBottom: '12px' }}>
-                  <Col xs={24} sm={12}>
-                    <div>
-                      <Text strong style={{ color: '#666' }}>
-                        City
-                      </Text>
-                      <div>
-                        <Text>{profileData?.shippingAddress?.city}</Text>
-                      </div>
-                    </div>
-                  </Col>
-                  <Col xs={24} sm={12}>
-                    <div>
-                      <Text strong style={{ color: '#666' }}>
-                        State
-                      </Text>
-                      <div>
-                        <Text>{profileData?.shippingAddress?.state}</Text>
-                      </div>
-                    </div>
-                  </Col>
-                </Row>
-
-                <Row gutter={16}>
-                  <Col xs={24} sm={12}>
-                    <div>
-                      <Text strong style={{ color: '#666' }}>
-                        Postal Code
-                      </Text>
-                      <div>
-                        <Text>{profileData?.shippingAddress?.postalCode}</Text>
-                      </div>
-                    </div>
-                  </Col>
-                  <Col xs={24} sm={12}>
-                    <div>
-                      <Text strong style={{ color: '#666' }}>
-                        Country
-                      </Text>
-                      <div>
-                        <Text>{profileData?.shippingAddress?.country}</Text>
-                      </div>
-                    </div>
-                  </Col>
-                </Row>
-              </div>
-            ) : (
-              <div
-                style={{
-                  textAlign: 'center',
-                  padding: '32px',
-                  color: '#999',
-                }}
-              >
-                <HomeOutlined style={{ fontSize: '32px', marginBottom: '16px' }} />
-                <div style={{ marginBottom: '16px' }}>
-                  <Text>No shipping address added yet</Text>
-                </div>
+            extra={
+              hasAddress && (
                 <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
+                  type="link"
+                  icon={<EditOutlined />}
                   onClick={() => setShowAddressModal(true)}
                 >
-                  Add Shipping Address
+                  Edit
                 </Button>
-              </div>
-            )}
-          </div>
-        </Card>
+              )
+            }
+          >
+            <div
+              style={{
+                position: 'absolute',
+                top: -60,
+                right: -60,
+                width: '220px',
+                height: '220px',
+                borderRadius: '50%',
+                background: 'rgba(24, 144, 255, 0.08)',
+                zIndex: 0,
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                bottom: -40,
+                left: -40,
+                width: '180px',
+                height: '180px',
+                borderRadius: '50%',
+                background: 'rgba(168, 218, 220, 0.15)',
+                zIndex: 0,
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                top: '60%',
+                right: '15%',
+                width: '120px',
+                height: '120px',
+                borderRadius: '50%',
+                background: 'rgba(135, 208, 241, 0.1)',
+                zIndex: 0,
+              }}
+            />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              {hasAddress ? (
+                <div>
+                  <Row gutter={16} style={{ marginBottom: '16px' }}>
+                    <Col xs={24} sm={12}>
+                      <div style={{ marginBottom: '12px' }}>
+                        <Text strong style={{ color: '#666' }}>
+                          Full Name
+                        </Text>
+                        <div>
+                          <Text>
+                            {profileData?.shippingAddress?.fullName}
+                          </Text>
+                        </div>
+                      </div>
+                    </Col>
+                    <Col xs={24} sm={12}>
+                      <div style={{ marginBottom: '12px' }}>
+                        <Text strong style={{ color: '#666' }}>
+                          Phone
+                        </Text>
+                        <div>
+                          <Text>{profileData?.shippingAddress?.phone}</Text>
+                        </div>
+                      </div>
+                    </Col>
+                  </Row>
+
+                  <div style={{ marginBottom: '12px' }}>
+                    <Text strong style={{ color: '#666' }}>
+                      Address Line 1
+                    </Text>
+                    <div>
+                      <Text>{profileData?.shippingAddress?.addressLine1}</Text>
+                    </div>
+                  </div>
+
+                  {profileData?.shippingAddress?.addressLine2 && (
+                    <div style={{ marginBottom: '12px' }}>
+                      <Text strong style={{ color: '#666' }}>
+                        Address Line 2
+                      </Text>
+                      <div>
+                        <Text>{profileData?.shippingAddress?.addressLine2}</Text>
+                      </div>
+                    </div>
+                  )}
+
+                  <Row gutter={16} style={{ marginBottom: '12px' }}>
+                    <Col xs={24} sm={12}>
+                      <div>
+                        <Text strong style={{ color: '#666' }}>
+                          City
+                        </Text>
+                        <div>
+                          <Text>{profileData?.shippingAddress?.city}</Text>
+                        </div>
+                      </div>
+                    </Col>
+                    <Col xs={24} sm={12}>
+                      <div>
+                        <Text strong style={{ color: '#666' }}>
+                          State
+                        </Text>
+                        <div>
+                          <Text>{profileData?.shippingAddress?.state}</Text>
+                        </div>
+                      </div>
+                    </Col>
+                  </Row>
+
+                  <Row gutter={16}>
+                    <Col xs={24} sm={12}>
+                      <div>
+                        <Text strong style={{ color: '#666' }}>
+                          Postal Code
+                        </Text>
+                        <div>
+                          <Text>{profileData?.shippingAddress?.postalCode}</Text>
+                        </div>
+                      </div>
+                    </Col>
+                    <Col xs={24} sm={12}>
+                      <div>
+                        <Text strong style={{ color: '#666' }}>
+                          Country
+                        </Text>
+                        <div>
+                          <Text>{profileData?.shippingAddress?.country}</Text>
+                        </div>
+                      </div>
+                    </Col>
+                  </Row>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    textAlign: 'center',
+                    padding: '32px',
+                    color: '#999',
+                  }}
+                >
+                  <HomeOutlined style={{ fontSize: '32px', marginBottom: '16px' }} />
+                  <div style={{ marginBottom: '16px' }}>
+                    <Text>No shipping address added yet</Text>
+                  </div>
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => setShowAddressModal(true)}
+                  >
+                    Add Shipping Address
+                  </Button>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
 
         <Card
           title={
@@ -997,7 +983,7 @@ const ProfilePage: React.FC = () => {
                       message: 'Please enter phone number',
                     },
                     {
-                      pattern: /^[0-9+\-\s()]+$/,
+                      pattern: /^[0-9+-\s()]+$/,
                       message: 'Please enter valid phone number',
                     },
                   ]}
@@ -1012,7 +998,6 @@ const ProfilePage: React.FC = () => {
                 </Form.Item>
               </Col>
             </Row>
-
             <Form.Item
               label="Address Line 1"
               name="addressLine1"
@@ -1260,6 +1245,5 @@ const ProfilePage: React.FC = () => {
     </div>
   );
 };
-
 export type { ShippingAddress };
 export default ProfilePage;
