@@ -25,6 +25,8 @@ import PaymentOverview from './Pages/PaymentOverview'
 import OrderManagement from './Pages/OrderManagement'
 import OrderAnalytics from './Pages/OrderAnalytics'
 import ProfilePage from './Pages/ProfilePage'
+import CheckoutPage from './Pages/CheckoutPage'
+import OrderSuccessPage from './Pages/OrderSuccessPage'
 
 const AppContent: React.FC = () => {
   const auth = useContext(AuthContext)
@@ -59,6 +61,8 @@ const AppContent: React.FC = () => {
           <Route path='/profilepage' element={<ProfilePage/>} />
           <Route path="/privacy" element={<PrivacyPolicy/>} />
           <Route path='/faq' element={<FAQ/>}/>
+          <Route path='/checkout' element={<CheckoutPage/>}/>
+          <Route path="/ordersuccess/:orderId" element={<OrderSuccessPage />} />
           <Route path='/newarrivals' element={<NewArrivals/>}/>
           <Route path='/dealsdiscount' element={<DealsDiscounts/>}/>
           <Route path='/giftcards' element={<GiftCards/>}/>

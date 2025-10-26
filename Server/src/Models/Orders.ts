@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { IOrder, IOrderItem } from '../Types';
+import { IOrder, IOrderItem, IShippingAddress } from '../Types';
 
 const OrderItemSchema: Schema = new Schema<IOrderItem>({
   name: { type: String, required: true },
@@ -10,7 +10,7 @@ const OrderItemSchema: Schema = new Schema<IOrderItem>({
   category: { type: String, required: true },
 }, { _id: false });
 
-const ShippingAddressSchema: Schema = new Schema({
+const ShippingAddressSchema: Schema = new Schema<IShippingAddress>({
   fullName: { type: String },
   phone: { type: String },
   addressLine1: { type: String },
@@ -43,6 +43,14 @@ const OrderSchema: Schema = new Schema<IOrder>({
   shippingAddress: {
     type: ShippingAddressSchema,
     required: false,
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['cod', 'online'],
+    default: 'cod',
+  },
+  paymentId: {
+    type: String,
   },
 }, { timestamps: true });
 

@@ -1,4 +1,4 @@
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export interface IShippingAddress {
   fullName?: string;
@@ -53,13 +53,23 @@ export interface IOrderItem {
 }
 
 export interface IOrder extends Document {
-  user: IUser['_id'];
+  user: Types.ObjectId;
   items: IOrderItem[];
   totalAmount: number;
   deliveryStatus: OrderDeliveryStatus;
   shippingAddress?: IShippingAddress;
+  paymentMethod?: string;
+  paymentId?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface IOrderPopulated extends Omit<IOrder, 'user'> {
+  user: {
+    _id: Types.ObjectId;
+    name: string;
+    email: string;
+  };
 }
 
 export interface IRating {

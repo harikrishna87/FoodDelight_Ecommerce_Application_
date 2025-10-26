@@ -11,11 +11,6 @@ import {
   Space,
   Grid,
   message,
-  Form,
-  Input,
-  Row,
-  Col,
-  Modal,
   Divider
 } from 'antd';
 import {
@@ -32,18 +27,11 @@ import {
   HomeOutlined,
   ContactsOutlined,
   ProductOutlined,
-  UserOutlined,
-  PhoneOutlined,
-  EnvironmentOutlined,
-  EditOutlined
+  UserOutlined
 } from '@ant-design/icons';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import axios from "axios";
-import confetti from "canvas-confetti";
 import { AuthContext } from '../context/AuthContext';
 import AuthModal from './AuthModal';
-
-declare const Razorpay: any;
 
 const { Header } = Layout;
 const { Title, Text } = Typography;
@@ -60,17 +48,6 @@ interface CartItem {
   description?: string;
 }
 
-interface ShippingAddress {
-  fullName?: string;
-  phone?: string;
-  addressLine1?: string;
-  addressLine2?: string;
-  city?: string;
-  state?: string;
-  postalCode?: string;
-  country?: string;
-}
-
 const FoodNavbar: React.FC = () => {
   const [showCart, setShowCart] = useState<boolean>(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -80,10 +57,6 @@ const FoodNavbar: React.FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
-  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({});
-  const [showAddressModal, setShowAddressModal] = useState<boolean>(false);
-  const [addressLoading, setAddressLoading] = useState<boolean>(false);
-  const [form] = Form.useForm();
 
   const auth = useContext(AuthContext);
   const navigate = useNavigate();
@@ -111,70 +84,6 @@ const FoodNavbar: React.FC = () => {
 
   const isLargeScreen = () => {
     return window.innerWidth > 900;
-  };
-
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    script.onload = () => {
-      console.log('Razorpay SDK loaded successfully');
-    };
-    script.onerror = (error) => {
-      console.error('Failed to load Razorpay SDK:', error);
-      messageApi.error({
-        content: "Failed to load payment gateway. Please check your internet connection.",
-        duration: 5,
-        style: {
-          marginTop: '10vh',
-        },
-      });
-    };
-    document.body.appendChild(script);
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, []);
-
-  const fetchUserProfile = async () => {
-    if (!auth?.isAuthenticated || !auth?.token) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`${backendUrl}/api/auth/getme`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${auth.token}`,
-        },
-      });
-
-      if (!response.ok) {
-        return;
-      }
-
-      const data = await response.json();
-      if (data.success && data.user.shippingAddress) {
-        setShippingAddress(data.user.shippingAddress);
-        form.setFieldsValue({
-          fullName: data.user.shippingAddress.fullName || '',
-          phone: data.user.shippingAddress.phone || '',
-          addressLine1: data.user.shippingAddress.addressLine1 || '',
-          addressLine2: data.user.shippingAddress.addressLine2 || '',
-          city: data.user.shippingAddress.city || '',
-          state: data.user.shippingAddress.state || '',
-          postalCode: data.user.shippingAddress.postalCode || '',
-          country: data.user.shippingAddress.country || '',
-        });
-      }
-    } catch (error) {
-      console.error('Fetch profile error:', error);
-    }
   };
 
   const fetchCartItems = async () => {
@@ -222,59 +131,11 @@ const FoodNavbar: React.FC = () => {
     }
   };
 
-  const clearCart = async () => {
-    if (!auth?.isAuthenticated || !auth?.token) {
-      messageApi.error({
-        content: "Please log in to clear your cart.",
-        duration: 3,
-        style: { marginTop: '10vh' },
-      });
-      return;
-    }
-    try {
-      const response = await fetch(`${backendUrl}/api/cart/clear_cart`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${auth.token}`,
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
-
-      if (response.status === 401) {
-        if (auth?.logout) {
-          auth.logout();
-        }
-        return;
-      }
-
-      if (response.ok) {
-        setCartItems([]);
-        setCartCount(0);
-      } else {
-        const errorData = await response.json();
-        messageApi.error({
-          content: errorData.message || 'Failed to clear cart',
-          duration: 3,
-          style: { marginTop: '10vh' },
-        });
-      }
-    } catch (error) {
-      console.error('Error clearing cart:', error);
-      messageApi.error({
-        content: "Error occurred while clearing cart.",
-        duration: 3,
-        style: { marginTop: '10vh' },
-      });
-    }
-  };
-
   useEffect(() => {
     let pollingInterval: NodeJS.Timeout | null = null;
 
     if (auth?.isAuthenticated && auth?.token) {
       fetchCartItems();
-      fetchUserProfile();
 
       pollingInterval = setInterval(() => {
         fetchCartItems();
@@ -358,8 +219,6 @@ const FoodNavbar: React.FC = () => {
   const numericTotalPrice = cartItems.reduce((sum, item) => sum + item.discount_price * item.quantity, 0);
   const totalOriginalPrice = cartItems.reduce((sum, item) => sum + item.original_price * item.quantity, 0);
   const totalSavings = totalOriginalPrice - numericTotalPrice;
-  const finalTotal = numericTotalPrice + deliveryCharge;
-  const totalPrice = finalTotal.toFixed(2);
   const freeDeliveryApplied = numericTotalPrice >= 200;
 
   const handleCartToggle = (): void => {
@@ -371,7 +230,6 @@ const FoodNavbar: React.FC = () => {
     setShowCart(!showCart);
     if (!showCart) {
       fetchCartItems();
-      fetchUserProfile();
     }
   };
 
@@ -517,129 +375,8 @@ const FoodNavbar: React.FC = () => {
     }
   };
 
-  const triggerConfetti = () => {
-    const duration = 3 * 1000;
-    const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1060 };
-
-    const randomInRange = (min: number, max: number) =>
-      Math.random() * (max - min) + min;
-
-    const interval = window.setInterval(() => {
-      const timeLeft = animationEnd - Date.now();
-      if (timeLeft <= 0) {
-        return clearInterval(interval);
-      }
-
-      const particleCount = 50 * (timeLeft / duration);
-      confetti({
-        ...defaults,
-        particleCount,
-        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-      });
-      confetti({
-        ...defaults,
-        particleCount,
-        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-      });
-    }, 250);
-  };
-
-  const handleOrderSuccess = async () => {
-    try {
-      const createOrderResponse = await axios.post(`${backendUrl}/api/orders`, {
-        shippingAddress: shippingAddress
-      }, {
-        headers: {
-          Authorization: `Bearer ${auth?.token}`
-        },
-        withCredentials: true
-      });
-
-      if (createOrderResponse.data.success) {
-        messageApi.success({
-          content: createOrderResponse.data.message || "Order created successfully",
-          duration: 3,
-          style: {
-            marginTop: '10vh',
-          },
-        });
-        clearCart();
-        setShowCart(false);
-        triggerConfetti();
-      } else {
-        messageApi.error({
-          content: createOrderResponse.data.message || "Failed to finalize order",
-          duration: 3,
-          style: {
-            marginTop: '10vh',
-          },
-        });
-      }
-    } catch (error: any) {
-      console.error("Error creating order:", error);
-      if (error.response?.status === 401 && auth?.logout) {
-        auth.logout();
-      }
-      messageApi.error({
-        content: error.response?.data?.message || "Failed to finalize order",
-        duration: 3,
-        style: {
-          marginTop: '10vh',
-        },
-      });
-    }
-  };
-
-  const handleAddressSubmit = async (values: any) => {
-    try {
-      setAddressLoading(true);
-      const token = auth?.token;
-
-      const response = await fetch(`${backendUrl}/api/auth/updateprofile`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          shippingAddress: {
-            fullName: values.fullName,
-            phone: values.phone,
-            addressLine1: values.addressLine1,
-            addressLine2: values.addressLine2,
-            city: values.city,
-            state: values.state,
-            postalCode: values.postalCode,
-            country: values.country,
-          },
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setShippingAddress(data.user.shippingAddress);
-        setShowAddressModal(false);
-        messageApi.success('Address updated successfully');
-
-        if (auth?.user && auth.token) {
-          auth.login(data.user, auth.token);
-        }
-      } else {
-        messageApi.error(data.message || 'Failed to update address');
-      }
-    } catch (error) {
-      messageApi.error('Failed to update address');
-      console.error('Update address error:', error);
-    } finally {
-      setAddressLoading(false);
-    }
-  };
-
-  const checkoutHandler = async (amount: number | string) => {
-    if (!auth?.isAuthenticated || !auth?.token) {
+  const handleCheckout = () => {
+    if (!auth?.isAuthenticated) {
       setShowAuthModal(true);
       setIsLoginMode(true);
       return;
@@ -656,88 +393,8 @@ const FoodNavbar: React.FC = () => {
       return;
     }
 
-    const hasAddress = shippingAddress && Object.values(shippingAddress).some((val) => val);
-    if (!hasAddress) {
-      messageApi.warning({
-        content: "Please add a shipping address before proceeding to checkout.",
-        duration: 3,
-        style: {
-          marginTop: '10vh',
-        },
-      });
-      setShowAddressModal(true);
-      return;
-    }
-
-    if (typeof Razorpay === 'undefined') {
-      messageApi.error({
-        content: "Payment gateway not loaded. Please try again or refresh the page.",
-        duration: 5,
-        style: {
-          marginTop: '10vh',
-        },
-      });
-      return;
-    }
-
-    try {
-      const { data: keyData } = await axios.get(`${backendUrl}/razorpay/getkey`);
-      const { key } = keyData;
-
-      const { data: orderData } = await axios.post(`${backendUrl}/razorpay/payment/process`, {
-        amount: Number(amount)
-      });
-      const { order } = orderData;
-
-      const options = {
-        key,
-        amount: order.amount,
-        currency: 'INR',
-        name: 'FoodDelights',
-        description: 'Food Order Payment',
-        order_id: order.id,
-        prefill: {
-          name: auth.user?.name || "Customer",
-          email: auth.user?.email || "customer@example.com",
-          contact: '+91 9550172687'
-        },
-        theme: {
-          color: '#52c41a'
-        },
-        handler: function (response: any) {
-          if (response.razorpay_payment_id) {
-            handleOrderSuccess();
-          } else {
-            messageApi.error({
-              content: "Payment failed or cancelled.",
-              duration: 3,
-              style: {
-                marginTop: '10vh',
-              },
-            });
-          }
-        },
-        modal: {
-          ondismiss: function () {
-            messageApi.info({
-              content: "Payment window closed without completing the transaction.",
-              duration: 3,
-              style: {
-                marginTop: '10vh',
-              },
-            });
-          }
-        }
-      };
-
-      const rzp = new Razorpay(options);
-      rzp.open();
-    } catch (error: any) {
-      console.error("Checkout error:", error);
-      if (error.response?.status === 401 && auth?.logout) {
-        auth.logout();
-      }
-    }
+    setShowCart(false);
+    navigate('/checkout');
   };
 
   const handleLogoutClick = () => {
@@ -843,8 +500,6 @@ const FoodNavbar: React.FC = () => {
       ];
     }
   };
-
-  const hasAddress = shippingAddress && Object.values(shippingAddress).some((val) => val);
 
   return (
     <>
@@ -982,7 +637,7 @@ const FoodNavbar: React.FC = () => {
                 flex: 1,
                 overflowY: 'auto',
                 padding: '16px',
-                maxHeight: 'calc(100vh - 280px)'
+                maxHeight: 'calc(100vh - 200px)'
               }}>
                 <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                   {cartItems.map(item => (
@@ -1106,77 +761,6 @@ const FoodNavbar: React.FC = () => {
                     </Card>
                   ))}
                 </Space>
-
-                <Divider style={{ margin: '16px 0', border: '1px dashed #d9d9d9' }}/>
-
-                <Card
-                  size="small"
-                  title={
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span>
-                        <HomeOutlined style={{ marginRight: '8px' }} />
-                        Shipping Address
-                      </span>
-                      {hasAddress && (
-                        <Button
-                          type="link"
-                          size="small"
-                          icon={<EditOutlined />}
-                          onClick={() => setShowAddressModal(true)}
-                          style={{ padding: 0 }}
-                        >
-                          Edit
-                        </Button>
-                      )}
-                    </div>
-                  }
-                  style={{
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                    border: '1px solid #e8e8e8'
-                  }}
-                >
-                  {hasAddress ? (
-                    <div style={{ fontSize: '13px' }}>
-                      <div style={{ marginBottom: '8px' }}>
-                        <Text strong style={{ display: 'block', color: '#666', fontSize: '12px' }}>
-                          {shippingAddress.fullName}
-                        </Text>
-                        <Text style={{ fontSize: '12px' }}>{shippingAddress.phone}</Text>
-                      </div>
-                      <div style={{ marginBottom: '4px' }}>
-                        <Text style={{ fontSize: '12px' }}>{shippingAddress.addressLine1}</Text>
-                      </div>
-                      {shippingAddress.addressLine2 && (
-                        <div style={{ marginBottom: '4px' }}>
-                          <Text style={{ fontSize: '12px' }}>{shippingAddress.addressLine2}</Text>
-                        </div>
-                      )}
-                      <div>
-                        <Text style={{ fontSize: '12px' }}>
-                          {shippingAddress.city}, {shippingAddress.state} {shippingAddress.postalCode}
-                        </Text>
-                      </div>
-                      <div>
-                        <Text style={{ fontSize: '12px' }}>{shippingAddress.country}</Text>
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ textAlign: 'center', padding: '12px 0' }}>
-                      <EnvironmentOutlined style={{ fontSize: '24px', color: '#d9d9d9', marginBottom: '8px' }} />
-                      <div style={{ marginBottom: '8px' }}>
-                        <Text type="secondary" style={{ fontSize: '12px' }}>No shipping address added</Text>
-                      </div>
-                      <Button
-                        type="primary"
-                        size="small"
-                        icon={<PlusOutlined />}
-                        onClick={() => setShowAddressModal(true)}
-                      >
-                        Add Address
-                      </Button>
-                    </div>
-                  )}
-                </Card>
               </div>
 
               {cartItems.length > 0 && (
@@ -1203,17 +787,19 @@ const FoodNavbar: React.FC = () => {
                       {freeDeliveryApplied ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <Text delete style={{ color: '#999', fontSize: '14px' }}>₹{deliveryCharge}</Text>
-                          <Text style={{ color: '#52c41a', fontSize: '15px' }}>Free Delivery Applied 🚚</Text>
+                          <Text style={{ color: '#52c41a', fontSize: '15px' }}>Free 🚚</Text>
                         </div>
                       ) : (
                         <Text style={{ fontSize: '15px' }}>₹{deliveryCharge}</Text>
                       )}
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #ccc', paddingTop: '8px' }}>
-                      <Title level={4} style={{ margin: 0 }}>Total Amount </Title>
-                      <Title level={4} style={{ margin: 0 }}>
-                        ₹{freeDeliveryApplied ? numericTotalPrice.toFixed(2) : totalPrice}
+                    <Divider style={{ margin: '8px 0' }} />
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Title level={4} style={{ margin: 0 }}>Total Amount</Title>
+                      <Title level={4} style={{ margin: 0, color: '#52c41a' }}>
+                        ₹{freeDeliveryApplied ? numericTotalPrice.toFixed(2) : (numericTotalPrice + deliveryCharge).toFixed(2)}
                       </Title>
                     </div>
                   </div>
@@ -1225,7 +811,7 @@ const FoodNavbar: React.FC = () => {
                     }}
                     size="large"
                     block
-                    onClick={() => checkoutHandler(freeDeliveryApplied ? numericTotalPrice.toFixed(2) : totalPrice)}
+                    onClick={handleCheckout}
                   >
                     Proceed to Checkout
                   </Button>
@@ -1236,164 +822,6 @@ const FoodNavbar: React.FC = () => {
         </Drawer>
       )}
 
-      <Modal
-        title="Shipping Address"
-        open={showAddressModal}
-        onOk={() => form.submit()}
-        onCancel={() => setShowAddressModal(false)}
-        confirmLoading={addressLoading}
-        width={600}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleAddressSubmit}
-        >
-          <Row gutter={16}>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                label="Full Name"
-                name="fullName"
-                rules={[
-                  {
-                    required: true,
-                    message: 'Please enter full name',
-                  },
-                ]}
-              >
-                <Input
-                  prefix={
-                    <UserOutlined style={{ color: '#52c41a' }} />
-                  }
-                  placeholder="Full name"
-                  size="large"
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                label="Phone Number"
-                name="phone"
-                rules={[
-                  {
-                    required: true,
-                    message: 'Please enter phone number',
-                  },
-                  {
-                    pattern: /^[0-9+\-\s()]+$/,
-                    message: 'Please enter valid phone number',
-                  },
-                ]}
-              >
-                <Input
-                  prefix={
-                    <PhoneOutlined style={{ color: '#52c41a' }} />
-                  }
-                  placeholder="+1 (555) 000-0000"
-                  size="large"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item
-            label="Address Line 1"
-            name="addressLine1"
-            rules={[
-              { required: true, message: 'Please enter address' },
-            ]}
-          >
-            <Input
-              prefix={<HomeOutlined style={{ color: '#52c41a' }} />}
-              placeholder="Street address"
-              size="large"
-            />
-          </Form.Item>
-
-          <Form.Item label="Address Line 2" name="addressLine2">
-            <Input
-              prefix={<HomeOutlined style={{ color: '#52c41a' }} />}
-              placeholder="Apartment, suite (optional)"
-              size="large"
-            />
-          </Form.Item>
-
-          <Row gutter={16}>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                label="City"
-                name="city"
-                rules={[
-                  { required: true, message: 'Please enter city' },
-                ]}
-              >
-                <Input
-                  prefix={
-                    <EnvironmentOutlined style={{ color: '#52c41a' }} />
-                  }
-                  placeholder="City"
-                  size="large"
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                label="State"
-                name="state"
-                rules={[
-                  { required: true, message: 'Please enter state' },
-                ]}
-              >
-                <Input
-                  prefix={
-                    <EnvironmentOutlined style={{ color: '#52c41a' }} />
-                  }
-                  placeholder="State"
-                  size="large"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                label="Postal Code"
-                name="postalCode"
-                rules={[
-                  { required: true, message: 'Please enter postal code' },
-                ]}
-              >
-                <Input
-                  prefix={
-                    <EnvironmentOutlined style={{ color: '#52c41a' }} />
-                  }
-                  placeholder="Postal Code"
-                  size="large"
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12}>
-              <Form.Item
-                label="Country"
-                name="country"
-                rules={[
-                  { required: true, message: 'Please enter country' },
-                ]}
-              >
-                <Input
-                  prefix={
-                    <EnvironmentOutlined style={{ color: '#52c41a' }} />
-                  }
-                  placeholder="Country"
-                  size="large"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-        </Form>
-      </Modal>
-
       {contextHolder}
       <AuthModal
         show={showAuthModal}
@@ -1403,18 +831,6 @@ const FoodNavbar: React.FC = () => {
       />
 
       <style>{`
-        @keyframes pulse {
-          0% {
-            box-shadow: 0 0 0 0 rgba(82, 196, 26, 0.7);
-          }
-          70% {
-            box-shadow: 0 0 0 15px rgba(82, 196, 26, 0);
-          }
-          100% {
-            box-shadow: 0 0 0 0 rgba(82, 196, 26, 0);
-          }
-        }
-
         .ant-menu-horizontal {
           border-bottom: none !important;
         }

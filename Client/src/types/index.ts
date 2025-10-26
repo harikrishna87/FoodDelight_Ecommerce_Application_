@@ -1,6 +1,7 @@
 export interface IUser {
   _id: string;
   name?: string;
+  image?: string;
   email: string;
   role: 'user' | 'admin';
   googleId?: string;
