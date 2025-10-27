@@ -1,124 +1,138 @@
-🍽️ FoodDelight E-Commerce Web Application
-🧑‍💻 Type: Personal Project
-🚀 Technologies: React.js | Node.js | Express.js | MongoDB | TypeScript | Ant Design
+# 🍽️ **FoodDelight E-Commerce Web Application**
 
-🔗 Live Demo: FoodDelight E-Commerce Application
+![React](https://img.shields.io/badge/Frontend-React.js-61DBFB?logo=react&logoColor=white)
+![Node](https://img.shields.io/badge/Backend-Node.js-68A063?logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Server-Express.js-000000?logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/Database-MongoDB-4DB33D?logo=mongodb&logoColor=white)
+![TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)
+![Ant Design](https://img.shields.io/badge/UI-AntDesign-0170FE?logo=antdesign&logoColor=white)
 
-🧠 Project Overview
+---
 
-FoodDelight is a full-stack e-commerce web application designed for seamless online food ordering and delivery. It offers a dynamic and user-friendly interface where customers can browse menus, filter cuisines, place orders, and make secure payments.
-The project focuses on performance optimization, security, and responsive design, providing an optimal user experience across all devices.
+## 👨‍💻 **Project Type**
+**Personal Project**
 
-✨ Key Features
-🛍️ User-Facing Features
+## 🌐 **Live Demo**
+👉 [**FoodDelight E-Commerce Application**](https://food-delight-ecommerce-application-chi.vercel.app)
 
-Interactive Food Catalog:
-Users can explore a variety of food items through a paginated catalog with search and filter functionality for quick access.
-(Enhanced navigation speed by 40%)
+---
 
-User Authentication:
-Secure login and registration system powered by JWT (JSON Web Tokens) ensures data safety and prevents unauthorized access.
-(Reduced unauthorized access by 95%)
+## 🧠 **Overview**
 
-Responsive Design:
-The application adapts seamlessly to mobile, tablet, and desktop devices for smooth user interaction.
+**FoodDelight** is a full-stack e-commerce food ordering web application built to deliver a seamless online food ordering experience.  
+It provides users with an **interactive food catalog**, **real-time order tracking**, and **secure payments**, while administrators can efficiently manage orders and inventory through a **role-based dashboard**.
 
-Real-Time Order Tracking:
-Customers can monitor their orders in real-time, reducing support queries and increasing transparency.
-(Customer satisfaction improved by 45%)
+---
 
-Secure Online Payments:
-Integrated Razorpay Payment Gateway to handle transactions securely and efficiently.
-(Increased checkout completion rate by 28%)
+## ✨ **Key Features**
 
-🧑‍💼 Admin-Facing Features
+### 👥 User Features
+- 🍔 **Interactive Food Catalog** – Paginated menu with search and filter options for fast browsing *(+40% navigation speed)*  
+- 🔐 **JWT Authentication** – Secure login and registration using JSON Web Tokens *(−95% unauthorized access)*  
+- 📱 **Responsive UI** – Optimized for mobile, tablet, and desktop  
+- 🚚 **Real-Time Order Tracking** – Users can view live order updates *(−45% support queries)*  
+- 💳 **Secure Payments** – Integrated **Razorpay** gateway for fast, safe transactions *(+28% checkout success)*  
 
-Role-Based Access Control (RBAC):
-Admins can manage orders, update statuses, and control inventory, while users have restricted access.
+### 🧑‍💼 Admin Features
+- ⚙️ **Role-Based Access Control** – Separate permissions for users and admins  
+- 📊 **Admin Dashboard** – Manage inventory, update orders, and monitor analytics using **Ant Design** components  
 
-Admin Dashboard:
-A visually rich dashboard built with Ant Design components for monitoring sales, managing products, and tracking order data.
+---
 
-⚙️ Tech Stack
-Category	Technology
-Frontend	React.js, TypeScript, Ant Design
-Backend	Node.js, Express.js
-Database	MongoDB
-Authentication	JSON Web Tokens (JWT)
-Payment Integration	Razorpay
-Deployment	Vercel (Frontend), Render/Atlas (Backend & DB)
-🧩 Architecture Overview
+## 🧩 **Tech Stack**
+
+| Category | Technologies |
+|-----------|--------------|
+| **Frontend** | React.js, TypeScript, Ant Design |
+| **Backend** | Node.js, Express.js |
+| **Database** | MongoDB |
+| **Authentication** | JSON Web Tokens (JWT) |
+| **Payment Gateway** | Razorpay |
+| **Deployment** | Vercel (Frontend), Render/MongoDB Atlas (Backend & DB) |
+
+---
+
+## 🏗️ **System Architecture**
+
 Frontend (React + TypeScript + Ant Design)
-        |
-        | RESTful API Calls
-        v
+|
+| RESTful API
+v
 Backend (Node.js + Express.js)
-        |
-        | Database Operations
-        v
+|
+| Database Queries
+v
 Database (MongoDB)
 
-🚀 Installation & Setup Guide
+yaml
+Copy code
 
-Follow these steps to run the project locally:
+---
 
-1️⃣ Clone the Repository
+## ⚙️ **Installation & Setup**
+
+### 1️⃣ Clone the Repository
+```bash
 git clone https://github.com/harikrishna87/FoodDelight.git
 cd FoodDelight
-
 2️⃣ Install Dependencies
-Frontend:
+Client:
+bash
+Copy code
 cd client
 npm install
-
-Backend:
+Server:
+bash
+Copy code
 cd ../server
 npm install
+3️⃣ Configure Environment Variables
+Create a .env file inside the server directory:
 
-3️⃣ Setup Environment Variables
-
-Create a .env file inside the server folder and include:
-
+env
+Copy code
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_secret_key
 RAZORPAY_KEY_ID=your_key_id
 RAZORPAY_KEY_SECRET=your_key_secret
-
-4️⃣ Run the Application
-Backend:
+4️⃣ Run the Project
+Start Backend:
+bash
+Copy code
 npm start
-
-Frontend:
+Start Frontend:
+bash
+Copy code
 npm run dev
+🔗 Open http://localhost:5173 to view the application.
 
+🚀 Performance Optimization
+✅ 55% overall performance improvement via:
 
-Then open http://localhost:5173
- (or your Vite default port) in your browser.
+Efficient API handling and caching
 
-🧠 Performance Highlights
+Pagination and lazy loading for large data
 
-Achieved 55% performance optimization through efficient state management and API call reduction.
+Optimized MongoDB queries
 
-Optimized database queries and implemented pagination to reduce server load.
+Ant Design’s lightweight UI rendering
 
-Enhanced front-end performance using lazy loading and memoization.
-
-🧑‍💻 Author
-
+👨‍💻 Author
 👤 Veta Hari Babu
 💼 React & Full Stack Developer
-🔗 GitHub
- | LinkedIn
+
+
 
 📜 License
+This project is licensed under the MIT License.
+Feel free to use, modify, and distribute with proper attribution.
 
-This project is licensed under the MIT License — feel free to use and modify it for learning or development purposes.
+🙏 Acknowledgments
+🧩 Ant Design – Elegant, modern UI library
 
-🥗 Acknowledgments
+💳 Razorpay – Secure payment gateway
 
-Ant Design for elegant UI components.
+☁️ MongoDB Atlas – Reliable cloud database service
 
-Razorpay for secure and easy payment integration.
-
-MongoDB Atlas for reliable cloud database services.
+⭐ If you like this project, don’t forget to give it a star on GitHub!
