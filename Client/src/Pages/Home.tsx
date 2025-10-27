@@ -65,9 +65,9 @@ export default function Homepage() {
   const carouselImages: CarouselImage[] = [
     {
       src: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80",
-      alt: "Fresh Vegetables",
-      title: "Fresh Vegetables",
-      description: "Farm-fresh organic vegetables delivered to your door"
+      alt: "Veg Food",
+      title: "Veg Food",
+      description: "Farm-fresh organic veg Food delivered to your door"
     },
     {
       src: "https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80",

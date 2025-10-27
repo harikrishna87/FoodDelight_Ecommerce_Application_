@@ -314,9 +314,9 @@ const Store: React.FC = () => {
     const carouselImages: CarouselImage[] = [
         {
             src: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80",
-            alt: "Fresh Vegetables",
-            title: "Fresh Vegetables",
-            description: "Farm-fresh organic vegetables delivered to your door"
+            alt: "Veg Food",
+            title: "Veg Food",
+            description: "Farm-fresh organic veg Food delivered to your door"
         },
         {
             src: "https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80",
@@ -538,7 +538,7 @@ const Store: React.FC = () => {
     const handleKnowMore = async (product: Product) => {
         setModalLoading(true);
         setShowProductModal(true);
-        
+
         try {
             await new Promise(resolve => setTimeout(resolve, 800));
             setSelectedProduct(product);
@@ -838,10 +838,10 @@ const Store: React.FC = () => {
                                                     >
                                                         {product.category}
                                                     </Tag>
-                                                    <button 
-                                                        className="know-more-btn" 
+                                                    <button
+                                                        className="know-more-btn"
                                                         onClick={() => handleKnowMore(product)}
-                                                        style={{fontSize: '14px'}}
+                                                        style={{ fontSize: '14px' }}
                                                     >
                                                         <InfoCircleOutlined />
                                                         <span>Know More</span>
@@ -956,7 +956,7 @@ const Store: React.FC = () => {
                     </div>
                 </div>
                 {contextHolder}
-                
+
                 <Modal
                     title={
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -975,8 +975,8 @@ const Store: React.FC = () => {
                 >
                     {modalLoading ? (
                         <div className="modal-loading-content">
-                            <Spin 
-                                size="large" 
+                            <Spin
+                                size="large"
                                 className="modal-loading-spinner"
                                 style={{ color: '#52c41a' }}
                             />
@@ -1014,14 +1014,14 @@ const Store: React.FC = () => {
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                             <div>
                                                 <Text strong style={{ color: '#52c41a', marginRight: '12px' }}>Product ID:</Text>
-                                                <Tag color='purple' style={{fontSize: '12px', border: '1px dashed'}} >{selectedProduct._id}</Tag>
+                                                <Tag color='purple' style={{ fontSize: '12px', border: '1px dashed' }} >{selectedProduct._id}</Tag>
                                             </div>
-                                            
+
                                             <div>
                                                 <Text strong style={{ color: '#52c41a', marginRight: '12px' }}>Category:</Text>
-                                                <Tag 
-                                                    color="cyan" 
-                                                    style={{ 
+                                                <Tag
+                                                    color="cyan"
+                                                    style={{
                                                         fontSize: '12px',
                                                         border: '1px dashed'
                                                     }}
@@ -1106,10 +1106,10 @@ const Store: React.FC = () => {
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                         <div>
                                             <Text strong style={{ color: '#52c41a', display: 'block', marginBottom: '8px' }}>Image URL:</Text>
-                                            <Text 
-                                                copyable 
-                                                style={{ 
-                                                    fontSize: '12px', 
+                                            <Text
+                                                copyable
+                                                style={{
+                                                    fontSize: '12px',
                                                     display: 'block',
                                                     wordBreak: 'break-all',
                                                     whiteSpace: 'normal',
@@ -1135,10 +1135,10 @@ const Store: React.FC = () => {
                                                 <Text strong style={{ color: '#52c41a', display: 'block', marginBottom: '8px' }}>Ingredients:</Text>
                                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                                                     {selectedProduct.ingredients.map((ingredient, index) => (
-                                                        <Tag 
-                                                            key={index} 
+                                                        <Tag
+                                                            key={index}
                                                             color="blue"
-                                                            style={{ 
+                                                            style={{
                                                                 border: '1px dashed',
                                                                 fontSize: '12px',
                                                                 padding: '2px 8px'
@@ -1165,7 +1165,7 @@ const Store: React.FC = () => {
                         </div>
                     ) : null}
                 </Modal>
-                
+
                 <AuthModal
                     show={showAuthModal}
                     onHide={() => setShowAuthModal(false)}
