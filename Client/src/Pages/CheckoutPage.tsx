@@ -758,22 +758,30 @@ const CheckoutPage: React.FC = () => {
                                             Pay securely using Credit/Debit Card, UPI, NetBanking, or Wallets via Razorpay.
                                         </p>
                                     </div>
-                                    <div style={{ display: "flex" }}>
-
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexWrap: "wrap",
+                                            justifyContent: "center",
+                                        }}
+                                    >
                                         <Button
                                             size="large"
                                             block
                                             disabled={submittingRazorpay}
                                             onClick={() => setCurrentStep(1)}
                                             style={{
-                                                height: '50px',
-                                                fontSize: '16px',
-                                                borderRadius: '8px',
-                                                margin: "10px"
+                                                height: "50px",
+                                                fontSize: "16px",
+                                                borderRadius: "8px",
+                                                margin: "10px",
+                                                flex: "1 1 200px",
+                                                minWidth: "150px",
                                             }}
                                         >
                                             Back to Shipping
                                         </Button>
+
                                         <Button
                                             type="primary"
                                             size="large"
@@ -782,14 +790,16 @@ const CheckoutPage: React.FC = () => {
                                             disabled={submittingRazorpay}
                                             onClick={handleRazorpayPayment}
                                             style={{
-                                                backgroundColor: '#52c41a',
-                                                borderColor: '#52c41a',
-                                                height: '50px',
-                                                fontSize: '16px',
-                                                fontWeight: '600',
-                                                borderRadius: '8px',
+                                                backgroundColor: "#52c41a",
+                                                borderColor: "#52c41a",
+                                                height: "50px",
+                                                fontSize: "16px",
+                                                fontWeight: "600",
+                                                borderRadius: "8px",
                                                 margin: "10px",
-                                                boxShadow: '0 4px 12px rgba(82, 196, 26, 0.2)'
+                                                boxShadow: "0 4px 12px rgba(82, 196, 26, 0.2)",
+                                                flex: "1 1 200px",
+                                                minWidth: "150px",
                                             }}
                                         >
                                             Pay ₹{finalTotal.toFixed(2)} Now
