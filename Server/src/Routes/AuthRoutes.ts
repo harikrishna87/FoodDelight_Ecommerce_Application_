@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import { register, login, logout, getMe, updateProfile, uploadImage, updatePassword, DeleteAccount, verifyEmail, resetPassword } from '../Controller/AuthController';
+import { register, login, logout, getMe, updateProfile, uploadImage, updatePassword, DeleteAccount, verifyEmail, resetPassword, verifyOTP, resendOTP} from '../Controller/AuthController';
 import { protect } from '../Middleware/AuthMiddleWare';
 import multer from 'multer';
 
@@ -16,5 +16,7 @@ router.put('/update-password', protect as express.RequestHandler, updatePassword
 router.delete('/delete-account', protect as express.RequestHandler, DeleteAccount as express.RequestHandler);
 router.post('/verify-email', verifyEmail as express.RequestHandler);
 router.put('/reset-password', resetPassword as express.RequestHandler);
+router.post('/verify-otp', verifyOTP as express.RequestHandler);
+router.post('/resend-otp', resendOTP as express.RequestHandler);
 
 export default router;

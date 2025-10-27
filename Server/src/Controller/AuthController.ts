@@ -4,6 +4,7 @@ import sendToken from '../Utils/jwt';
 import dotenv from 'dotenv';
 import cloudinary from 'cloudinary';
 import { Readable } from 'stream';
+import nodemailer from 'nodemailer';
 
 dotenv.config();
 
@@ -17,6 +18,109 @@ interface MulterRequest extends Request {
   file?: Express.Multer.File;
 }
 
+const otpStore = new Map<string, { otp: string; userData: any; expiresAt: number }>();
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  secure: process.env.SMTP_SECURE === 'true',
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
+const generateOTP = (): string => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+const sendOTPEmail = async (email: string, otp: string): Promise<void> => {
+  const mailOptions = {
+    from: `"FoodDelights" <${process.env.SMTP_USER}>`,
+    to: email,
+    subject: 'Email Verification OTP - FoodDelights',
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'Times New Roman', Times, serif;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 40px 20px;">
+            <tr>
+              <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                  
+                  <!-- Logo/Header -->
+                  <tr>
+                    <td style="padding: 50px 40px 30px 40px; text-align: center;">
+                      <h1 style="margin: 0; color: #52c41a; font-size: 32px; font-weight: 600; font-family: 'Times New Roman', Times, serif;">
+                        🍽️ FoodDelights
+                      </h1>
+                    </td>
+                  </tr>
+                  
+                  <!-- Content -->
+                  <tr>
+                    <td style="padding: 0 60px 40px 60px;">
+                      <h2 style="margin: 0 0 24px 0; color: #1a1a1a; font-size: 24px; font-weight: 600; text-align: center; font-family: 'Times New Roman', Times, serif;">
+                        Verify your FoodDelights sign-up
+                      </h2>
+                      <p style="margin: 0 0 32px 0; color: #4a4a4a; font-size: 15px; line-height: 1.6; text-align: center; font-family: 'Times New Roman', Times, serif;">
+                        We have received a sign-up attempt with the following code. Please enter it in the browser window where you started signing up for FoodDelights.
+                      </p>
+                      
+                      <!-- OTP Box -->
+                      <table width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td align="center">
+                            <div style="background-color: #f5f5f5; border-radius: 12px; padding: 32px; margin: 0 auto; max-width: 400px;">
+                              <p style="margin: 0; color: #52c41a; font-size: 48px; font-weight: 600; letter-spacing: 6px; text-align: center; font-family: 'Times New Roman', Times, serif;">
+                                ${otp}
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
+                      </table>
+                      
+                      <p style="margin: 32px 0 0 0; color: #999999; font-size: 14px; line-height: 1.6; text-align: center; font-family: 'Times New Roman', Times, serif;">
+                        If you did not attempt to sign up but received this email, please disregard it. The code will remain active for 10 minutes.
+                      </p>
+                    </td>
+                  </tr>
+                  
+                  <!-- Divider -->
+                  <tr>
+                    <td style="padding: 0 60px;">
+                      <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 40px 0;">
+                    </td>
+                  </tr>
+                  
+                  <!-- Footer -->
+                  <tr>
+                    <td style="padding: 0 60px 50px 60px; text-align: center;">
+                      <p style="margin: 0 0 20px 0; color: #999999; font-size: 14px; line-height: 1.6; font-family: 'Times New Roman', Times, serif;">
+                        FoodDelights, an effortless food delivery solution with all the features you need.
+                      </p>
+                      <p style="margin: 20px 0 0 0; color: #cccccc; font-size: 13px; font-family: 'Times New Roman', Times, serif;">
+                        © ${new Date().getFullYear()} FoodDelights. All rights reserved.
+                      </p>
+                    </td>
+                  </tr>
+                  
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+      </html>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
 const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { name, email, password } = req.body;
@@ -29,13 +133,103 @@ const register = async (req: Request, res: Response, next: NextFunction): Promis
       res.status(400).json({ success: false, message: 'User with this email already exists' });
       return;
     }
+
+    const otp = generateOTP();
+    const expiresAt = Date.now() + 10 * 60 * 1000;
+
+    otpStore.set(email, {
+      otp,
+      userData: { name, email, password },
+      expiresAt,
+    });
+
+    await sendOTPEmail(email, otp);
+
+    res.status(200).json({
+      success: true,
+      message: 'OTP sent to your email',
+      email,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const verifyOTP = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      res.status(400).json({ success: false, message: 'Please provide email and OTP' });
+      return;
+    }
+
+    const storedData = otpStore.get(email);
+
+    if (!storedData) {
+      res.status(400).json({ success: false, message: 'OTP expired or invalid' });
+      return;
+    }
+
+    if (Date.now() > storedData.expiresAt) {
+      otpStore.delete(email);
+      res.status(400).json({ success: false, message: 'OTP has expired' });
+      return;
+    }
+
+    if (storedData.otp !== otp) {
+      res.status(400).json({ success: false, message: 'Invalid OTP' });
+      return;
+    }
+
+    const { name, email: userEmail, password } = storedData.userData;
+
     const user = await User.create({
       name,
-      email,
+      email: userEmail,
       password,
-      role: email === process.env.ADMIN_EMAIL ? 'admin' : 'user',
+      role: userEmail === process.env.ADMIN_EMAIL ? 'admin' : 'user',
     });
+
+    otpStore.delete(email);
+
     sendToken(user, 201, res);
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const resendOTP = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      res.status(400).json({ success: false, message: 'Please provide email' });
+      return;
+    }
+
+    const storedData = otpStore.get(email);
+
+    if (!storedData) {
+      res.status(400).json({ success: false, message: 'No pending verification for this email' });
+      return;
+    }
+
+    const otp = generateOTP();
+    const expiresAt = Date.now() + 10 * 60 * 1000;
+
+    otpStore.set(email, {
+      ...storedData,
+      otp,
+      expiresAt,
+    });
+
+    await sendOTPEmail(email, otp);
+
+    res.status(200).json({
+      success: true,
+      message: 'OTP resent successfully',
+    });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -337,4 +531,4 @@ const resetPassword = async (req: Request, res: Response, next: NextFunction): P
   }
 };
 
-export { register, login, logout, getMe, updateProfile, uploadImage, updatePassword, DeleteAccount, verifyEmail, resetPassword };
+export { register, login, logout, getMe, updateProfile, uploadImage, updatePassword, DeleteAccount, verifyEmail, resetPassword, verifyOTP, resendOTP };

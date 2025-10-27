@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useRef } from 'react';
 import {
   Modal,
   Button,
@@ -17,10 +17,12 @@ import {
   GoogleOutlined,
   LoginOutlined,
   UserAddOutlined,
-  KeyOutlined
+  KeyOutlined,
+  SafetyOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const { Title, Text, Link } = Typography;
 
@@ -35,12 +37,18 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
   const [form] = Form.useForm();
   const [forgotPasswordForm] = Form.useForm();
   const [loading, setLoading] = useState<boolean>(false);
+  const [resendLoading, setResendLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [messageApi, contextHolder] = message.useMessage();
+  const [showOTPVerification, setShowOTPVerification] = useState<boolean>(false);
+  const [registrationEmail, setRegistrationEmail] = useState<string>('');
   const [showForgotPassword, setShowForgotPassword] = useState<boolean>(false);
   const [forgotPasswordStep, setForgotPasswordStep] = useState<number>(0);
   const [verifiedEmail, setVerifiedEmail] = useState<string>('');
+  const [otpValues, setOtpValues] = useState<string[]>(['', '', '', '', '', '']);
+  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const auth = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
@@ -49,47 +57,120 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
     return null;
   }
 
+  const handleOtpChange = (index: number, value: string) => {
+    if (value.length > 1) {
+      value = value.slice(-1);
+    }
+
+    if (!/^\d*$/.test(value)) {
+      return;
+    }
+
+    const newOtpValues = [...otpValues];
+    newOtpValues[index] = value;
+    setOtpValues(newOtpValues);
+
+    if (value && index < 5) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otpValues[index] && index > 0) {
+      otpInputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    const newOtpValues = pastedData.split('').concat(Array(6).fill('')).slice(0, 6);
+    setOtpValues(newOtpValues);
+
+    const nextEmptyIndex = newOtpValues.findIndex(val => !val);
+    if (nextEmptyIndex !== -1) {
+      otpInputRefs.current[nextEmptyIndex]?.focus();
+    } else {
+      otpInputRefs.current[5]?.focus();
+    }
+  };
+
   const handleSubmit = async (values: any) => {
     setLoading(true);
     setError(null);
 
     try {
-      const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
-      const payload = isLoginMode
-        ? { email: values.email, password: values.password }
-        : { name: values.name, email: values.email, password: values.password };
+      if (isLoginMode) {
+        const payload = { email: values.email, password: values.password };
 
-      const config = {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        timeout: 10000,
-      };
-
-      const response = await axios.post(`${backendUrl}${endpoint}`, payload, config);
-
-      if (response.data.success) {
-        auth.login(response.data.user, response.data.token);
-        messageApi.success({
-          content: isLoginMode ? `Welcome back ${response.data.user.email}` : 'Account created successfully!',
-          duration: 3,
-          style: {
-            marginTop: '10vh',
+        const config = {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
           },
-        });
-        onHide();
-        form.resetFields();
+          timeout: 10000,
+        };
+
+        const response = await axios.post(`${backendUrl}/api/auth/login`, payload, config);
+
+        if (response.data.success) {
+          auth.login(response.data.user, response.data.token);
+          messageApi.success({
+            content: `Welcome back ${response.data.user.name}!`,
+            duration: 3,
+            style: {
+              marginTop: '10vh',
+            },
+          });
+          onHide();
+          form.resetFields();
+          navigate('/');
+        } else {
+          const errorMsg = response.data.message || 'An error occurred.';
+          setError(errorMsg);
+          messageApi.error({
+            content: errorMsg,
+            duration: 3,
+            style: {
+              marginTop: '10vh',
+            },
+          });
+        }
       } else {
-        const errorMsg = response.data.message || 'An error occurred.';
-        setError(errorMsg);
-        messageApi.error({
-          content: errorMsg,
-          duration: 3,
-          style: {
-            marginTop: '10vh',
+        const payload = { name: values.name, email: values.email, password: values.password };
+
+        const config = {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
           },
-        });
+          timeout: 10000,
+        };
+
+        const response = await axios.post(`${backendUrl}/api/auth/register`, payload, config);
+
+        if (response.data.success) {
+          setRegistrationEmail(values.email);
+          setShowOTPVerification(true);
+          messageApi.success({
+            content: 'OTP sent to your email. Please verify.',
+            duration: 3,
+            style: {
+              marginTop: '10vh',
+            },
+          });
+          form.resetFields();
+        } else {
+          const errorMsg = response.data.message || 'An error occurred.';
+          setError(errorMsg);
+          messageApi.error({
+            content: errorMsg,
+            duration: 3,
+            style: {
+              marginTop: '10vh',
+            },
+          });
+        }
       }
     } catch (err: any) {
       console.error('Auth error:', err);
@@ -114,6 +195,143 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleOTPVerification = async () => {
+    const otp = otpValues.join('');
+
+    if (otp.length !== 6) {
+      setError('Please enter complete OTP');
+      messageApi.error({
+        content: 'Please enter complete OTP',
+        duration: 3,
+        style: {
+          marginTop: '10vh',
+        },
+      });
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const payload = { email: registrationEmail, otp };
+
+      const config = {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        timeout: 10000,
+      };
+
+      const response = await axios.post(`${backendUrl}/api/auth/verify-otp`, payload, config);
+
+      if (response.data.success) {
+        auth.login(response.data.user, response.data.token);
+        messageApi.success({
+          content: 'Email verified successfully! Welcome to FoodDelights!',
+          duration: 3,
+          style: {
+            marginTop: '10vh',
+          },
+        });
+        setShowOTPVerification(false);
+        onHide();
+        setOtpValues(['', '', '', '', '', '']);
+        navigate('/');
+      } else {
+        const errorMsg = response.data.message || 'Invalid OTP.';
+        setError(errorMsg);
+        messageApi.error({
+          content: errorMsg,
+          duration: 3,
+          style: {
+            marginTop: '10vh',
+          },
+        });
+      }
+    } catch (err: any) {
+      console.error('OTP verification error:', err);
+
+      let errorMessage = 'Failed to verify OTP.';
+
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
+      messageApi.error({
+        content: errorMessage,
+        duration: 3,
+        style: {
+          marginTop: '10vh',
+        },
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    setResendLoading(true);
+    setError(null);
+
+    try {
+      const payload = { email: registrationEmail };
+
+      const config = {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        timeout: 10000,
+      };
+
+      const response = await axios.post(`${backendUrl}/api/auth/resend-otp`, payload, config);
+
+      if (response.data.success) {
+        messageApi.success({
+          content: 'OTP resent successfully!',
+          duration: 3,
+          style: {
+            marginTop: '10vh',
+          },
+        });
+      } else {
+        const errorMsg = response.data.message || 'Failed to resend OTP.';
+        setError(errorMsg);
+        messageApi.error({
+          content: errorMsg,
+          duration: 3,
+          style: {
+            marginTop: '10vh',
+          },
+        });
+      }
+    } catch (err: any) {
+      console.error('Resend OTP error:', err);
+
+      let errorMessage = 'Failed to resend OTP.';
+
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      }
+
+      setError(errorMessage);
+      messageApi.error({
+        content: errorMessage,
+        duration: 3,
+        style: {
+          marginTop: '10vh',
+        },
+      });
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -261,11 +479,18 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
     forgotPasswordForm.resetFields();
   };
 
+  const handleBackFromOTP = () => {
+    setShowOTPVerification(false);
+    setRegistrationEmail('');
+    setError(null);
+    setOtpValues(['', '', '', '', '', '']);
+  };
+
   return (
     <>
       {contextHolder}
       <Modal
-        open={show}
+        open={show && !showOTPVerification}
         onCancel={handleModalClose}
         footer={null}
         centered
@@ -479,6 +704,153 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
       </Modal>
 
       <Modal
+        open={showOTPVerification}
+        onCancel={handleBackFromOTP}
+        footer={null}
+        centered
+        width={480}
+        closable={true}
+        styles={{
+          body: { padding: '32px' },
+          content: {
+            boxShadow: "none",
+            border: "1px solid #e0e0e0",
+            borderRadius: "20px"
+          },
+          mask: { backgroundColor: 'rgba(0, 0, 0, 0.45)' }
+        }}
+        destroyOnClose
+      >
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <SafetyOutlined style={{ fontSize: '48px', color: '#52c41a', marginBottom: '16px' }} />
+          <Title level={3} style={{ color: '#52c41a', margin: '0 0 8px 0', fontWeight: 600 }}>
+            Verify Your Email
+          </Title>
+          <Text style={{ color: '#8c8c8c', fontSize: '14px' }}>
+            We've sent a 6-digit OTP to {registrationEmail}
+          </Text>
+        </div>
+
+        {error && (
+          <Alert
+            message={error}
+            type="error"
+            showIcon
+            style={{
+              marginBottom: '24px',
+              borderRadius: '6px',
+              boxShadow: 'none'
+            }}
+          />
+        )}
+
+        <div style={{ marginBottom: '24px' }}>
+          <Text strong style={{ display: 'block', marginBottom: '12px' }}>Enter OTP</Text>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            {otpValues.map((value, index) => (
+              <input
+                key={index}
+                ref={(el) => {
+                  otpInputRefs.current[index] = el;
+                }}
+                type="text"
+                maxLength={1}
+                value={value}
+                onChange={(e) => handleOtpChange(index, e.target.value)}
+                onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                onPaste={handleOtpPaste}
+                style={{
+                  width: '50px',
+                  height: '56px',
+                  fontSize: '24px',
+                  fontWeight: '600',
+                  textAlign: 'center',
+                  border: '2px solid #52c41a',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  transition: 'all 0.3s',
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#52c41a';
+                  e.target.style.boxShadow = '0 0 0 2px rgba(82, 196, 26, 0.2)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        <Button
+          type="primary"
+          onClick={handleOTPVerification}
+          loading={loading}
+          block
+          size="large"
+          icon={<SafetyOutlined />}
+          style={{
+            height: '44px',
+            borderRadius: '6px',
+            backgroundColor: '#52c41a',
+            borderColor: '#52c41a',
+            fontSize: '16px',
+            fontWeight: 500,
+            boxShadow: 'none',
+            marginBottom: '20px'
+          }}
+          className="no-hover-effect"
+        >
+          Verify OTP
+        </Button>
+
+        <div style={{ textAlign: 'center' }}>
+          <Text type="secondary" style={{ fontSize: '14px' }}>
+            Didn't receive the OTP?{' '}
+          </Text>
+          <Button
+            type="link"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleResendOTP();
+            }}
+            style={{
+              color: '#52c41a',
+              fontWeight: 500,
+              padding: 0,
+              height: 'auto',
+              fontSize: '14px'
+            }}
+            disabled={loading || resendLoading}
+          >
+            Resend OTP
+          </Button>
+        </div>
+
+        <style>{`
+    .no-hover-effect:hover {
+      border-color: inherit !important;
+      box-shadow: none !important;
+    }
+    .no-hover-effect:focus {
+      border-color: inherit !important;
+      box-shadow: none !important;
+    }
+    .ant-btn.no-hover-effect:hover {
+      background-color: inherit !important;
+      border-color: inherit !important;
+      box-shadow: none !important;
+    }
+    .ant-btn-primary.no-hover-effect:hover {
+      background-color: #28a745 !important;
+      border-color: #28a745 !important;
+    }
+  `}
+        </style>
+      </Modal>
+
+      <Modal
         open={showForgotPassword}
         onCancel={handleCloseForgotPassword}
         footer={null}
@@ -643,7 +1015,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
                 className="no-hover-effect"
               />
             </Form.Item>
-
             <Form.Item style={{ marginBottom: '0' }}>
               <Button
                 type="primary"
@@ -669,24 +1040,24 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
         )}
 
         <style>{`
-        .no-hover-effect:hover {
-          border-color: inherit !important;
-          box-shadow: none !important;
-        }
-        .no-hover-effect:focus {
-          border-color: inherit !important;
-          box-shadow: none !important;
-        }
-        .ant-btn.no-hover-effect:hover {
-          background-color: inherit !important;
-          border-color: inherit !important;
-          box-shadow: none !important;
-        }
-        .ant-btn-primary.no-hover-effect:hover {
-          background-color: #28a745 !important;
-          border-color: #28a745 !important;
-        }
-      `}</style>
+    .no-hover-effect:hover {
+      border-color: inherit !important;
+      box-shadow: none !important;
+    }
+    .no-hover-effect:focus {
+      border-color: inherit !important;
+      box-shadow: none !important;
+    }
+    .ant-btn.no-hover-effect:hover {
+      background-color: inherit !important;
+      border-color: inherit !important;
+      box-shadow: none !important;
+    }
+    .ant-btn-primary.no-hover-effect:hover {
+      background-color: #28a745 !important;
+      border-color: #28a745 !important;
+    }
+  `}</style>
       </Modal>
     </>
   );
