@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef } from 'react';
+import React, { useState, useContext, useRef, useEffect } from 'react';
 import {
   Modal,
   Button,
@@ -50,7 +50,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
   const auth = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+  useEffect(() => {
+    console.log('Backend URL:', backendUrl);
+  }, []);
 
   if (!auth) {
     console.error("AuthContext not available. AuthModal must be used within AuthProvider.");
@@ -108,7 +112,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
           headers: {
             'Content-Type': 'application/json',
           },
-          timeout: 10000,
+          timeout: 30000,
         };
 
         const response = await axios.post(`${backendUrl}/api/auth/login`, payload, config);
@@ -144,7 +148,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
           headers: {
             'Content-Type': 'application/json',
           },
-          timeout: 10000,
+          timeout: 60000,
         };
 
         const response = await axios.post(`${backendUrl}/api/auth/register`, payload, config);
@@ -174,11 +178,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
       }
     } catch (err: any) {
       console.error('Auth error:', err);
+      console.error('Error details:', {
+        message: err.message,
+        code: err.code,
+        response: err.response,
+        backendUrl: backendUrl
+      });
 
       let errorMessage = 'An unexpected error occurred.';
 
-      if (err.code === 'ERR_NETWORK') {
-        errorMessage = 'Network error. Please check if the server is running.';
+      if (err.code === 'ECONNABORTED') {
+        errorMessage = 'Request timeout. Please try again.';
+      } else if (err.code === 'ERR_NETWORK') {
+        errorMessage = `Cannot connect to server. Please check your connection.`;
       } else if (err.response?.data?.message) {
         errorMessage = err.response.data.message;
       } else if (err.message) {
@@ -188,7 +200,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
       setError(errorMessage);
       messageApi.error({
         content: errorMessage,
-        duration: 3,
+        duration: 5,
         style: {
           marginTop: '10vh',
         },
@@ -224,7 +236,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 10000,
+        timeout: 30000,
       };
 
       const response = await axios.post(`${backendUrl}/api/auth/verify-otp`, payload, config);
@@ -289,7 +301,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 10000,
+        timeout: 30000,
       };
 
       const response = await axios.post(`${backendUrl}/api/auth/resend-otp`, payload, config);
@@ -490,7 +502,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
     <>
       {contextHolder}
       <Modal
-        open={show && !showOTPVerification}
+        open={show && !showOTPVerification && !showForgotPassword}
         onCancel={handleModalClose}
         footer={null}
         centered
@@ -823,6 +835,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
               fontSize: '14px'
             }}
             disabled={loading || resendLoading}
+            loading={resendLoading}
           >
             Resend OTP
           </Button>

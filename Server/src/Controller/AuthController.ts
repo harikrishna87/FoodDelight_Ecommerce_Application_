@@ -30,6 +30,9 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  connectionTimeout: 30000,
+  greetingTimeout: 30000,
+  socketTimeout: 30000,
 });
 
 const generateOTP = (): string => {
@@ -121,10 +124,12 @@ const sendOTPEmail = async (email: string, otp: string): Promise<void> => {
 const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { name, email, password } = req.body;
+    
     if (!name || !email || !password) {
       res.status(400).json({ success: false, message: 'Please enter all fields' });
       return;
     }
+    
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       res.status(400).json({ success: false, message: 'User with this email already exists' });
@@ -140,7 +145,11 @@ const register = async (req: Request, res: Response, next: NextFunction): Promis
       expiresAt,
     });
 
-    await sendOTPEmail(email, otp);
+    setImmediate(() => {
+      sendOTPEmail(email, otp).catch(err => {
+        console.error('Failed to send OTP email:', err);
+      });
+    });
 
     res.status(200).json({
       success: true,
@@ -148,6 +157,7 @@ const register = async (req: Request, res: Response, next: NextFunction): Promis
       email,
     });
   } catch (error: any) {
+    console.error('Registration error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -192,6 +202,7 @@ const verifyOTP = async (req: Request, res: Response, next: NextFunction): Promi
 
     sendToken(user, 201, res);
   } catch (error: any) {
+    console.error('OTP verification error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -221,13 +232,18 @@ const resendOTP = async (req: Request, res: Response, next: NextFunction): Promi
       expiresAt,
     });
 
-    await sendOTPEmail(email, otp);
+    setImmediate(() => {
+      sendOTPEmail(email, otp).catch(err => {
+        console.error('Failed to resend OTP email:', err);
+      });
+    });
 
     res.status(200).json({
       success: true,
       message: 'OTP resent successfully',
     });
   } catch (error: any) {
+    console.error('Resend OTP error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -251,6 +267,7 @@ const login = async (req: Request, res: Response, next: NextFunction): Promise<v
     }
     sendToken(user, 200, res);
   } catch (error: any) {
+    console.error('Login error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -284,6 +301,7 @@ const getMe = async (req: Request, res: Response, next: NextFunction): Promise<v
       },
     });
   } catch (error: any) {
+    console.error('Get me error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -338,6 +356,7 @@ const uploadImage = async (req: MulterRequest, res: Response, next: NextFunction
     const stream = Readable.from(req.file.buffer);
     stream.pipe(uploadStream);
   } catch (error: any) {
+    console.error('Upload image error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -379,6 +398,7 @@ const updateProfile = async (req: Request, res: Response, next: NextFunction): P
       },
     });
   } catch (error: any) {
+    console.error('Update profile error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -415,6 +435,7 @@ const updatePassword = async (req: Request, res: Response, next: NextFunction): 
 
     res.status(200).json({ success: true, message: 'Password updated successfully' });
   } catch (error: any) {
+    console.error('Update password error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -512,6 +533,7 @@ const verifyEmail = async (req: Request, res: Response, next: NextFunction): Pro
       message: 'Email verified successfully'
     });
   } catch (error: any) {
+    console.error('Verify email error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -540,6 +562,7 @@ const resetPassword = async (req: Request, res: Response, next: NextFunction): P
       message: 'Password reset successfully'
     });
   } catch (error: any) {
+    console.error('Reset password error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
