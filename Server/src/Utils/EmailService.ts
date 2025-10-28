@@ -1,31 +1,10 @@
-import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 import { IOrder, IOrderItem, IShippingAddress } from '../Types';
 
-interface EmailConfig {
-  host: string;
-  port: number;
-  secure: boolean;
-  auth: {
-    user: string;
-    pass: string;
-  };
-}
-
 class EmailService {
-  private transporter: nodemailer.Transporter;
-
   constructor() {
-    const config: EmailConfig = {
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: {
-        user: process.env.SMTP_USER || '',
-        pass: process.env.SMTP_PASS || '',
-      },
-    };
-
-    this.transporter = nodemailer.createTransport(config);
+    const apiKey = process.env.SENDGRID_API_KEY || '';
+    sgMail.setApiKey(apiKey);
   }
 
   private getDeliveryStatusHTML(status: string, orderDate: Date | string): string {
@@ -157,11 +136,11 @@ class EmailService {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Order Confirmation</title>
     </head>
-    <body style="margin: 0; padding: 0; font-family: 'Times New Roman', Times, serif; background-color: #f5f5f5;">
-      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f5f5f5; padding: 20px 0;">
+    <body style="margin: 0; padding: 0; font-family: 'Times New Roman', Times, serif;">
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="padding: 20px 0;">
         <tr>
           <td align="center">
-            <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 16px; overflow: hidden;">
+            <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; border: 1px solid #e0e0e0; border-radius: 16px; overflow: hidden;">
               
               <tr>
                 <td style="padding: 30px 40px; text-align: center; background: #ffffff; border-bottom: 2px solid #000;">
@@ -307,11 +286,11 @@ class EmailService {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Order Update</title>
     </head>
-    <body style="margin: 0; padding: 0; font-family: 'Times New Roman', Times, serif; background-color: #f5f5f5;">
-      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f5f5f5; padding: 20px 0;">
+    <body style="margin: 0; padding: 0; font-family: 'Times New Roman', Times, serif;">
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="padding: 20px 0;">
         <tr>
           <td align="center">
-            <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 16px; overflow: hidden;">
+            <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; border: 1px solid #e0e0e0; border-radius: 16px; overflow: hidden;">
               
               <tr>
                 <td style="padding: 30px 40px; text-align: center; background: #ffffff; border-bottom: 2px solid #000;">
@@ -390,7 +369,6 @@ class EmailService {
     `;
   }
 
-
   async sendOrderConfirmation(
     userEmail: string,
     userName: string,
@@ -399,14 +377,17 @@ class EmailService {
     try {
       const emailHTML = this.generateOrderEmailHTML(order, userEmail, userName);
 
-      const mailOptions = {
-        from: `"FoodDelights" <${process.env.SMTP_USER}>`,
+      const msg = {
         to: userEmail,
+        from: {
+          email: process.env.SENDGRID_FROM_EMAIL || 'fooddelights883@gmail.com',
+          name: process.env.SENDGRID_FROM_NAME || 'FoodDelights'
+        },
         subject: `Order Confirmation - Order #${order._id}`,
         html: emailHTML,
       };
 
-      await this.transporter.sendMail(mailOptions);
+      await sgMail.send(msg);
       console.log(`Order confirmation email sent to ${userEmail}`);
       return true;
     } catch (error) {
@@ -424,14 +405,17 @@ class EmailService {
     try {
       const emailHTML = this.generateStatusUpdateEmailHTML(order, userName, newStatus);
 
-      const mailOptions = {
-        from: `"FoodDelights" <${process.env.SMTP_USER}>`,
+      const msg = {
         to: userEmail,
+        from: {
+          email: process.env.SENDGRID_FROM_EMAIL || 'fooddelights883@gmail.com',
+          name: process.env.SENDGRID_FROM_NAME || 'FoodDelights'
+        },
         subject: `Order Update - ${newStatus} - Order #${order._id}`,
         html: emailHTML,
       };
 
-      await this.transporter.sendMail(mailOptions);
+      await sgMail.send(msg);
       console.log(`Order status update email sent to ${userEmail}`);
       return true;
     } catch (error) {

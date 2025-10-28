@@ -6,7 +6,7 @@ import sendToken from '../Utils/jwt';
 import dotenv from 'dotenv';
 import cloudinary from 'cloudinary';
 import { Readable } from 'stream';
-import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 
 dotenv.config();
 
@@ -16,42 +16,13 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
+
 interface MulterRequest extends Request {
   file?: Express.Multer.File;
 }
 
 const otpStore = new Map<string, { otp: string; userData: any; expiresAt: number }>();
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  connectionTimeout: 60000,
-  greetingTimeout: 30000,
-  socketTimeout: 60000,
-  pool: true,
-  maxConnections: 5,
-  maxMessages: 100,
-});
-
-transporter.verify((error, success) => {
-  if (error) {
-    console.error('❌ SMTP Connection Error:', error);
-    console.error('Please check your email configuration in .env file');
-  } else {
-    console.log('✅ SMTP Server is ready to send emails');
-    console.log('SMTP Config:', {
-      host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT,
-      secure: process.env.SMTP_SECURE,
-      user: process.env.SMTP_USER,
-    });
-  }
-});
 
 const generateOTP = (): string => {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -60,91 +31,97 @@ const generateOTP = (): string => {
 const sendOTPEmail = async (email: string, otp: string): Promise<void> => {
   console.log(`📧 Attempting to send OTP to: ${email}`);
   
-  const mailOptions = {
-    from: `"FoodDelights" <${process.env.SMTP_USER}>`,
-    to: email,
-    subject: 'Email Verification OTP - FoodDelights',
-    html: `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'Times New Roman', Times, serif;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 40px 20px;">
-            <tr>
-              <td align="center">
-                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
-                  
-                  <tr>
-                    <td style="padding: 50px 40px 30px 40px; text-align: center;">
-                      <h1 style="margin: 0; color: #52c41a; font-size: 32px; font-weight: 600; font-family: 'Times New Roman', Times, serif;">
-                        🍽️ FoodDelights
-                      </h1>
-                    </td>
-                  </tr>
-                  
-                  <tr>
-                    <td style="padding: 0 60px 40px 60px;">
-                      <h2 style="margin: 0 0 24px 0; color: #1a1a1a; font-size: 24px; font-weight: 600; text-align: center; font-family: 'Times New Roman', Times, serif;">
-                        Verify your FoodDelights sign-up
-                      </h2>
-                      <p style="margin: 0 0 32px 0; color: #4a4a4a; font-size: 15px; line-height: 1.6; text-align: center; font-family: 'Times New Roman', Times, serif;">
-                        We have received a sign-up attempt with the following code. Please enter it in the browser window where you started signing up for FoodDelights.
-                      </p>
-                      
-                      <table width="100%" cellpadding="0" cellspacing="0">
-                        <tr>
-                          <td align="center">
-                            <div style="background-color: #f5f5f5; border-radius: 12px; padding: 32px; margin: 0 auto; max-width: 400px;">
-                              <p style="margin: 0; color: #52c41a; font-size: 48px; font-weight: 600; letter-spacing: 6px; text-align: center; font-family: 'Times New Roman', Times, serif;">
-                                ${otp}
-                              </p>
-                            </div>
-                          </td>
-                        </tr>
-                      </table>
-                      
-                      <p style="margin: 32px 0 0 0; color: #999999; font-size: 14px; line-height: 1.6; text-align: center; font-family: 'Times New Roman', Times, serif;">
-                        If you did not attempt to sign up but received this email, please disregard it. The code will remain active for 10 minutes.
-                      </p>
-                    </td>
-                  </tr>
-                  
-                  <tr>
-                    <td style="padding: 0 60px;">
-                      <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 40px 0;">
-                    </td>
-                  </tr>
-                  
-                  <tr>
-                    <td style="padding: 0 60px 50px 60px; text-align: center;">
-                      <p style="margin: 0 0 20px 0; color: #999999; font-size: 14px; line-height: 1.6; font-family: 'Times New Roman', Times, serif;">
-                        FoodDelights, an effortless food delivery solution with all the features you need.
-                      </p>
-                      <p style="margin: 20px 0 0 0; color: #cccccc; font-size: 13px; font-family: 'Times New Roman', Times, serif;">
-                        © ${new Date().getFullYear()} FoodDelights. All rights reserved.
-                      </p>
-                    </td>
-                  </tr>
-                  
-                </table>
-              </td>
-            </tr>
-          </table>
-        </body>
-      </html>
-    `,
-    text: `Your FoodDelights verification code is: ${otp}\n\nThis code will expire in 10 minutes.\n\nIf you didn't request this code, please ignore this email.`,
-  };
+const msg = {
+  to: email,
+  from: {
+    email: process.env.SENDGRID_FROM_EMAIL || '',
+    name: process.env.SENDGRID_FROM_NAME || 'FoodDelights'
+  },
+  subject: 'Email Verification OTP - FoodDelights',
+  text: `Your FoodDelights verification code is: ${otp}\n\nThis code will expire in 10 minutes.\n\nIf you didn't request this code, please ignore this email.`,
+  html: `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Times New Roman', Times, serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06); border: 1px solid #e5e5e5;">
+                
+                <tr>
+                  <td style="padding: 50px 40px 30px 40px; text-align: center;">
+                    <h1 style="margin: 0; color: #52c41a; font-size: 32px; font-weight: 600; font-family: 'Times New Roman', Times, serif;">
+                      🍽️ FoodDelights
+                    </h1>
+                  </td>
+                </tr>
+                
+                <tr>
+                  <td style="padding: 0 60px 40px 60px;">
+                    <h2 style="margin: 0 0 24px 0; color: #1a1a1a; font-size: 24px; font-weight: 600; text-align: center; font-family: 'Times New Roman', Times, serif;">
+                      Verify your FoodDelights sign-up
+                    </h2>
+                    <p style="margin: 0 0 32px 0; color: #4a4a4a; font-size: 15px; line-height: 1.6; text-align: center; font-family: 'Times New Roman', Times, serif;">
+                      We have received a sign-up attempt with the following code. Please enter it in the browser window where you started signing up for FoodDelights.
+                    </p>
+                    
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td align="center">
+                          <div style="background-color: #f5f5f5; border-radius: 12px; padding: 20px; margin: 0 auto; max-width: 400px; border: 2px solid #e5e5e5;">
+                            <p style="margin: 0; color: #52c41a; font-size: 48px; font-weight: 600; letter-spacing: 6px; text-align: center; font-family: 'Times New Roman', Times, serif;">
+                              ${otp}
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <p style="margin: 32px 0 0 0; color: #999999; font-size: 14px; line-height: 1.6; text-align: center; font-family: 'Times New Roman', Times, serif;">
+                      If you did not attempt to sign up but received this email, please disregard it. The code will remain active for 10 minutes.
+                    </p>
+                  </td>
+                </tr>
+                
+                <tr>
+                  <td style="padding: 0 60px;">
+                    <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 40px 0;">
+                  </td>
+                </tr>
+                
+                <tr>
+                  <td style="padding: 0 60px 50px 60px; text-align: center;">
+                    <p style="margin: 0 0 20px 0; color: #999999; font-size: 14px; line-height: 1.6; font-family: 'Times New Roman', Times, serif;">
+                      FoodDelights, an effortless food delivery solution with all the features you need.
+                    </p>
+                    <p style="margin: 20px 0 0 0; color: #cccccc; font-size: 13px; font-family: 'Times New Roman', Times, serif;">
+                      © ${new Date().getFullYear()} FoodDelights. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+                
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `,
+};
 
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Email sent successfully:', info.messageId);
+    await sgMail.send(msg);
+    console.log('✅ Email sent successfully via SendGrid');
     return Promise.resolve();
   } catch (error: any) {
     console.error('❌ Failed to send email:', error);
+    if (error.response) {
+      console.error('SendGrid Error Details:', error.response.body);
+    }
     throw new Error(`Email delivery failed: ${error.message}`);
   }
 };
