@@ -739,7 +739,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ show, onHide, isLoginMode, onTogg
             Verify Your Email
           </Title>
           <Text style={{ color: '#8c8c8c', fontSize: '14px' }}>
-            We've sent a 6-digit OTP to {registrationEmail}
+            We've sent a 6-digit OTP to <span style={{color: "#52c41a"}}>{registrationEmail}</span> Please check your Spam or Junk folder if you don't see the email.
           </Text>
         </div>
 

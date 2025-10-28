@@ -68,33 +68,35 @@ class EmailService {
       day: 'numeric',
     });
 
-    let itemsHTML = '<tr>';
+    let itemsHTML = '';
     order.items.forEach((item: IOrderItem, index: number) => {
+      if (index % 2 === 0) {
+        itemsHTML += '<tr>';
+      }
+      
       itemsHTML += `
         <td width="50%" style="padding: 10px; vertical-align: top;">
-          <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background: #f9f9f9; border-radius: 8px; padding: 15px;">
             <tr>
-              <td width="80" style="padding-right: 10px;" valign="top">
-                <img src="${item.image}" alt="${item.name}" style="width: 80px; height: 80px; object-fit: cover; display: block; border: 1px solid #e0e0e0; border-radius: 16px;" />
+              <td width="100" style="padding-right: 15px;" valign="top">
+                <img src="${item.image}" alt="${item.name}" width="100" height="100" style="width: 100px; height: 100px; object-fit: cover; display: block; border: 1px solid #e0e0e0; border-radius: 8px;" />
               </td>
               <td valign="top">
-                <div style="font-family: 'Times New Roman', Times, serif; font-weight: bold; color: #000; margin-bottom: 6px; font-size: 14px;">${item.name}</div>
-                <div style="font-family: 'Times New Roman', Times, serif; color: #666; font-size: 12px; margin-bottom: 3px;">PRICE: <span style="color: #ff0000; font-weight: bold;">₹${item.discount_price.toFixed(2)}</span></div>
-                <div style="font-family: 'Times New Roman', Times, serif; color: #666; font-size: 12px;">QTY: ${item.quantity}</div>
+                <div style="font-family: 'Times New Roman', Times, serif; font-weight: bold; color: #000; margin-bottom: 8px; font-size: 15px;">${item.name}</div>
+                <div style="font-family: 'Times New Roman', Times, serif; color: #666; font-size: 13px; margin-bottom: 5px;">Price: <span style="color: #ff0000; font-weight: bold;">₹${item.discount_price.toFixed(2)}</span></div>
+                <div style="font-family: 'Times New Roman', Times, serif; color: #666; font-size: 13px;">Quantity: <span style="font-weight: bold;">${item.quantity}</span></div>
               </td>
             </tr>
           </table>
         </td>`;
 
-      if ((index + 1) % 2 === 0 && index !== order.items.length - 1) {
-        itemsHTML += '</tr><tr>';
+      if (index % 2 === 1 || index === order.items.length - 1) {
+        if (index === order.items.length - 1 && index % 2 === 0) {
+          itemsHTML += '<td width="50%" style="padding: 10px;"></td>';
+        }
+        itemsHTML += '</tr>';
       }
     });
-
-    if (order.items.length % 2 !== 0) {
-      itemsHTML += '<td width="50%"></td>';
-    }
-    itemsHTML += '</tr>';
 
     const shippingAddress = order.shippingAddress;
     const addressHTML = shippingAddress ? `
@@ -135,12 +137,15 @@ class EmailService {
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Order Confirmation</title>
+      <style type="text/css">
+        img { display: block; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+      </style>
     </head>
-    <body style="margin: 0; padding: 0; font-family: 'Times New Roman', Times, serif;">
-      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="padding: 20px 0;">
+    <body style="margin: 0; padding: 0; font-family: 'Times New Roman', Times, serif; background-color: #f0f0f0;">
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="padding: 20px 0; background-color: #f0f0f0;">
         <tr>
           <td align="center">
-            <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; border: 1px solid #e0e0e0; border-radius: 16px; overflow: hidden;">
+            <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; border: 1px solid #e0e0e0; border-radius: 16px; overflow: hidden; background-color: #ffffff;">
               
               <tr>
                 <td style="padding: 30px 40px; text-align: center; background: #ffffff; border-bottom: 2px solid #000;">
@@ -214,7 +219,7 @@ class EmailService {
 
               <tr>
                 <td style="padding: 30px 40px; border-top: 1px solid #e0e0e0;">
-                  <div style="font-family: 'Times New Roman', Times, serif; font-weight: bold; color: #000; margin-bottom: 20px; font-size: 16px; text-align: center;">Product Details</div>
+                  <div style="font-family: 'Times New Roman', Times, serif; font-weight: bold; color: #000; margin-bottom: 20px; font-size: 16px; text-align: center;">PRODUCT DETAILS</div>
                   <table cellpadding="0" cellspacing="0" border="0" width="100%">
                     ${itemsHTML}
                   </table>
@@ -285,12 +290,15 @@ class EmailService {
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Order Update</title>
+      <style type="text/css">
+        img { display: block; border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+      </style>
     </head>
-    <body style="margin: 0; padding: 0; font-family: 'Times New Roman', Times, serif;">
-      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="padding: 20px 0;">
+    <body style="margin: 0; padding: 0; font-family: 'Times New Roman', Times, serif; background-color: #f0f0f0;">
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="padding: 20px 0; background-color: #f0f0f0;">
         <tr>
           <td align="center">
-            <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; border: 1px solid #e0e0e0; border-radius: 16px; overflow: hidden;">
+            <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; border: 1px solid #e0e0e0; border-radius: 16px; overflow: hidden; background-color: #ffffff;">
               
               <tr>
                 <td style="padding: 30px 40px; text-align: center; background: #ffffff; border-bottom: 2px solid #000;">

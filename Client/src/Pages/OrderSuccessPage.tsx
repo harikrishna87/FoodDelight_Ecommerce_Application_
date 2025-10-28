@@ -292,7 +292,7 @@ const OrderSuccessPage: React.FC = () => {
                 Order Placed Successfully!
               </Title>
               <Text style={{ fontSize: '16px', color: '#666' }}>
-                Thank you for your order. We'll send you a confirmation email shortly.
+                Thank you for your order. We'll send you a confirmation email shortly. Please check your Spam or Junk folder if you don't see the email.
               </Text>
             </div>
 
