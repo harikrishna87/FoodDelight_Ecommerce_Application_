@@ -30,9 +30,27 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
-  connectionTimeout: 30000,
+  connectionTimeout: 60000,
   greetingTimeout: 30000,
-  socketTimeout: 30000,
+  socketTimeout: 60000,
+  pool: true,
+  maxConnections: 5,
+  maxMessages: 100,
+});
+
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('❌ SMTP Connection Error:', error);
+    console.error('Please check your email configuration in .env file');
+  } else {
+    console.log('✅ SMTP Server is ready to send emails');
+    console.log('SMTP Config:', {
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      secure: process.env.SMTP_SECURE,
+      user: process.env.SMTP_USER,
+    });
+  }
 });
 
 const generateOTP = (): string => {
@@ -40,6 +58,8 @@ const generateOTP = (): string => {
 };
 
 const sendOTPEmail = async (email: string, otp: string): Promise<void> => {
+  console.log(`📧 Attempting to send OTP to: ${email}`);
+  
   const mailOptions = {
     from: `"FoodDelights" <${process.env.SMTP_USER}>`,
     to: email,
@@ -116,9 +136,17 @@ const sendOTPEmail = async (email: string, otp: string): Promise<void> => {
         </body>
       </html>
     `,
+    text: `Your FoodDelights verification code is: ${otp}\n\nThis code will expire in 10 minutes.\n\nIf you didn't request this code, please ignore this email.`,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Email sent successfully:', info.messageId);
+    return Promise.resolve();
+  } catch (error: any) {
+    console.error('❌ Failed to send email:', error);
+    throw new Error(`Email delivery failed: ${error.message}`);
+  }
 };
 
 const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -145,17 +173,25 @@ const register = async (req: Request, res: Response, next: NextFunction): Promis
       expiresAt,
     });
 
-    setImmediate(() => {
-      sendOTPEmail(email, otp).catch(err => {
-        console.error('Failed to send OTP email:', err);
+    try {
+      await sendOTPEmail(email, otp);
+      console.log(`✅ OTP sent successfully to ${email}: ${otp}`);
+      
+      res.status(200).json({
+        success: true,
+        message: 'OTP sent to your email. Please check your inbox.',
+        email,
       });
-    });
-
-    res.status(200).json({
-      success: true,
-      message: 'OTP sent to your email',
-      email,
-    });
+    } catch (emailError: any) {
+      otpStore.delete(email);
+      console.error('Email sending failed:', emailError);
+      
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send verification email. Please check your email address and try again.',
+        error: emailError.message,
+      });
+    }
   } catch (error: any) {
     console.error('Registration error:', error);
     res.status(500).json({ success: false, message: error.message });
@@ -174,18 +210,18 @@ const verifyOTP = async (req: Request, res: Response, next: NextFunction): Promi
     const storedData = otpStore.get(email);
 
     if (!storedData) {
-      res.status(400).json({ success: false, message: 'OTP expired or invalid' });
+      res.status(400).json({ success: false, message: 'OTP expired or invalid. Please register again.' });
       return;
     }
 
     if (Date.now() > storedData.expiresAt) {
       otpStore.delete(email);
-      res.status(400).json({ success: false, message: 'OTP has expired' });
+      res.status(400).json({ success: false, message: 'OTP has expired. Please register again.' });
       return;
     }
 
     if (storedData.otp !== otp) {
-      res.status(400).json({ success: false, message: 'Invalid OTP' });
+      res.status(400).json({ success: false, message: 'Invalid OTP. Please check and try again.' });
       return;
     }
 
@@ -219,7 +255,7 @@ const resendOTP = async (req: Request, res: Response, next: NextFunction): Promi
     const storedData = otpStore.get(email);
 
     if (!storedData) {
-      res.status(400).json({ success: false, message: 'No pending verification for this email' });
+      res.status(400).json({ success: false, message: 'No pending verification for this email. Please register again.' });
       return;
     }
 
@@ -232,16 +268,23 @@ const resendOTP = async (req: Request, res: Response, next: NextFunction): Promi
       expiresAt,
     });
 
-    setImmediate(() => {
-      sendOTPEmail(email, otp).catch(err => {
-        console.error('Failed to resend OTP email:', err);
+    try {
+      await sendOTPEmail(email, otp);
+      console.log(`✅ OTP resent successfully to ${email}: ${otp}`);
+      
+      res.status(200).json({
+        success: true,
+        message: 'OTP resent successfully. Please check your email.',
       });
-    });
-
-    res.status(200).json({
-      success: true,
-      message: 'OTP resent successfully',
-    });
+    } catch (emailError: any) {
+      console.error('Email resending failed:', emailError);
+      
+      res.status(500).json({
+        success: false,
+        message: 'Failed to resend verification email. Please try again.',
+        error: emailError.message,
+      });
+    }
   } catch (error: any) {
     console.error('Resend OTP error:', error);
     res.status(500).json({ success: false, message: error.message });
