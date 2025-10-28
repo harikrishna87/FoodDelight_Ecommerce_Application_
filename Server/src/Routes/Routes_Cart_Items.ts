@@ -5,7 +5,7 @@ import {
     Delete_Cart_Item,
     Update_Cart_Item_Quantity,
     Clear_Cart
-} from '../Controller/Control_Cart_Items';
+} from '../Controller/Cart_ItemsController';
 import { protect } from '../Middleware/AuthMiddleWare';
 
 const router = express.Router();

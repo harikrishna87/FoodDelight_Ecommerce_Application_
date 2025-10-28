@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import User from '../Models/Users';
+import Cart from '../Models/Cart_Items';
+import Order from '../Models/Orders';
 import sendToken from '../Utils/jwt';
 import dotenv from 'dotenv';
 import cloudinary from 'cloudinary';
@@ -52,7 +54,6 @@ const sendOTPEmail = async (email: string, otp: string): Promise<void> => {
               <td align="center">
                 <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
                   
-                  <!-- Logo/Header -->
                   <tr>
                     <td style="padding: 50px 40px 30px 40px; text-align: center;">
                       <h1 style="margin: 0; color: #52c41a; font-size: 32px; font-weight: 600; font-family: 'Times New Roman', Times, serif;">
@@ -61,7 +62,6 @@ const sendOTPEmail = async (email: string, otp: string): Promise<void> => {
                     </td>
                   </tr>
                   
-                  <!-- Content -->
                   <tr>
                     <td style="padding: 0 60px 40px 60px;">
                       <h2 style="margin: 0 0 24px 0; color: #1a1a1a; font-size: 24px; font-weight: 600; text-align: center; font-family: 'Times New Roman', Times, serif;">
@@ -71,7 +71,6 @@ const sendOTPEmail = async (email: string, otp: string): Promise<void> => {
                         We have received a sign-up attempt with the following code. Please enter it in the browser window where you started signing up for FoodDelights.
                       </p>
                       
-                      <!-- OTP Box -->
                       <table width="100%" cellpadding="0" cellspacing="0">
                         <tr>
                           <td align="center">
@@ -90,14 +89,12 @@ const sendOTPEmail = async (email: string, otp: string): Promise<void> => {
                     </td>
                   </tr>
                   
-                  <!-- Divider -->
                   <tr>
                     <td style="padding: 0 60px;">
                       <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 40px 0;">
                     </td>
                   </tr>
                   
-                  <!-- Footer -->
                   <tr>
                     <td style="padding: 0 60px 50px 60px; text-align: center;">
                       <p style="margin: 0 0 20px 0; color: #999999; font-size: 14px; line-height: 1.6; font-family: 'Times New Roman', Times, serif;">
@@ -460,7 +457,18 @@ const DeleteAccount = async (req: Request, res: Response, next: NextFunction): P
       }
     }
 
-    await User.findByIdAndDelete(user._id);
+    const cartDeletion = await Cart.deleteMany({ user: user._id });
+    console.log(`Deleted ${cartDeletion.deletedCount} cart(s) for user ${user._id}`);
+    
+    const orderDeletion = await Order.deleteMany({ user: user._id });
+    console.log(`Deleted ${orderDeletion.deletedCount} order(s) for user ${user._id}`);
+    
+    const userDeletion = await User.findByIdAndDelete(user._id);
+    if (!userDeletion) {
+      res.status(500).json({ success: false, message: 'Failed to delete user account' });
+      return;
+    }
+    console.log(`Successfully deleted user account: ${user._id}`);
 
     res.cookie('token', 'none', {
       expires: new Date(Date.now() + 10 * 1000),
@@ -471,9 +479,14 @@ const DeleteAccount = async (req: Request, res: Response, next: NextFunction): P
 
     res.status(200).json({
       success: true,
-      message: 'Account deleted successfully'
+      message: 'Account deleted successfully',
+      deletedItems: {
+        carts: cartDeletion.deletedCount,
+        orders: orderDeletion.deletedCount
+      }
     });
   } catch (error: any) {
+    console.error('Error deleting account:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

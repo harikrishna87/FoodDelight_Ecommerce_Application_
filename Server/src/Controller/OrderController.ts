@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import Order from '../Models/Orders';
-import Cart from '../Models/Model_Cart_Items';
+import Cart from '../Models/Cart_Items';
 import User from '../Models/Users';
 import { OrderDeliveryStatus, IOrderPopulated, IOrder } from '../Types';
 import { Types } from 'mongoose';

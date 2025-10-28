@@ -1,4 +1,4 @@
-import Cart, { ICartItem } from "../Models/Model_Cart_Items";
+import Cart, { ICartItem } from "../Models/Cart_Items";
 import { Request, Response, NextFunction } from "express";
 
 const Add_Cart_item = async (req: Request, res: Response): Promise<void> => {
