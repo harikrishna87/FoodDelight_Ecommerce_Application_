@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { Card, Typography, Row, Col, Button, Form, Input, Space, message, Spin, Divider } from 'antd';
 import { ArrowLeftOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -61,16 +61,6 @@ interface RazorpayOptions {
     };
 }
 
-// interface RazorpayInstance {
-//   open: () => void;
-// }
-
-// declare global {
-//   interface Window {
-//     Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
-//   }
-// }
-
 const CheckoutPage: React.FC = () => {
     const [personalForm] = Form.useForm();
     const [shippingForm] = Form.useForm();
@@ -85,6 +75,15 @@ const CheckoutPage: React.FC = () => {
     const navigate = useNavigate();
     const backendUrl = import.meta.env.VITE_BACKEND_URL as string;
     const deliveryCharge = 30;
+    const topRef = useRef<HTMLDivElement>(null);
+
+    const scrollToTop = () => {
+        if (topRef.current) {
+            topRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
 
     useEffect(() => {
         if (!auth?.isAuthenticated) {
@@ -106,6 +105,10 @@ const CheckoutPage: React.FC = () => {
             }
         };
     }, [auth?.isAuthenticated]);
+
+    useEffect(() => {
+        scrollToTop();
+    }, [currentStep]);
 
     const fetchUserProfile = async (): Promise<void> => {
         if (!auth?.token) return;
@@ -230,7 +233,6 @@ const CheckoutPage: React.FC = () => {
                 ? numericTotalPrice
                 : numericTotalPrice + deliveryCharge;
 
-            // ✅ FIXED: Send numeric amount, not string
             const { data: orderData } = await axios.post<{ order: { id: string; amount: number } }>(
                 `${backendUrl}/razorpay/payment/process`,
                 { amount: finalTotal },
@@ -337,7 +339,7 @@ const CheckoutPage: React.FC = () => {
     const finalTotal = freeDeliveryApplied ? numericTotalPrice : numericTotalPrice + deliveryCharge;
 
     return (
-        <div style={{
+        <div ref={topRef} style={{
             minHeight: '100vh',
             backgroundColor: '#f0f2f5',
             padding: '24px 16px'
